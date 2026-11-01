@@ -12,10 +12,26 @@ describe('API Contracts & OpenAPI (E2E Integration)', () => {
   let quotesController: QuotesController;
 
   beforeAll(async () => {
+    const mockRepo = {
+      find: jest.fn().mockResolvedValue([]),
+      findOne: jest.fn().mockResolvedValue(null),
+      create: jest.fn().mockImplementation((dto) => dto),
+      save: jest.fn().mockImplementation(async (dto) => dto),
+      createQueryBuilder: jest.fn().mockReturnValue({
+        andWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([]),
+      }),
+    };
+
     const mockDataSource = {
       isInitialized: true,
+      options: { type: 'postgres', entities: [] },
+      entityMetadatas: [],
       query: jest.fn().mockResolvedValue([]),
       destroy: jest.fn().mockResolvedValue(undefined),
+      getRepository: jest.fn().mockReturnValue(mockRepo),
     };
 
     const mockRedisService = {

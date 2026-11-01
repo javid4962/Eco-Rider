@@ -20,6 +20,7 @@ import { AppConfig } from '../../config/configuration';
           database: db.name,
           ssl: db.ssl,
           autoLoadEntities: true,
+          entities: [__dirname + '/../../database/entities/*.entity{.ts,.js}'],
           synchronize: false,
           migrationsRun: false,
           retryAttempts: 2,

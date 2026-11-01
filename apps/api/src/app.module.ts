@@ -11,6 +11,8 @@ import { TestMatrixModule } from './modules/test-matrix/test-matrix.module';
 import { QuotesModule } from './modules/quotes/quotes.module';
 import { ProvidersModule } from './modules/providers/providers.module';
 import { SeedModule } from './modules/seed/seed.module';
+import { IdentityModule } from './modules/identity/identity.module';
+import { AuthModule } from './modules/auth/auth.module';
 import { CorrelationIdMiddleware } from './common/middleware/correlation-id.middleware';
 
 @Module({
@@ -29,6 +31,8 @@ import { CorrelationIdMiddleware } from './common/middleware/correlation-id.midd
     QuotesModule,
     ProvidersModule,
     SeedModule,
+    IdentityModule,
+    AuthModule,
   ],
 })
 export class AppModule implements NestModule {

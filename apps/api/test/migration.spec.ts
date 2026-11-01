@@ -1,5 +1,6 @@
 import { EnablePostgisExtension1700000000000 } from '../src/database/migrations/1700000000000-EnablePostgisExtension';
 import { CreateInitialSchema1700000000001 } from '../src/database/migrations/1700000000001-CreateInitialSchema';
+import { CreateIdentityAndRoleSchema1700000000003 } from '../src/database/migrations/1700000000003-CreateIdentityAndRoleSchema';
 import { QueryRunner } from 'typeorm';
 
 describe('Database Migrations', () => {
@@ -85,6 +86,48 @@ describe('Database Migrations', () => {
       expect(executedQueries[3]).toContain('DROP TABLE IF EXISTS "zones" CASCADE;');
       expect(executedQueries[4]).toContain('DROP TABLE IF EXISTS "vehicles" CASCADE;');
       expect(executedQueries[5]).toContain('DROP TABLE IF EXISTS "users" CASCADE;');
+    });
+  });
+
+  describe('CreateIdentityAndRoleSchema1700000000003', () => {
+    let migration: CreateIdentityAndRoleSchema1700000000003;
+
+    beforeEach(() => {
+      migration = new CreateIdentityAndRoleSchema1700000000003();
+    });
+
+    it('should create identity, role, profile, session, consent and audit event tables in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('ALTER TABLE "users"');
+      expect(allQueries).toContain('ADD COLUMN IF NOT EXISTS "email"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "roles"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "rider_profiles"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "driver_profiles"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "sessions"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "consents"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "audit_events"');
+
+      // Verify role scopes seeded
+      expect(allQueries).toContain('SUPPORT');
+      expect(allQueries).toContain('FINANCE');
+      expect(allQueries).toContain('FLEET');
+      expect(allQueries).toContain('OPERATOR');
+      expect(allQueries).toContain('SUPER_ADMIN');
+    });
+
+    it('should drop all identity tables and email column in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "audit_events" CASCADE;');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "consents" CASCADE;');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "sessions" CASCADE;');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "driver_profiles" CASCADE;');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "rider_profiles" CASCADE;');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "roles" CASCADE;');
+      expect(allQueries).toContain('ALTER TABLE "users" DROP COLUMN IF EXISTS "email";');
     });
   });
 });
