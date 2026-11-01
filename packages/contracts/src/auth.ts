@@ -63,3 +63,4 @@ export interface VerifyOtpResponse {
   session?: UserSessionPayload;
   user?: AuthenticatedUserPayload;
 }
+
