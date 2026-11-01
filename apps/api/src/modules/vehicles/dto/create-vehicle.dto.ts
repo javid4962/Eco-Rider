@@ -69,8 +69,7 @@ export class CreateVehicleDto implements CreateVehicleRequest {
 
   @ApiProperty({
     example: 1,
-    description:
-      'Approved passenger seating capacity (excluding driver: 1 for 2W, 3 for 3W, 4 for 4W)',
+    description: 'Approved passenger seating capacity (excluding driver: 1 for 2W, 3 for 3W, 4 for 4W)',
   })
   @IsInt()
   @Min(1)
@@ -84,10 +83,7 @@ export class CreateVehicleDto implements CreateVehicleRequest {
   @Type(() => Number)
   batteryCapacityKwh!: number;
 
-  @ApiPropertyOptional({
-    example: 100.0,
-    description: 'Current State of Charge percentage (0-100%)',
-  })
+  @ApiPropertyOptional({ example: 100.0, description: 'Current State of Charge percentage (0-100%)' })
   @IsOptional()
   @IsNumber()
   @Min(0)
@@ -110,10 +106,7 @@ export class CreateVehicleDto implements CreateVehicleRequest {
   @IsEnum(RangeTelemetrySource)
   rangeTelemetrySource?: RangeTelemetrySource = RangeTelemetrySource.OBD_TELEMATICS;
 
-  @ApiPropertyOptional({
-    example: 'IMEI-864201048821990',
-    description: 'Connected IoT telematics device ID',
-  })
+  @ApiPropertyOptional({ example: 'IMEI-864201048821990', description: 'Connected IoT telematics device ID' })
   @IsOptional()
   @IsString()
   @MaxLength(100)
@@ -124,61 +117,40 @@ export class CreateVehicleDto implements CreateVehicleRequest {
   @IsUUID()
   ownerId?: string;
 
-  @ApiPropertyOptional({
-    example: 'POL-AP-EV-2026-9812',
-    description: 'Commercial vehicle insurance policy number',
-  })
+  @ApiPropertyOptional({ example: 'POL-AP-EV-2026-9812', description: 'Commercial vehicle insurance policy number' })
   @IsOptional()
   @IsString()
   @MaxLength(100)
   insurancePolicyNumber?: string;
 
-  @ApiPropertyOptional({
-    example: '2027-06-30T00:00:00.000Z',
-    description: 'Insurance policy expiration timestamp',
-  })
+  @ApiPropertyOptional({ example: '2027-06-30T00:00:00.000Z', description: 'Insurance policy expiration timestamp' })
   @IsOptional()
   @IsString()
   insuranceExpiryDate?: string;
 
-  @ApiPropertyOptional({
-    example: 'FIT-AP31-2026-441',
-    description: 'Transport fitness certificate number',
-  })
+  @ApiPropertyOptional({ example: 'FIT-AP31-2026-441', description: 'Transport fitness certificate number' })
   @IsOptional()
   @IsString()
   @MaxLength(100)
   fitnessCertificateNumber?: string;
 
-  @ApiPropertyOptional({
-    example: '2027-12-31T00:00:00.000Z',
-    description: 'Fitness certificate expiration timestamp',
-  })
+  @ApiPropertyOptional({ example: '2027-12-31T00:00:00.000Z', description: 'Fitness certificate expiration timestamp' })
   @IsOptional()
   @IsString()
   fitnessExpiryDate?: string;
 
-  @ApiPropertyOptional({
-    example: 'PERMIT-AP-EV-00129',
-    description: 'AP Green-Plate Commercial Transport Permit',
-  })
+  @ApiPropertyOptional({ example: 'PERMIT-AP-EV-00129', description: 'AP Green-Plate Commercial Transport Permit' })
   @IsOptional()
   @IsString()
   @MaxLength(100)
   commercialPermitNumber?: string;
 
-  @ApiPropertyOptional({
-    example: '2028-12-31T00:00:00.000Z',
-    description: 'Commercial permit expiration timestamp',
-  })
+  @ApiPropertyOptional({ example: '2028-12-31T00:00:00.000Z', description: 'Commercial permit expiration timestamp' })
   @IsOptional()
   @IsString()
   commercialPermitExpiry?: string;
 
-  @ApiPropertyOptional({
-    default: true,
-    description: 'Whether the vehicle has verified AP RTO Green Plates',
-  })
+  @ApiPropertyOptional({ default: true, description: 'Whether the vehicle has verified AP RTO Green Plates' })
   @IsOptional()
   greenPlateVerified?: boolean;
 
