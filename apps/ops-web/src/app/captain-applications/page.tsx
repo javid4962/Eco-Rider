@@ -7,6 +7,8 @@ import {
   VehicleCategory,
   VehicleOwnershipType,
   PropulsionType,
+  DriverComplianceStatus,
+  DutyStatus,
 } from '@ecoride/contracts';
 
 interface MockApplicationItem {
@@ -16,6 +18,8 @@ interface MockApplicationItem {
   phone: string;
   city: string;
   status: CaptainApplicationStatus;
+  complianceStatus?: DriverComplianceStatus;
+  dutyStatus?: DutyStatus;
   submissionCount: number;
   drivingLicenseNumber: string;
   vehicleRegistrationNumber: string;
@@ -48,6 +52,8 @@ const SAMPLE_APPLICATIONS: MockApplicationItem[] = [
     phone: '+919876240001',
     city: 'visakhapatnam',
     status: CaptainApplicationStatus.SUBMITTED,
+    complianceStatus: DriverComplianceStatus.UNDER_REVIEW,
+    dutyStatus: DutyStatus.OFFLINE,
     submissionCount: 2,
     drivingLicenseNumber: 'AP31 20240008899',
     vehicleRegistrationNumber: 'AP31EV2424',
@@ -92,6 +98,8 @@ const SAMPLE_APPLICATIONS: MockApplicationItem[] = [
     phone: '+919876240002',
     city: 'vijayawada',
     status: CaptainApplicationStatus.APPROVED,
+    complianceStatus: DriverComplianceStatus.VERIFIED,
+    dutyStatus: DutyStatus.ONLINE,
     submissionCount: 1,
     drivingLicenseNumber: 'AP16 20230005511',
     vehicleRegistrationNumber: 'AP16EV1122',
@@ -129,6 +137,8 @@ const SAMPLE_APPLICATIONS: MockApplicationItem[] = [
     phone: '+919876240003',
     city: 'guntur',
     status: CaptainApplicationStatus.REJECTED,
+    complianceStatus: DriverComplianceStatus.EXPIRED,
+    dutyStatus: DutyStatus.OFFLINE,
     submissionCount: 1,
     drivingLicenseNumber: 'AP07 20220003322',
     vehicleRegistrationNumber: 'AP07EV9900',
@@ -156,6 +166,45 @@ const SAMPLE_APPLICATIONS: MockApplicationItem[] = [
         driverRequirementsStatus: RequirementStatus.REJECTED,
         notes: 'Expired license rejected. Application unlocked for draft editing.',
         createdAt: '2026-11-01T11:00:00Z',
+      },
+    ],
+  },
+  {
+    id: 'app-vis-004',
+    userId: 'usr-cap-004',
+    fullName: 'D. Suresh Kumar',
+    phone: '+919876240004',
+    city: 'visakhapatnam',
+    status: CaptainApplicationStatus.APPROVED,
+    complianceStatus: DriverComplianceStatus.SUSPENDED,
+    dutyStatus: DutyStatus.OFFLINE,
+    submissionCount: 1,
+    drivingLicenseNumber: 'AP31 20210007788',
+    vehicleRegistrationNumber: 'AP31EV5566',
+    vehicleMake: 'TVS Motor',
+    vehicleModel: 'iQube S',
+    vehicleCategory: VehicleCategory.CITY_COMMUTE_2W,
+    ownershipType: VehicleOwnershipType.OWNED,
+    propulsionType: PropulsionType.BATTERY_ELECTRIC,
+    driverRequirementsStatus: RequirementStatus.APPROVED,
+    vehicleRequirementsStatus: RequirementStatus.APPROVED,
+    driverRejectionReason:
+      'Driver suspended: Customer safety altercation under telematics investigation.',
+    submittedAt: '2026-10-25T11:00:00Z',
+    reviewHistory: [
+      {
+        id: 'rev-030',
+        previousStatus: CaptainApplicationStatus.SUBMITTED,
+        newStatus: CaptainApplicationStatus.APPROVED,
+        notes: 'Original verification complete.',
+        createdAt: '2026-10-25T14:00:00Z',
+      },
+      {
+        id: 'rev-031',
+        previousStatus: CaptainApplicationStatus.APPROVED,
+        newStatus: CaptainApplicationStatus.APPROVED,
+        notes: 'Safety suspension triggered; forced duty OFFLINE.',
+        createdAt: '2026-11-01T09:00:00Z',
       },
     ],
   },
@@ -201,6 +250,24 @@ export default function CaptainApplicationsPage() {
       case RequirementStatus.PENDING:
       default:
         return { bg: '#d97706', color: '#ffffff', text: 'PENDING' };
+    }
+  };
+
+  const getComplianceBadge = (status?: DriverComplianceStatus) => {
+    switch (status) {
+      case DriverComplianceStatus.VERIFIED:
+        return { bg: '#059669', color: '#ffffff', label: 'VERIFIED' };
+      case DriverComplianceStatus.SUSPENDED:
+        return { bg: '#dc2626', color: '#ffffff', label: 'SUSPENDED' };
+      case DriverComplianceStatus.EXPIRED:
+        return { bg: '#b91c1c', color: '#ffffff', label: 'EXPIRED' };
+      case DriverComplianceStatus.UNDER_REVIEW:
+        return { bg: '#d97706', color: '#ffffff', label: 'UNDER REVIEW' };
+      case DriverComplianceStatus.REJECTED:
+        return { bg: '#ef4444', color: '#ffffff', label: 'REJECTED' };
+      case DriverComplianceStatus.PENDING:
+      default:
+        return { bg: '#4b5563', color: '#ffffff', label: 'PENDING' };
     }
   };
 
@@ -320,7 +387,8 @@ export default function CaptainApplicationsPage() {
               <th style={{ padding: '1rem', color: borderCyan }}>EV Vehicle &amp; Plate</th>
               <th style={{ padding: '1rem', color: borderCyan }}>Driver KYC</th>
               <th style={{ padding: '1rem', color: borderCyan }}>Vehicle KYC</th>
-              <th style={{ padding: '1rem', color: borderCyan }}>Status &amp; Submission</th>
+              <th style={{ padding: '1rem', color: borderCyan }}>Compliance &amp; Duty</th>
+              <th style={{ padding: '1rem', color: borderCyan }}>Application State</th>
               <th style={{ padding: '1rem', color: borderCyan }}>Action</th>
             </tr>
           </thead>
@@ -392,6 +460,33 @@ export default function CaptainApplicationsPage() {
                     {app.vehicleRejectionReason && (
                       <div style={{ fontSize: '0.7rem', color: '#fca5a5', marginTop: '0.25rem' }}>
                         {app.vehicleRejectionReason}
+                      </div>
+                    )}
+                  </td>
+                  <td style={{ padding: '1rem' }}>
+                    {app.complianceStatus && (
+                      <div>
+                        <span
+                          style={{
+                            padding: '0.2rem 0.5rem',
+                            borderRadius: '4px',
+                            fontSize: '0.75rem',
+                            fontWeight: 'bold',
+                            background: getComplianceBadge(app.complianceStatus).bg,
+                            color: getComplianceBadge(app.complianceStatus).color,
+                          }}
+                        >
+                          {getComplianceBadge(app.complianceStatus).label}
+                        </span>
+                        <div
+                          style={{
+                            fontSize: '0.75rem',
+                            color: app.dutyStatus === DutyStatus.ONLINE ? '#10b981' : '#8892b0',
+                            marginTop: '0.25rem',
+                          }}
+                        >
+                          {app.dutyStatus === DutyStatus.ONLINE ? '● ONLINE' : '○ OFFLINE'}
+                        </div>
                       </div>
                     )}
                   </td>

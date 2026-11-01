@@ -38,7 +38,12 @@ class _EcoRideRiderAppState extends State<EcoRideRiderApp> {
           title: 'EcoRide Rider',
           locale: _controller.locale,
           supportedLocales: AppLocalizations.supportedLocales,
-          localizationsDelegates: const [AppLocalizations.delegate],
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            FallbackMaterialLocalizationsDelegate(),
+            FallbackWidgetsLocalizationsDelegate(),
+            FallbackCupertinoLocalizationsDelegate(),
+          ],
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
             useMaterial3: true,

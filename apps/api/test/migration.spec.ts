@@ -7,6 +7,7 @@ import { CreatePrivacyAndDataDeletionWorkflows1700000000006 } from '../src/datab
 import { CreateDocumentsSchema1700000000007 } from '../src/database/migrations/1700000000007-CreateDocumentsSchema';
 import { ExpandVehiclesTableWithEVCompliance1700000000008 } from '../src/database/migrations/1700000000008-ExpandVehiclesTableWithEVCompliance';
 import { CreateCaptainApplicationsAndReviewHistory1700000000009 } from '../src/database/migrations/1700000000009-CreateCaptainApplicationsAndReviewHistory';
+import { AddDriverComplianceAndDutyStatus1700000000010 } from '../src/database/migrations/1700000000010-AddDriverComplianceAndDutyStatus';
 import { QueryRunner } from 'typeorm';
 
 describe('Database Migrations', () => {
@@ -313,6 +314,39 @@ describe('Database Migrations', () => {
       const allQueries = executedQueries.join(' ');
       expect(allQueries).toContain('DROP TABLE IF EXISTS "captain_application_reviews" CASCADE;');
       expect(allQueries).toContain('DROP TABLE IF EXISTS "captain_applications" CASCADE;');
+    });
+  });
+
+  describe('AddDriverComplianceAndDutyStatus1700000000010', () => {
+    let migration: AddDriverComplianceAndDutyStatus1700000000010;
+
+    beforeEach(() => {
+      migration = new AddDriverComplianceAndDutyStatus1700000000010();
+    });
+
+    it('should add compliance columns, index, and check constraints in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('license_expiry_date');
+      expect(allQueries).toContain('duty_status');
+      expect(allQueries).toContain('duty_last_toggled_at');
+      expect(allQueries).toContain('suspension_reason');
+      expect(allQueries).toContain('idx_driver_profiles_duty_status');
+      expect(allQueries).toContain('chk_driver_profiles_compliance_status');
+      expect(allQueries).toContain('chk_driver_profiles_duty_status');
+    });
+
+    it('should revert constraints, index, and columns in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP CONSTRAINT IF EXISTS "chk_driver_profiles_duty_status"');
+      expect(allQueries).toContain(
+        'DROP CONSTRAINT IF EXISTS "chk_driver_profiles_compliance_status"',
+      );
+      expect(allQueries).toContain('DROP INDEX IF EXISTS "idx_driver_profiles_duty_status"');
+      expect(allQueries).toContain('DROP COLUMN IF EXISTS "license_expiry_date"');
     });
   });
 });

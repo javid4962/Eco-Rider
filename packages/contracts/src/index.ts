@@ -10,3 +10,4 @@ export * from './localization';
 export * from './documents';
 export * from './vehicles';
 export * from './captain-applications';
+export * from './compliance';

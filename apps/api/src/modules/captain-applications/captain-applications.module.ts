@@ -29,4 +29,3 @@ import { AuthModule } from '../auth/auth.module';
   exports: [CaptainApplicationsService],
 })
 export class CaptainApplicationsModule {}
-

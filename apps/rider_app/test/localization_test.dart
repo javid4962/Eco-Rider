@@ -18,9 +18,9 @@ void main() {
       expect(l10n.dropoffLocation, 'డ్రాప్ లొకేషన్');
       expect(l10n.confirmRide, 'ఈవీ రైడ్ నిర్ధారించండి');
       expect(l10n.paymentMode, 'చెల్లింపు విధానం');
-      expect(l10n.upiOrCash, 'UPI, కార్డ్ లేదా నగదు');
-      expect(l10n.emergencySos, 'అత్యవసర SOS');
-      expect(l10n.networkError, 'నెట్‌వర్క్ కనెక్షన్ లోపం. దయచేసి మొబైల్ డేటాను తనిఖీ చేయండి.');
+      expect(l10n.upiOrCash, 'యూపీఐ, కార్డు లేదా నగదు');
+      expect(l10n.emergencySos, 'అత్యవసర ఎస్ఓఎస్');
+      expect(l10n.networkError, 'నెట్‌వర్క్ లోపం. దయచేసి మొబైల్ డేటాను తనిఖీ చేయండి.');
     });
 
     test('English localization provides core strings and parameter interpolation', () {

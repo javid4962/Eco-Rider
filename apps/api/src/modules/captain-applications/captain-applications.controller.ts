@@ -163,4 +163,3 @@ export class CaptainApplicationsController {
     return this.applicationsService.reviewApplication(actor, id, dto);
   }
 }
-

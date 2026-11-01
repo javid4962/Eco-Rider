@@ -39,7 +39,12 @@ class _EcoRideCaptainAppState extends State<EcoRideCaptainApp> {
           title: 'EcoRide Captain',
           locale: _controller.locale,
           supportedLocales: AppLocalizations.supportedLocales,
-          localizationsDelegates: const [AppLocalizations.delegate],
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            FallbackMaterialLocalizationsDelegate(),
+            FallbackWidgetsLocalizationsDelegate(),
+            FallbackCupertinoLocalizationsDelegate(),
+          ],
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
             useMaterial3: true,
@@ -132,6 +137,7 @@ class _CaptainHomeScreenState extends State<CaptainHomeScreen> {
               const SizedBox(height: 16),
               CaptainApplicationStatusCard(
                 status: isOnline ? CaptainAppStatus.approved : CaptainAppStatus.submitted,
+                complianceStatus: isOnline ? CaptainComplianceStatus.verified : CaptainComplianceStatus.underReview,
                 driverKycStatus: ReqVerificationStatus.approved,
                 vehicleKycStatus: isOnline ? ReqVerificationStatus.approved : ReqVerificationStatus.pending,
                 submissionAttempt: 1,

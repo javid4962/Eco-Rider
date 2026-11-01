@@ -14,11 +14,21 @@ enum ReqVerificationStatus {
   rejected,
 }
 
+enum CaptainComplianceStatus {
+  pending,
+  underReview,
+  verified,
+  rejected,
+  suspended,
+  expired,
+}
+
 /// Represents the captain onboarding application state in the captain Flutter app.
 class CaptainApplicationStatusCard extends StatelessWidget {
   final CaptainAppStatus status;
   final ReqVerificationStatus driverKycStatus;
   final ReqVerificationStatus vehicleKycStatus;
+  final CaptainComplianceStatus? complianceStatus;
   final int submissionAttempt;
   final String? rejectionReason;
   final VoidCallback? onEditDraft;
@@ -28,6 +38,7 @@ class CaptainApplicationStatusCard extends StatelessWidget {
     required this.status,
     required this.driverKycStatus,
     required this.vehicleKycStatus,
+    this.complianceStatus,
     this.submissionAttempt = 1,
     this.rejectionReason,
     this.onEditDraft,
@@ -105,6 +116,60 @@ class CaptainApplicationStatusCard extends StatelessWidget {
                 ),
               ],
             ),
+            if (complianceStatus != null) ...[
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: _complianceColor(complianceStatus!).withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: _complianceColor(complianceStatus!).withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      complianceStatus == CaptainComplianceStatus.verified
+                          ? Icons.check_circle_outline
+                          : Icons.warning_amber_rounded,
+                      size: 16,
+                      color: _complianceColor(complianceStatus!),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Compliance Status: ${_complianceLabel(complianceStatus!)}',
+                      style: TextStyle(
+                        color: _complianceColor(complianceStatus!),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            if (complianceStatus == CaptainComplianceStatus.expired ||
+                complianceStatus == CaptainComplianceStatus.suspended) ...[
+              const SizedBox(height: 8),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.redAccent.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: Colors.redAccent.withValues(alpha: 0.4)),
+                ),
+                child: Text(
+                  complianceStatus == CaptainComplianceStatus.expired
+                      ? 'Notice: Driving license or vehicle permit has expired. Duty cannot be toggled online.'
+                      : 'Notice: Captain account is suspended by fleet operations. Contact support to resolve.',
+                  style: const TextStyle(
+                    color: Color(0xFFFCA5A5),
+                    fontSize: 11,
+                  ),
+                ),
+              ),
+            ],
             if (rejectionReason != null && rejectionReason!.isNotEmpty) ...[
               const SizedBox(height: 12),
               Container(
@@ -231,6 +296,40 @@ class CaptainApplicationStatusCard extends StatelessWidget {
         return 'UNDER REVIEW';
       case CaptainAppStatus.draft:
         return 'DRAFT';
+    }
+  }
+
+  Color _complianceColor(CaptainComplianceStatus st) {
+    switch (st) {
+      case CaptainComplianceStatus.verified:
+        return const Color(0xFF10B981);
+      case CaptainComplianceStatus.suspended:
+        return Colors.redAccent;
+      case CaptainComplianceStatus.expired:
+        return Colors.redAccent;
+      case CaptainComplianceStatus.underReview:
+        return Colors.orangeAccent;
+      case CaptainComplianceStatus.rejected:
+        return Colors.redAccent;
+      case CaptainComplianceStatus.pending:
+        return Colors.grey;
+    }
+  }
+
+  String _complianceLabel(CaptainComplianceStatus st) {
+    switch (st) {
+      case CaptainComplianceStatus.verified:
+        return 'VERIFIED';
+      case CaptainComplianceStatus.suspended:
+        return 'SUSPENDED';
+      case CaptainComplianceStatus.expired:
+        return 'EXPIRED';
+      case CaptainComplianceStatus.underReview:
+        return 'UNDER REVIEW';
+      case CaptainComplianceStatus.rejected:
+        return 'REJECTED';
+      case CaptainComplianceStatus.pending:
+        return 'PENDING';
     }
   }
 }

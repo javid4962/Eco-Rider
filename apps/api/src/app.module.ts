@@ -18,6 +18,7 @@ import { LocalizationModule } from './common/localization/localization.module';
 import { DocumentsModule } from './modules/documents/documents.module';
 import { VehiclesModule } from './modules/vehicles/vehicles.module';
 import { CaptainApplicationsModule } from './modules/captain-applications/captain-applications.module';
+import { ComplianceModule } from './modules/compliance/compliance.module';
 import { CorrelationIdMiddleware } from './common/middleware/correlation-id.middleware';
 import { AuthMiddleware } from './modules/auth/middleware/auth.middleware';
 
@@ -44,6 +45,7 @@ import { AuthMiddleware } from './modules/auth/middleware/auth.middleware';
     DocumentsModule,
     VehiclesModule,
     CaptainApplicationsModule,
+    ComplianceModule,
   ],
 })
 export class AppModule implements NestModule {

@@ -418,3 +418,32 @@
   6. **Security & Cross-Account Isolation**:
      - Captains can only access and edit their own application (`GET/PUT /v1/captain-applications/me`). Attempts to view or mutate another applicant's application return HTTP 403 Forbidden.
      - Administrative endpoints (`GET /v1/captain-applications` and `POST /v1/captain-applications/:id/review`) require `OPERATOR` or `SUPER_ADMIN` roles. Regular riders/captains are rejected with HTTP 403 Forbidden.
+
+
+## 2026-11-01 — ADR-0026: Captain Compliance Lifecycle, Document Validity Expiration, and Duty Assignment State Machine
+
+- **Status**: Accepted
+- **Context**:
+  In an EV-only mobility platform, driver regulatory compliance and operational duty state must be maintained independently from onboarding draft completeness. A captain whose application was reviewed and approved must never be mislabeled as "draft". Furthermore, assignment eligibility to go online (`duty_status = ONLINE`) and receive ride dispatches requires active verification, valid (unexpired) documents (driving license, commercial green-plate EV permits, insurance), an assigned roadworthy EV vehicle with sufficient battery SoC (&ge; 15%), and municipal EV pilot zone clearance. Drivers with expired credentials or under operational suspension must be strictly prevented from toggling duty to ONLINE. When an operator suspends an active captain, safety protocols dictate immediately forcing the captain to OFFLINE.
+- **Decisions**:
+  1. **Separation of Application Completeness from Compliance State**:
+     - Decouple onboarding application state (`CaptainApplicationStatus`: `DRAFT`, `SUBMITTED`, `UNDER_REVIEW`, `APPROVED`, `REJECTED`) from driver compliance state (`DriverComplianceStatus`: `PENDING`, `UNDER_REVIEW`, `VERIFIED`, `REJECTED`, `SUSPENDED`, `EXPIRED`).
+     - A verified captain with a complete application evaluates strictly as `VERIFIED` and `isDraftComplete = true`, preventing false draft relabeling.
+  2. **Multi-Constraint Assignment Eligibility Engine**:
+     - Implement backend-authoritative eligibility evaluation (`calculateEligibility` in `ComplianceService`) returning `CaptainEligibilityDto`:
+       - `approvalDetails`: application approved, driver KYC verified, EV green plate verified, vehicle linked.
+       - `documentValidity`: driving license not expired, EV roadworthy, battery SoC above critical threshold (&ge; 15%).
+       - `zonePermission`: municipal corridor active and city authorized for EV commercial dispatches.
+       - `isEligibleForAssignment`: aggregate boolean requiring all conditions to pass; provides detailed `ineligibilityReasons` array on failure.
+  3. **Duty Online / Offline State Machine & Enforcement**:
+     - Support `DutyStatus`: `ONLINE`, `OFFLINE`, `ON_TRIP` with timestamp auditing (`duty_last_toggled_at`).
+     - Captains may go OFFLINE at any time.
+     - Going ONLINE strictly validates assignment eligibility. If compliance status is `EXPIRED`, `SUSPENDED`, or vehicle is unroadworthy, the endpoint rejects the request with HTTP 422 Unprocessable Entity and logs a `CAPTAIN_DUTY_TOGGLE_REJECTED` audit event.
+  4. **Safety Auto-Offline on Administrative Suspension**:
+     - When an operator or admin updates compliance status to `SUSPENDED` (requiring mandatory `suspensionReason`), any currently online captain is automatically forced to `OFFLINE` in the database transaction, revoking dispatch eligibility immediately.
+  5. **Database Schema & Check Constraints**:
+     - Migration 10 (`AddDriverComplianceAndDutyStatus1700000000010`) adds `license_expiry_date`, `duty_status`, `duty_last_toggled_at`, `suspension_reason`, and `compliance_notes` to `driver_profiles`.
+     - Enforce valid states via check constraints `chk_driver_profiles_compliance_status` and `chk_driver_profiles_duty_status`.
+  6. **Security & RBAC Enforcement**:
+     - Captains can query their own eligibility (`GET /v1/captains/me/compliance`) and toggle their duty (`POST /v1/captains/me/duty`).
+     - Updating compliance status (`POST /v1/captains/:userId/compliance/status`) and querying arbitrary captain compliance (`GET /v1/captains/:userId/compliance`) require `OPERATOR` or `SUPER_ADMIN` roles (`'driver:read'`, `'driver:write'`). Cross-account unauthorized access returns HTTP 403 Forbidden.

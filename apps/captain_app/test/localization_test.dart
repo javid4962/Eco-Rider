@@ -16,8 +16,8 @@ void main() {
       expect(l10n.assignedPilotZone, 'కేటాయించిన పైలట్ జోన్: విశాఖపట్నం కారిడార్');
       expect(l10n.newDispatchRequest, 'కొత్త ఈవీ రైడ్ అభ్యర్థన వచ్చింది');
       expect(l10n.acceptRide, 'రైడ్ అంగీకరించండి');
-      expect(l10n.emergencySos, 'కెప్టెన్ అత్యవసర SOS');
-      expect(l10n.batteryTooLow, 'బ్యాటరీ 20% కంటే తక్కువగా ఉంది. దయచేసి హబ్ వద్ద ఛార్జ్ చేయండి.');
+      expect(l10n.emergencySos, 'కెప్టెన్ అత్యవసర ఎస్ఓఎస్');
+      expect(l10n.batteryTooLow, 'బ్యాటరీ 20% కంటే తక్కువగా ఉంది. దయచేసి హబ్‌లో ఛార్జ్ చేయండి.');
     });
 
     test('English localization provides captain strings and parameter interpolation', () {

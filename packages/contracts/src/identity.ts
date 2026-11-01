@@ -61,6 +61,8 @@ export const ROLE_SCOPES: Record<string, string[]> = {
     'dispatch:manage',
     'zone:manage',
     'driver:shift',
+    'driver:read',
+    'driver:write',
     'service:toggle',
     'booking:read',
   ],

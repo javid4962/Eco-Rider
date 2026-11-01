@@ -194,4 +194,3 @@ export class CaptainApplication {
   @OneToMany(() => CaptainApplicationReview, (review) => review.application, { cascade: true })
   reviews?: CaptainApplicationReview[];
 }
-
