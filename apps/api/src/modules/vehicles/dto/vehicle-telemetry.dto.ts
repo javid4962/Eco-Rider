@@ -51,4 +51,3 @@ export class VehicleTelemetryDto implements VehicleTelemetryUpdate {
   @MaxLength(100)
   telemetryDeviceId?: string;
 }
-

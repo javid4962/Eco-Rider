@@ -29,4 +29,3 @@ export class VerifyVehicleDto implements VerifyVehicleRequest {
   @IsBoolean()
   greenPlateVerified?: boolean;
 }
-

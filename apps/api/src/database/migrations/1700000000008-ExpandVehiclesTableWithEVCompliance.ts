@@ -98,4 +98,3 @@ export class ExpandVehiclesTableWithEVCompliance1700000000008 implements Migrati
     `);
   }
 }
-

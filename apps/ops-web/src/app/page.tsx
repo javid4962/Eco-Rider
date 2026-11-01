@@ -86,6 +86,30 @@ export default function OpsDashboardPage() {
 
         <div style={{ background: voltageSurface, padding: '1.5rem', borderRadius: '8px' }}>
           <h2 style={{ fontSize: '1.25rem', color: '#6fffe9', marginTop: 0 }}>
+            Captain Applications &amp; Onboarding
+          </h2>
+          <p style={{ fontSize: '0.9rem', color: '#c5d1eb' }}>
+            EV Driver KYC, Green Plate Verification &amp; Review History (EV-024)
+          </p>
+          <a
+            href="/captain-applications"
+            style={{
+              display: 'inline-block',
+              padding: '0.25rem 0.75rem',
+              background: brandEmerald,
+              color: '#ffffff',
+              fontWeight: 'bold',
+              textDecoration: 'none',
+              borderRadius: '4px',
+              fontSize: '0.8rem',
+            }}
+          >
+            Review Applications &rarr;
+          </a>
+        </div>
+
+        <div style={{ background: voltageSurface, padding: '1.5rem', borderRadius: '8px' }}>
+          <h2 style={{ fontSize: '1.25rem', color: '#6fffe9', marginTop: 0 }}>
             Platform Diagnostics
           </h2>
           <p style={{ fontSize: '0.9rem', color: '#c5d1eb' }}>

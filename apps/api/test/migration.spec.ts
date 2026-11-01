@@ -6,6 +6,7 @@ import { CreateSavedLocationsAndRiderLanguage1700000000005 } from '../src/databa
 import { CreatePrivacyAndDataDeletionWorkflows1700000000006 } from '../src/database/migrations/1700000000006-CreatePrivacyAndDataDeletionWorkflows';
 import { CreateDocumentsSchema1700000000007 } from '../src/database/migrations/1700000000007-CreateDocumentsSchema';
 import { ExpandVehiclesTableWithEVCompliance1700000000008 } from '../src/database/migrations/1700000000008-ExpandVehiclesTableWithEVCompliance';
+import { CreateCaptainApplicationsAndReviewHistory1700000000009 } from '../src/database/migrations/1700000000009-CreateCaptainApplicationsAndReviewHistory';
 import { QueryRunner } from 'typeorm';
 
 describe('Database Migrations', () => {
@@ -283,6 +284,35 @@ describe('Database Migrations', () => {
       expect(allQueries).toContain('DROP CONSTRAINT IF EXISTS "chk_vehicles_rated_range_positive"');
       expect(allQueries).toContain('DROP CONSTRAINT IF EXISTS "chk_vehicles_seating_positive"');
       expect(allQueries).toContain('DROP COLUMN IF EXISTS "make"');
+    });
+  });
+
+  describe('CreateCaptainApplicationsAndReviewHistory1700000000009', () => {
+    let migration: CreateCaptainApplicationsAndReviewHistory1700000000009;
+
+    beforeEach(() => {
+      migration = new CreateCaptainApplicationsAndReviewHistory1700000000009();
+    });
+
+    it('should create captain_applications and captain_application_reviews tables and indexes in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "captain_applications"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "captain_application_reviews"');
+      expect(allQueries).toContain('chk_captain_apps_electric_only');
+      expect(allQueries).toContain('CREATE UNIQUE INDEX IF NOT EXISTS "idx_captain_apps_user_id"');
+      expect(allQueries).toContain('CREATE INDEX IF NOT EXISTS "idx_captain_apps_status"');
+      expect(allQueries).toContain('CREATE INDEX IF NOT EXISTS "idx_app_reviews_application_id"');
+      expect(allQueries).toContain('CREATE INDEX IF NOT EXISTS "idx_app_reviews_reviewer_id"');
+    });
+
+    it('should drop captain_application_reviews and captain_applications tables in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "captain_application_reviews" CASCADE;');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "captain_applications" CASCADE;');
     });
   });
 });

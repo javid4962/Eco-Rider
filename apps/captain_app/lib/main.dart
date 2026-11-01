@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'core/localization/app_localizations.dart';
 import 'core/localization/language_switcher.dart';
 import 'core/localization/locale_controller.dart';
+import 'features/onboarding/captain_application_status_card.dart';
 
 void main() {
   runApp(const EcoRideCaptainApp());
@@ -127,6 +128,13 @@ class _CaptainHomeScreenState extends State<CaptainHomeScreen> {
                     ],
                   ),
                 ),
+              ),
+              const SizedBox(height: 16),
+              CaptainApplicationStatusCard(
+                status: isOnline ? CaptainAppStatus.approved : CaptainAppStatus.submitted,
+                driverKycStatus: ReqVerificationStatus.approved,
+                vehicleKycStatus: isOnline ? ReqVerificationStatus.approved : ReqVerificationStatus.pending,
+                submissionAttempt: 1,
               ),
               const SizedBox(height: 16),
               Card(

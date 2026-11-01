@@ -388,3 +388,33 @@
      - Expose `GET /v1/vehicles/:id/compliance` providing real-time evaluation of `insuranceValid`, `insuranceDaysRemaining`, `fitnessValid`, `commercialPermitValid`, `greenPlateVerified`, `propulsionValid`, and human-readable actionable issues.
      - Restrict verification actions (`POST /v1/vehicles/:id/verify`) to platform operators and fleet administrators with audit logging (`VEHICLE_VERIFICATION_STATUS_CHANGED`). Non-operators attempting verification are rejected with HTTP 403 Forbidden.
 
+
+
+## ADR-0025: Captain Onboarding Application Lifecycle, Document Verification, and Independent Review History
+- **Date**: 2026-11-01
+- **Status**: Accepted
+- **Context**: The EcoRide electric mobility platform in Andhra Pradesh requires prospective captains to complete an onboarding workflow including personal KYC, verified EV vehicle registration, commercial green-plate permits, and review history. Prior to EV-024, no authoritative lifecycle managed application drafting, submission validation, independent driver vs. vehicle verification, rejection resubmissions, and operator review auditing. Rejecting an application must never create duplicate records or lose prior review notes. Furthermore, EV propulsion must be guaranteed server-side and cross-account data exposure must be prevented.
+- **Decision**:
+  1. **Single Application Entity with In-Place Resubmission (`captain_applications`)**:
+     - Enforce a unique index on `user_id` (`uq_captain_applications_user_id`) guaranteeing exactly one application per user account.
+     - Rejected applications do not spawn duplicate rows. The existing entity remains the single source of truth and unlocks for in-place draft updates (`isEditable = status IN ('DRAFT', 'REJECTED')`).
+     - Resubmitting an application updates the status back to `SUBMITTED`, increments `submission_count`, and updates `submitted_at`, preserving the stable application UUID and audit linkage.
+  2. **Independent Driver and Vehicle Verification**:
+     - Model `driverRequirementsStatus` and `vehicleRequirementsStatus` as distinct independent lifecycle fields (`PENDING`, `APPROVED`, `REJECTED`).
+     - Operators can independently reject vehicle documentation (e.g. blurry RC photo) while approving driver KYC, or vice versa, with specific reason strings (`driverRejectionReason`, `vehicleRejectionReason`).
+     - Full application approval and promotion to `CAPTAIN` role requires both requirements to be verified and satisfied.
+  3. **Immutable Review History Audit Trail (`captain_application_reviews`)**:
+     - Maintain a child table storing every state transition and review event with `reviewer_id`, `previous_status`, `new_status`, `driver_requirements_status`, `vehicle_requirements_status`, and human-readable operator `notes`.
+     - Expose historical chronological audit trail via `GET /v1/captain-applications/me/history` for captains and `GET /v1/captain-applications/:id` for operators.
+  4. **Electric-Only Propulsion Guarantee & Document Ownership Verification**:
+     - Database check constraint `chk_captain_apps_propulsion_electric` (`"propulsion_type" = 'BATTERY_ELECTRIC'`) guarantees zero non-electric vehicles at the database layer.
+     - Server-side validation rejects non-electric propulsion types (`PETROL`, `DIESEL`, `CNG`, etc.) with HTTP 400 Bad Request.
+     - Validate that all referenced document IDs (`drivingLicenseDocId`, `aadhaarDocId`, `vehicleRcDocId`, `greenPlatePermitDocId`) are owned by the applicant user and have passed security scanning (`CLEAN`).
+  5. **Automated Activation on Approval**:
+     - When an operator approves an application with both driver and vehicle requirements verified, the backend transaction:
+       - Promotes the user role in `users` to `CAPTAIN`.
+       - Creates or updates `driver_profiles` with `verification_status = 'VERIFIED'` and `green_plate_permit_verified = true`.
+       - Automatically creates or links the verified EV vehicle in `vehicles` table with `propulsion_type = 'BATTERY_ELECTRIC'` and assigns it to the driver profile.
+  6. **Security & Cross-Account Isolation**:
+     - Captains can only access and edit their own application (`GET/PUT /v1/captain-applications/me`). Attempts to view or mutate another applicant's application return HTTP 403 Forbidden.
+     - Administrative endpoints (`GET /v1/captain-applications` and `POST /v1/captain-applications/:id/review`) require `OPERATOR` or `SUPER_ADMIN` roles. Regular riders/captains are rejected with HTTP 403 Forbidden.
