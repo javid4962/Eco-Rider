@@ -14,6 +14,7 @@ import { SeedModule } from './modules/seed/seed.module';
 import { IdentityModule } from './modules/identity/identity.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { PrivacyModule } from './modules/privacy/privacy.module';
+import { LocalizationModule } from './common/localization/localization.module';
 import { CorrelationIdMiddleware } from './common/middleware/correlation-id.middleware';
 import { AuthMiddleware } from './modules/auth/middleware/auth.middleware';
 
@@ -36,6 +37,7 @@ import { AuthMiddleware } from './modules/auth/middleware/auth.middleware';
     IdentityModule,
     AuthModule,
     PrivacyModule,
+    LocalizationModule,
   ],
 })
 export class AppModule implements NestModule {

@@ -25,6 +25,7 @@ export interface ApiErrorDetail {
 export interface ApiErrorPayload {
   code: ApiErrorCode | string;
   message: string;
+  messageKey?: string;
   details?: ApiErrorDetail[] | string[];
 }
 

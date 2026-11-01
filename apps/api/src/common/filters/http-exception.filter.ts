@@ -35,6 +35,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let code: string = ApiErrorCode.INTERNAL_SERVER_ERROR;
     let message = 'An unexpected internal server error occurred.';
+    let messageKey: string | undefined;
     let details: ApiErrorDetail[] | string[] | undefined;
 
     if (exception instanceof HttpException) {
@@ -51,6 +52,11 @@ export class HttpExceptionFilter implements ExceptionFilter {
         // Custom error code override if provided in exception
         if (typeof resObj.code === 'string') {
           code = resObj.code;
+        }
+
+        // Custom response-message identifier if provided
+        if (typeof resObj.messageKey === 'string') {
+          messageKey = resObj.messageKey;
         }
 
         if (typeof resObj.message === 'string') {
@@ -81,6 +87,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       error: {
         code,
         message,
+        ...(messageKey ? { messageKey } : {}),
         ...(details ? { details } : {}),
       },
       correlationId,

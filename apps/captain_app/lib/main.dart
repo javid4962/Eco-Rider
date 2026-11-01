@@ -1,37 +1,65 @@
 import 'package:flutter/material.dart';
+import 'core/localization/app_localizations.dart';
+import 'core/localization/language_switcher.dart';
+import 'core/localization/locale_controller.dart';
 
 void main() {
   runApp(const EcoRideCaptainApp());
 }
 
-class EcoRideCaptainApp extends StatelessWidget {
-  const EcoRideCaptainApp({super.key});
+class EcoRideCaptainApp extends StatefulWidget {
+  final LocaleController? controller;
+
+  const EcoRideCaptainApp({super.key, this.controller});
 
   static const Color primaryElectric = Color(0xFF059669);
   static const Color voltageNavy = Color(0xFF0B132B);
   static const Color surfaceNavy = Color(0xFF1C2541);
 
   @override
+  State<EcoRideCaptainApp> createState() => _EcoRideCaptainAppState();
+}
+
+class _EcoRideCaptainAppState extends State<EcoRideCaptainApp> {
+  late final LocaleController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = widget.controller ?? LocaleController();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'EcoRide Captain',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        scaffoldBackgroundColor: voltageNavy,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: primaryElectric,
-          brightness: Brightness.dark,
-          surface: surfaceNavy,
-        ),
-      ),
-      home: const CaptainHomeScreen(),
+    return ListenableBuilder(
+      listenable: _controller,
+      builder: (context, _) {
+        return MaterialApp(
+          title: 'EcoRide Captain',
+          locale: _controller.locale,
+          supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: const [AppLocalizations.delegate],
+          debugShowCheckedModeBanner: false,
+          theme: ThemeData(
+            useMaterial3: true,
+            scaffoldBackgroundColor: EcoRideCaptainApp.voltageNavy,
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: EcoRideCaptainApp.primaryElectric,
+              brightness: Brightness.dark,
+              surface: EcoRideCaptainApp.surfaceNavy,
+            ),
+          ),
+          home: CaptainHomeScreen(controller: _controller),
+        );
+      },
     );
   }
 }
 
 class CaptainHomeScreen extends StatefulWidget {
-  const CaptainHomeScreen({super.key});
+  final LocaleController controller;
+
+  const CaptainHomeScreen({super.key, required this.controller});
 
   @override
   State<CaptainHomeScreen> createState() => _CaptainHomeScreenState();
@@ -42,11 +70,16 @@ class _CaptainHomeScreenState extends State<CaptainHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('EcoRide Captain'),
+        title: Text(l10n.appName),
         backgroundColor: const Color(0xFF0B132B),
         elevation: 0,
+        actions: [
+          LanguageSwitcherButton(controller: widget.controller),
+        ],
       ),
       body: SafeArea(
         child: Padding(
@@ -68,7 +101,7 @@ class _CaptainHomeScreenState extends State<CaptainHomeScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            isOnline ? 'DUTY ACTIVE' : 'DUTY OFFLINE',
+                            isOnline ? l10n.dutyActive : l10n.dutyOffline,
                             style: TextStyle(
                               color: isOnline ? const Color(0xFF10B981) : Colors.orangeAccent,
                               fontWeight: FontWeight.bold,
@@ -77,7 +110,7 @@ class _CaptainHomeScreenState extends State<CaptainHomeScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            isOnline ? 'డ్యూటీలో ఉన్నారు' : 'డ్యూటీ ఆఫ్ లో ఉంది',
+                            isOnline ? l10n.dutyActiveDesc : l10n.dutyOfflineDesc,
                             style: const TextStyle(color: Colors.white70, fontSize: 13),
                           ),
                         ],
@@ -106,34 +139,34 @@ class _CaptainHomeScreenState extends State<CaptainHomeScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Row(
+                      Row(
                         children: [
-                          Icon(Icons.battery_charging_full, color: Color(0xFF10B981)),
-                          SizedBox(width: 8),
+                          const Icon(Icons.battery_charging_full, color: Color(0xFF10B981)),
+                          const SizedBox(width: 8),
                           Text(
-                            'EV Battery Feasibility',
-                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                            l10n.evBatteryFeasibility,
+                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
                       const SizedBox(height: 8),
-                      const Text(
-                        'Battery SoC: 85% • Optimal Range (~68 km)',
-                        style: TextStyle(color: Colors.white70, fontSize: 13),
+                      Text(
+                        l10n.batterySocOptimal,
+                        style: const TextStyle(color: Colors.white70, fontSize: 13),
                       ),
                       const SizedBox(height: 4),
-                      const Text(
-                        'Minimum 20% required for dispatch matching.',
-                        style: TextStyle(color: Colors.white38, fontSize: 11),
+                      Text(
+                        l10n.batterySocMinWarning,
+                        style: const TextStyle(color: Colors.white38, fontSize: 11),
                       ),
                     ],
                   ),
                 ),
               ),
               const SizedBox(height: 20),
-              const Text(
-                'Assigned Pilot Zone: Visakhapatnam Corridor',
-                style: TextStyle(color: Colors.white54, fontSize: 13),
+              Text(
+                l10n.assignedPilotZone,
+                style: const TextStyle(color: Colors.white54, fontSize: 13),
               ),
             ],
           ),

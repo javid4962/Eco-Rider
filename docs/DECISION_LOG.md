@@ -312,3 +312,24 @@
   5. **Auditable Governance & Cross-Account Isolation**:
      - Authoritatively log immutable audit events to `audit_events`: `CONSENT_GRANTED`, `CONSENT_REVOKED`, `DATA_EXPORT_REQUESTED`, `DATA_DELETION_PROCESSED`, `DATA_DELETION_REJECTED`, and `CROSS_ACCOUNT_ACCESS_DENIED`.
      - Enforce strict account ownership (`assertCanAccessUser`): Rider A cannot view, grant, revoke, export, or request deletion of Rider B's data (HTTP 403 Forbidden).
+
+
+
+## ADR-0022: Localized Content Infrastructure, Bilingual String Resources, and Backend Response-Message Identifiers
+- **Date**: 2026-11-01
+- **Status**: Accepted
+- **Context**: The EcoRide electric mobility platform operates across Andhra Pradesh. Commuters and EV captains require native Telugu (`te`) as the regional default language and English (`en`) as the universal fallback across both Flutter mobile applications (`apps/rider_app`, `apps/captain_app`) and the NestJS backend API (`apps/api`). Per EV-021 requirements, user-facing UI screens must not hardcode display strings, missing translations must fall back gracefully without blanks or crashes, commuter/captain language choices must persist across sessions, and backend response and error envelopes must emit standard `messageKey` identifiers for client-side localized rendering.
+- **Decision**:
+  1. **Standardized Response Message Key Taxonomy (`@ecoride/contracts`)**:
+     - Define `ResponseMessageKey` enum covering core domain events across Booking (`BOOKING_CREATED`, `BOOKING_MATCHING`, `BOOKING_CAPTAIN_ASSIGNED`, `BOOKING_CAPTAIN_ARRIVED`, `BOOKING_TRIP_STARTED`, `BOOKING_TRIP_COMPLETED`, `BOOKING_CANCELLED`, `BOOKING_ACTIVE_EXISTS`, `BOOKING_ZONE_RESTRICTED`, `BOOKING_NO_DRIVERS`), Payment (`PAYMENT_ORDER_CREATED`, `PAYMENT_SUCCESSFUL`, `PAYMENT_REFUND_PROCESSED`, `PAYMENT_UNSETTLED_DUES`, `PAYMENT_GATEWAY_ERROR`), Safety (`SAFETY_SOS_TRIGGERED`, `SAFETY_TRIP_SHARED`, `SAFETY_SPEED_WARNING`, `SAFETY_CAPTAIN_VERIFIED`), Captain Duty & Telematics (`CAPTAIN_DUTY_ONLINE`, `CAPTAIN_DUTY_OFFLINE`, `CAPTAIN_BATTERY_LOW`, `CAPTAIN_SHIFT_EXPIRED`), and Errors (`AUTH_INVALID_OTP`, `AUTH_SESSION_EXPIRED`, `PRIVACY_CONSENT_REQUIRED`, `SYSTEM_UNEXPECTED`).
+     - Define `SupportedLocale = 'en' | 'te' | 'hi'` with Telugu default and English fallback.
+     - Centralize authoritative bilingual dictionaries in `LOCALIZED_MESSAGES` with parameter interpolation markers (`{{name}}`, `{{amount}}`, `{{minSoc}}`).
+  2. **Backend Localization Engine & REST Endpoints (`apps/api`)**:
+     - Implement `@Global()` `LocalizationService` with multi-tier fallback: `targetLocale -> en -> messageKey`. Unknown keys and missing translations never throw runtime errors.
+     - Implement `LocalizationController` exposing `GET /v1/localization/messages?locale=...` (full dictionary sync) and `GET /v1/localization/messages/:key?locale=...` (single key resolution).
+     - Extend `HttpExceptionFilter` and `ApiErrorPayload` to propagate `messageKey` in error envelopes so mobile clients can look up and render device-localized messages for API exceptions.
+  3. **Flutter Mobile Localization Architecture (`apps/rider_app` & `apps/captain_app`)**:
+     - `AppLocalizations`: Complete bilingual string dictionaries with typed getters for zero hardcoding in UI screens, supporting Telugu and English with automatic fallback and parameter interpolation (`{name}`, `{amount}`).
+     - `LocaleController`: Persistent language state manager extending `ChangeNotifier`, supporting `setLocale(Locale)` and `toggleLocale()` with automatic client-side storage persistence across app restarts and rebuilds.
+     - `LanguageSwitcherButton`: One-tap dynamic language switcher widget embedded in AppBars with responsive feedback.
+     - Refactored `RiderHomeScreen` and `CaptainHomeScreen` to replace all hardcoded English/Telugu strings with `AppLocalizations` typed getters.
