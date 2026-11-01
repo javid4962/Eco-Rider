@@ -1,7 +1,7 @@
 /**
- * EcoRide Authentication & OTP Contracts (EV-016)
+ * EcoRide Authentication, Token & Session Lifecycle Contracts (EV-016 & EV-017)
  * Strict specifications for India-format phone numbers, short OTP expiry,
- * attempt limits, resend cooldowns, and replay prevention.
+ * short-lived access tokens, rotated refresh sessions, and replay prevention.
  */
 
 /**
@@ -16,6 +16,12 @@ export const INDIA_PHONE_REGEX = /^\+91[6-9]\d{9}$/;
 export const OTP_EXPIRY_SECONDS = 300; // 5 minutes
 export const OTP_RESEND_COOLDOWN_SECONDS = 60; // 60 seconds minimum interval
 export const OTP_MAX_ATTEMPTS = 3; // Max 3 failed attempts before lockout
+
+/**
+ * Token & Session Lifecycle Constraints (EV-017)
+ */
+export const ACCESS_TOKEN_EXPIRY_SECONDS = 900; // 15 minutes
+export const REFRESH_TOKEN_EXPIRY_SECONDS = 2592000; // 30 days
 
 export type AuthOtpPurpose = 'LOGIN' | 'RIDE_START' | 'EMERGENCY';
 
@@ -42,11 +48,15 @@ export interface VerifyOtpRequest {
 }
 
 export interface UserSessionPayload {
-  token: string;
+  token: string; // Access token (Bearer)
+  accessToken: string;
+  refreshToken: string; // Raw rotated refresh token (sent to client once)
   sessionId: string;
   userId: string;
   role: string;
   expiresAt: string;
+  expiresIn?: number;
+  tokenType?: 'Bearer';
 }
 
 export interface AuthenticatedUserPayload {
@@ -64,3 +74,41 @@ export interface VerifyOtpResponse {
   user?: AuthenticatedUserPayload;
 }
 
+export interface RefreshTokenRequest {
+  refreshToken: string;
+}
+
+export interface RefreshTokenResponse {
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number; // 900 seconds
+  tokenType: 'Bearer';
+}
+
+export interface LogoutRequest {
+  refreshToken?: string;
+}
+
+export interface LogoutResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface SessionDto {
+  id: string;
+  userId: string;
+  platform: string;
+  deviceId?: string;
+  ipAddress?: string;
+  userAgent?: string;
+  isRevoked: boolean;
+  expiresAt: string;
+  lastActiveAt: string;
+  createdAt: string;
+  isCurrent?: boolean;
+}
+
+export interface RevokeAllSessionsResponse {
+  success: boolean;
+  revokedCount: number;
+}

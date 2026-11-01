@@ -603,6 +603,26 @@
         }
       }
     },
+    "/v1/identity/users/{userId}/sessions/revoke-all": {
+      "post": {
+        "operationId": "IdentityController_revokeAllUserSessions",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
     "/v1/identity/users/{userId}/consents": {
       "get": {
         "operationId": "IdentityController_getUserConsents",
@@ -768,6 +788,144 @@
         },
         "tags": [
           "Authentication"
+        ]
+      }
+    },
+    "/v1/auth/refresh": {
+      "post": {
+        "operationId": "AuthController_refreshTokens",
+        "summary": "Rotate refresh token and issue new short-lived access token",
+        "description": "Implements RFC 6819 refresh token rotation. If an already-rotated token is replayed, triggers global session revocation.",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshTokenDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tokens rotated successfully; new 15-minute access token and refresh token returned"
+          },
+          "401": {
+            "description": "Invalid, expired, revoked, or replayed refresh token"
+          }
+        },
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/v1/auth/logout": {
+      "post": {
+        "operationId": "AuthController_logout",
+        "summary": "Terminate current session and stop future token refresh",
+        "description": "Revokes the specified refresh token session or current authenticated session in the database.",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LogoutDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Session revoked successfully; future token refresh stopped"
+          }
+        },
+        "tags": [
+          "Authentication"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/v1/auth/sessions": {
+      "get": {
+        "operationId": "AuthController_getSessions",
+        "summary": "List active sessions and devices for the authenticated caller",
+        "description": "Returns safe session metadata without leaking token secrets or hashes.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Active sessions retrieved successfully"
+          },
+          "401": {
+            "description": "Authentication required to list sessions"
+          }
+        },
+        "tags": [
+          "Authentication"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/v1/auth/sessions/{sessionId}": {
+      "delete": {
+        "operationId": "AuthController_revokeSession",
+        "summary": "Revoke a specific device session belonging to the authenticated caller",
+        "description": "Enforces self-ownership: revoking other users sessions fails with 403 Forbidden.",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Session revoked successfully"
+          },
+          "403": {
+            "description": "Cannot revoke session belonging to another account"
+          }
+        },
+        "tags": [
+          "Authentication"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/v1/auth/revoke-all": {
+      "post": {
+        "operationId": "AuthController_revokeAllSessions",
+        "summary": "Revoke all active sessions on suspected compromise or global signout",
+        "description": "Terminates all active sessions for the authenticated user.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "All user sessions revoked successfully"
+          }
+        },
+        "tags": [
+          "Authentication"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
         ]
       }
     }
@@ -952,6 +1110,29 @@
           "phone",
           "code"
         ]
+      },
+      "RefreshTokenDto": {
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string",
+            "example": "d3b07384d113edec49eaa6238ad5ff00b1a03975ef71d5330e70417937446690",
+            "description": "Cryptographically secure plaintext refresh token received during login or token rotation"
+          }
+        },
+        "required": [
+          "refreshToken"
+        ]
+      },
+      "LogoutDto": {
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string",
+            "example": "d3b07384d113edec49eaa6238ad5ff00b1a03975ef71d5330e70417937446690",
+            "description": "Optional plaintext refresh token to revoke specific session during logout"
+          }
+        }
       }
     }
   }

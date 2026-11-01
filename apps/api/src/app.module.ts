@@ -14,6 +14,7 @@ import { SeedModule } from './modules/seed/seed.module';
 import { IdentityModule } from './modules/identity/identity.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { CorrelationIdMiddleware } from './common/middleware/correlation-id.middleware';
+import { AuthMiddleware } from './modules/auth/middleware/auth.middleware';
 
 @Module({
   imports: [
@@ -37,6 +38,6 @@ import { CorrelationIdMiddleware } from './common/middleware/correlation-id.midd
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
-    consumer.apply(CorrelationIdMiddleware).forRoutes('*');
+    consumer.apply(CorrelationIdMiddleware, AuthMiddleware).forRoutes('*');
   }
 }

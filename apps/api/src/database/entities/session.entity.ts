@@ -27,6 +27,10 @@ export class Session {
   @Column({ type: 'varchar', length: 128, unique: true, name: 'token_hash' })
   tokenHash!: string;
 
+  @Index('idx_sessions_previous_token_hash')
+  @Column({ type: 'varchar', length: 128, nullable: true, name: 'previous_token_hash' })
+  previousTokenHash?: string;
+
   @Column({ type: 'varchar', length: 100, nullable: true, name: 'device_id' })
   deviceId?: string;
 

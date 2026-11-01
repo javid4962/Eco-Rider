@@ -1,6 +1,7 @@
 import { EnablePostgisExtension1700000000000 } from '../src/database/migrations/1700000000000-EnablePostgisExtension';
 import { CreateInitialSchema1700000000001 } from '../src/database/migrations/1700000000001-CreateInitialSchema';
 import { CreateIdentityAndRoleSchema1700000000003 } from '../src/database/migrations/1700000000003-CreateIdentityAndRoleSchema';
+import { AddSessionTokenRotation1700000000004 } from '../src/database/migrations/1700000000004-AddSessionTokenRotation';
 import { QueryRunner } from 'typeorm';
 
 describe('Database Migrations', () => {
@@ -128,6 +129,32 @@ describe('Database Migrations', () => {
       expect(allQueries).toContain('DROP TABLE IF EXISTS "rider_profiles" CASCADE;');
       expect(allQueries).toContain('DROP TABLE IF EXISTS "roles" CASCADE;');
       expect(allQueries).toContain('ALTER TABLE "users" DROP COLUMN IF EXISTS "email";');
+    });
+  });
+
+  describe('AddSessionTokenRotation1700000000004', () => {
+    let migration: AddSessionTokenRotation1700000000004;
+
+    beforeEach(() => {
+      migration = new AddSessionTokenRotation1700000000004();
+    });
+
+    it('should add previous_token_hash column and index in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('ALTER TABLE "sessions"');
+      expect(allQueries).toContain('ADD COLUMN IF NOT EXISTS "previous_token_hash"');
+      expect(allQueries).toContain('CREATE INDEX IF NOT EXISTS "idx_sessions_previous_token_hash"');
+    });
+
+    it('should drop index and column in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP INDEX IF EXISTS "idx_sessions_previous_token_hash"');
+      expect(allQueries).toContain('ALTER TABLE "sessions"');
+      expect(allQueries).toContain('DROP COLUMN IF EXISTS "previous_token_hash"');
     });
   });
 });

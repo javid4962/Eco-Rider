@@ -4,6 +4,8 @@ import {
   Patch,
   Post,
   Delete,
+  HttpCode,
+  HttpStatus,
   Param,
   Body,
   Query,
@@ -77,6 +79,16 @@ export class IdentityController {
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
   ) {
     return this.identityService.revokeSession(actor, userId, sessionId);
+  }
+
+  @Post('users/:userId/sessions/revoke-all')
+  @HttpCode(HttpStatus.OK)
+  async revokeAllUserSessions(
+    @CurrentActor() actor: CurrentActorPayload,
+    @Param('userId', ParseUUIDPipe) userId: string,
+    @Body('reason') reason?: string,
+  ) {
+    return this.identityService.revokeAllUserSessions(actor, userId, reason || 'USER_INITIATED');
   }
 
   @Get('users/:userId/consents')

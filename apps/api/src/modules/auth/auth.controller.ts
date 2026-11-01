@@ -1,7 +1,19 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, Req } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiHeader } from '@nestjs/swagger';
+import {
+  Controller,
+  Post,
+  Get,
+  Delete,
+  Body,
+  Param,
+  HttpCode,
+  HttpStatus,
+  Req,
+  ParseUUIDPipe,
+} from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiHeader, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { SendOtpDto, VerifyOtpDto } from './dto';
+import { SendOtpDto, VerifyOtpDto, RefreshTokenDto, LogoutDto } from './dto';
+import { CurrentActor, CurrentActorPayload } from '../identity/current-actor.decorator';
 import {
   RequestWithCorrelation,
   CORRELATION_ID_HEADER,
@@ -70,5 +82,104 @@ export class AuthController {
     const userAgent = req.headers['user-agent'] as string | undefined;
     return this.authService.verifyOtp(dto, clientIp, userAgent, req.correlationId);
   }
-}
 
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Rotate refresh token and issue new short-lived access token',
+    description:
+      'Implements RFC 6819 refresh token rotation. If an already-rotated token is replayed, triggers global session revocation.',
+  })
+  @ApiResponse({
+    status: 200,
+    description:
+      'Tokens rotated successfully; new 15-minute access token and refresh token returned',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Invalid, expired, revoked, or replayed refresh token',
+  })
+  async refreshTokens(@Body() dto: RefreshTokenDto, @Req() req: RequestWithCorrelation) {
+    const clientIp = (req.headers['x-forwarded-for'] as string) || req.socket?.remoteAddress;
+    const userAgent = req.headers['user-agent'] as string | undefined;
+    return this.authService.refreshTokens(dto, clientIp, userAgent, req.correlationId);
+  }
+
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Terminate current session and stop future token refresh',
+    description:
+      'Revokes the specified refresh token session or current authenticated session in the database.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Session revoked successfully; future token refresh stopped',
+  })
+  async logout(
+    @Body() dto: LogoutDto,
+    @CurrentActor() actor: CurrentActorPayload,
+    @Req() req: RequestWithCorrelation,
+  ) {
+    const clientIp = (req.headers['x-forwarded-for'] as string) || req.socket?.remoteAddress;
+    return this.authService.logout(dto, actor, clientIp, req.correlationId);
+  }
+
+  @Get('sessions')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'List active sessions and devices for the authenticated caller',
+    description: 'Returns safe session metadata without leaking token secrets or hashes.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Active sessions retrieved successfully',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Authentication required to list sessions',
+  })
+  async getSessions(@CurrentActor() actor: CurrentActorPayload) {
+    return this.authService.getSessionsForActor(actor);
+  }
+
+  @Delete('sessions/:sessionId')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Revoke a specific device session belonging to the authenticated caller',
+    description: 'Enforces self-ownership: revoking other users sessions fails with 403 Forbidden.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Session revoked successfully',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Cannot revoke session belonging to another account',
+  })
+  async revokeSession(
+    @CurrentActor() actor: CurrentActorPayload,
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+  ) {
+    return this.authService.revokeSessionForActor(actor, sessionId);
+  }
+
+  @Post('revoke-all')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Revoke all active sessions on suspected compromise or global signout',
+    description: 'Terminates all active sessions for the authenticated user.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'All user sessions revoked successfully',
+  })
+  async revokeAllSessions(
+    @CurrentActor() actor: CurrentActorPayload,
+    @Body('reason') reason?: string,
+  ) {
+    return this.authService.revokeAllSessionsForActor(actor, reason || 'USER_GLOBAL_LOGOUT');
+  }
+}

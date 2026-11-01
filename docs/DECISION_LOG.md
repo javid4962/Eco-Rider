@@ -210,3 +210,28 @@
 
 
 
+
+
+## ADR-0018: Token and Session Lifecycle, Refresh Rotation (RFC 6819), and Compromise Revocation
+- **Date**: 2026-11-01
+- **Status**: Accepted
+- **Context**: The EcoRide mobility platform requires secure token and session management for commuters (Rider App), drivers (Captain App), and operations staff (Ops Web). Security standards dictate short-lived access tokens, rotation of long-lived refresh tokens, single-use replay protection, device session management, and instant global revocation upon suspected compromise. Furthermore, plaintext refresh secrets must never be persisted to the database.
+- **Decision**:
+  1. **Short-Lived Access Tokens (15 Minutes)**:
+     Implement HMAC-SHA256 JWT access tokens using Node.js built-in `crypto` (`crypto.createHmac`, `crypto.timingSafeEqual`) with a strict 900-second (15-minute) expiration (`ACCESS_TOKEN_EXPIRY_SECONDS`). The token payload encodes `sub` (user UUID), `role`, `scopes`, and `sessionId`. Tampered signatures or expired tokens are immediately rejected with HTTP 401 Unauthorized.
+  2. **Refresh Token Rotation (RFC 6819)**:
+     Generate 64-character high-entropy hex refresh tokens (`crypto.randomBytes(32).toString('hex')`) with 30-day expiration. In compliance with data protection requirements, plaintext refresh secrets are sent to the client exactly once upon issuance and are NEVER stored in the database. Only the SHA-256 digest is persisted in `sessions.token_hash`. Upon each refresh request (`POST /v1/auth/refresh`), the token is rotated: the current hash is advanced to `sessions.previous_token_hash`, and a newly generated token hash is stored in `sessions.token_hash`.
+  3. **Suspected Compromise Detection & Global Revocation**:
+     If an incoming refresh token's SHA-256 hash matches `sessions.previous_token_hash`, the server detects an active replay attack (an attacker replaying a stolen token that was already rotated by the legitimate user). The server immediately initiates automated incident response:
+     - Atomically revokes all active sessions for that user (`UPDATE sessions SET is_revoked = true WHERE user_id = :userId`).
+     - Emits a high-severity `TOKEN_REUSE_DETECTED` security audit event with status `DENIED`.
+     - Rejects the request with HTTP 401 Unauthorized ("Suspected token compromise detected. All user sessions have been terminated. Please log in again.").
+     - Attempts to refresh using an already-revoked session (`is_revoked = true`) similarly trigger global revocation and audit logging (`REVOKED_TOKEN_REUSE`).
+  4. **Explicit Logout & Session Invalidation**:
+     `POST /v1/auth/logout` allows clients to invalidate their current session either by passing `refreshToken` in the request body or via the active Bearer token's `sessionId`. The session is marked `is_revoked = true`, halting all subsequent refresh cycles.
+  5. **Session & Device Listing with Privacy Isolation**:
+     - `GET /v1/auth/sessions` lists active devices/sessions for the authenticated caller, highlighting the caller's active session (`isCurrent = true`).
+     - `GET /v1/identity/users/:userId/sessions` strictly enforces account ownership: any user attempting to query another user's sessions is blocked with HTTP 403 Forbidden and logged as `CROSS_ACCOUNT_ACCESS_DENIED`.
+     - In all session responses, `token_hash`, `previous_token_hash`, and secret keys are completely stripped and never exposed to clients.
+  6. **Endpoint-Driven Global Revocation**:
+     `POST /v1/auth/revoke-all` enables authenticated users to immediately revoke all active sessions across all devices (e.g., lost phone, suspicious activity), returning a confirmation of revoked session count.

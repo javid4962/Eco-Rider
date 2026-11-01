@@ -5,23 +5,31 @@ import {
   HttpException,
   HttpStatus,
   ForbiddenException,
+  UnauthorizedException,
   Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
-import { User, RiderProfile } from '../../database/entities';
+import { User, RiderProfile, Session } from '../../database/entities';
 import {
   INDIA_PHONE_REGEX,
   PlatformRole,
+  ROLE_SCOPES,
   ApiErrorCode,
   SendOtpResponse,
   VerifyOtpResponse,
+  RefreshTokenResponse,
+  LogoutResponse,
+  SessionDto,
+  ACCESS_TOKEN_EXPIRY_SECONDS,
 } from '@ecoride/contracts';
 import { OTP_PROVIDER } from '../providers/providers.constants';
 import { IOtpProvider } from '../providers/interfaces/otp-provider.interface';
 import { MockOtpProvider } from '../providers/mock/mock-otp.provider';
 import { IdentityService } from '../identity/identity.service';
-import { SendOtpDto, VerifyOtpDto } from './dto';
+import { CurrentActorPayload } from '../identity/current-actor.decorator';
+import { TokenService } from './token.service';
+import { SendOtpDto, VerifyOtpDto, RefreshTokenDto, LogoutDto } from './dto';
 
 @Injectable()
 export class AuthService {
@@ -32,7 +40,10 @@ export class AuthService {
     private readonly otpProvider: IOtpProvider,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(Session)
+    private readonly sessionRepository: Repository<Session>,
     private readonly identityService: IdentityService,
+    private readonly tokenService: TokenService,
     private readonly dataSource: DataSource,
   ) {
     this.assertNotProductionWithMock();
@@ -269,13 +280,14 @@ export class AuthService {
       throw new ForbiddenException('User account is deactivated. Please contact support.');
     }
 
-    // Issue authentic session
-    const sessionResult = await this.identityService.createSession(
-      user.id,
+    // Issue authentic session with short-lived access token and rotated refresh session
+    const sessionResult = await this.createSessionAndTokens(
+      user,
       dto.platform || 'MOBILE',
       dto.deviceId,
       clientIp,
       userAgent,
+      correlationId,
     );
 
     return {
@@ -283,11 +295,15 @@ export class AuthService {
       verified: true,
       purpose: 'LOGIN',
       session: {
-        token: sessionResult.rawToken,
+        token: sessionResult.accessToken, // Primary Bearer token
+        accessToken: sessionResult.accessToken,
+        refreshToken: sessionResult.refreshToken, // Plaintext refresh token sent ONCE
         sessionId: sessionResult.session.id,
         userId: user.id,
         role: user.role,
         expiresAt: sessionResult.session.expiresAt.toISOString(),
+        expiresIn: sessionResult.expiresIn,
+        tokenType: 'Bearer',
       },
       user: {
         id: user.id,
@@ -296,5 +312,280 @@ export class AuthService {
         isActive: user.isActive,
       },
     };
+  }
+
+  /**
+   * Internal session & token creation.
+   * Generates plaintext refresh token sent ONCE to client, storing only the SHA-256 hash.
+   */
+  async createSessionAndTokens(
+    user: User,
+    platform = 'WEB',
+    deviceId?: string,
+    ipAddress?: string,
+    userAgent?: string,
+    correlationId?: string,
+  ) {
+    const rawRefreshToken = this.tokenService.generateRefreshToken();
+    const tokenHash = this.tokenService.hashToken(rawRefreshToken);
+    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
+
+    const session = this.sessionRepository.create({
+      userId: user.id,
+      tokenHash,
+      platform,
+      deviceId,
+      ipAddress,
+      userAgent,
+      expiresAt,
+      isRevoked: false,
+    });
+
+    const saved = await this.sessionRepository.save(session);
+
+    const accessToken = this.tokenService.generateAccessToken({
+      sub: user.id,
+      role: user.role,
+      scopes: ROLE_SCOPES[user.role] || [],
+      sessionId: saved.id,
+    });
+
+    await this.identityService.recordAuditEvent({
+      actorId: user.id,
+      targetUserId: user.id,
+      action: 'SESSION_CREATED',
+      entityType: 'SESSION',
+      entityId: saved.id,
+      newState: { platform, deviceId, ipAddress },
+      ipAddress,
+      correlationId,
+      status: 'SUCCESS',
+    });
+
+    return {
+      session: saved,
+      accessToken,
+      refreshToken: rawRefreshToken,
+      expiresIn: ACCESS_TOKEN_EXPIRY_SECONDS,
+      tokenType: 'Bearer' as const,
+    };
+  }
+
+  /**
+   * Refresh access token with Refresh Token Rotation and Replay Detection.
+   * If a previously rotated token is replayed, triggers global session revocation for security.
+   */
+  async refreshTokens(
+    dto: RefreshTokenDto,
+    clientIp?: string,
+    userAgent?: string,
+    correlationId?: string,
+  ): Promise<RefreshTokenResponse> {
+    const incomingHash = this.tokenService.hashToken(dto.refreshToken);
+
+    // 1. Check for token reuse / replay of an already rotated refresh token
+    const replayedSession = await this.sessionRepository.findOne({
+      where: { previousTokenHash: incomingHash },
+    });
+
+    if (replayedSession) {
+      this.logger.warn(
+        `[SECURITY ALERT] Suspected refresh token replay detected for user ${replayedSession.userId}. Initiating global session revocation.`,
+      );
+
+      // Suspected compromise: atomically invalidate all sessions for this user
+      await this.sessionRepository.update({ userId: replayedSession.userId }, { isRevoked: true });
+
+      await this.identityService.recordAuditEvent({
+        targetUserId: replayedSession.userId,
+        action: 'TOKEN_REUSE_DETECTED',
+        entityType: 'SESSION',
+        entityId: replayedSession.id,
+        newState: {
+          reason: 'ROTATED_REFRESH_TOKEN_REPLAY',
+          clientIp,
+        },
+        ipAddress: clientIp,
+        correlationId,
+        status: 'DENIED',
+      });
+
+      throw new UnauthorizedException(
+        'Suspected token compromise detected. All user sessions have been terminated. Please log in again.',
+      );
+    }
+
+    // 2. Query session by active tokenHash
+    const session = await this.sessionRepository.findOne({
+      where: { tokenHash: incomingHash },
+      relations: ['user'],
+    });
+
+    if (!session) {
+      throw new UnauthorizedException('Invalid or expired refresh token. Please log in again.');
+    }
+
+    // 3. Check if session was revoked (e.g. after logout or compromise)
+    if (session.isRevoked) {
+      this.logger.warn(
+        `[SECURITY ALERT] Attempt to use revoked refresh token for user ${session.userId}.`,
+      );
+
+      // Trigger global revocation on suspected reuse of revoked token
+      await this.sessionRepository.update({ userId: session.userId }, { isRevoked: true });
+
+      await this.identityService.recordAuditEvent({
+        targetUserId: session.userId,
+        action: 'REVOKED_TOKEN_REUSE',
+        entityType: 'SESSION',
+        entityId: session.id,
+        newState: { reason: 'REVOKED_SESSION_REUSE', clientIp },
+        ipAddress: clientIp,
+        correlationId,
+        status: 'DENIED',
+      });
+
+      throw new UnauthorizedException(
+        'This session has been revoked. All active sessions terminated. Please log in again.',
+      );
+    }
+
+    // 4. Check session expiration
+    if (Date.now() > session.expiresAt.getTime()) {
+      throw new UnauthorizedException('Refresh token session has expired. Please log in again.');
+    }
+
+    // 5. Check user status
+    if (session.user && !session.user.isActive) {
+      throw new ForbiddenException('User account is deactivated. Please contact customer support.');
+    }
+
+    // 6. Rotate refresh token (RFC 6819 Token Rotation)
+    const newRefreshToken = this.tokenService.generateRefreshToken();
+    const newTokenHash = this.tokenService.hashToken(newRefreshToken);
+
+    session.previousTokenHash = session.tokenHash;
+    session.tokenHash = newTokenHash;
+    session.lastActiveAt = new Date();
+    if (clientIp) session.ipAddress = clientIp;
+    if (userAgent) session.userAgent = userAgent;
+
+    await this.sessionRepository.save(session);
+
+    const userRole = session.user?.role || PlatformRole.RIDER;
+    const accessToken = this.tokenService.generateAccessToken({
+      sub: session.userId,
+      role: userRole,
+      scopes: ROLE_SCOPES[userRole] || [],
+      sessionId: session.id,
+    });
+
+    await this.identityService.recordAuditEvent({
+      actorId: session.userId,
+      targetUserId: session.userId,
+      action: 'TOKEN_REFRESHED',
+      entityType: 'SESSION',
+      entityId: session.id,
+      ipAddress: clientIp,
+      correlationId,
+      status: 'SUCCESS',
+    });
+
+    return {
+      accessToken,
+      refreshToken: newRefreshToken,
+      expiresIn: ACCESS_TOKEN_EXPIRY_SECONDS,
+      tokenType: 'Bearer',
+    };
+  }
+
+  /**
+   * Revoke session on user logout.
+   */
+  async logout(
+    dto: LogoutDto,
+    actor?: CurrentActorPayload,
+    clientIp?: string,
+    correlationId?: string,
+  ): Promise<LogoutResponse> {
+    let sessionToRevoke: Session | null = null;
+
+    if (dto.refreshToken) {
+      const hash = this.tokenService.hashToken(dto.refreshToken);
+      sessionToRevoke = await this.sessionRepository.findOne({ where: { tokenHash: hash } });
+    } else if (actor?.sessionId) {
+      sessionToRevoke = await this.sessionRepository.findOne({
+        where: { id: actor.sessionId, userId: actor.id },
+      });
+    }
+
+    if (sessionToRevoke) {
+      sessionToRevoke.isRevoked = true;
+      await this.sessionRepository.save(sessionToRevoke);
+
+      await this.identityService.recordAuditEvent({
+        actorId: sessionToRevoke.userId,
+        targetUserId: sessionToRevoke.userId,
+        action: 'LOGOUT',
+        entityType: 'SESSION',
+        entityId: sessionToRevoke.id,
+        ipAddress: clientIp,
+        correlationId,
+        status: 'SUCCESS',
+      });
+    }
+
+    return {
+      success: true,
+      message: 'Logged out successfully',
+    };
+  }
+
+  /**
+   * List active sessions for authenticated caller. Never leaks token secrets.
+   */
+  async getSessionsForActor(actor: CurrentActorPayload): Promise<SessionDto[]> {
+    if (!actor || actor.id === '00000000-0000-0000-0000-000000000000') {
+      throw new UnauthorizedException('Authentication required to list sessions');
+    }
+
+    const sessions = await this.sessionRepository.find({
+      where: { userId: actor.id, isRevoked: false },
+      order: { lastActiveAt: 'DESC' },
+    });
+
+    return sessions.map((s) => ({
+      id: s.id,
+      userId: s.userId,
+      platform: s.platform,
+      deviceId: s.deviceId,
+      ipAddress: s.ipAddress,
+      userAgent: s.userAgent,
+      isRevoked: s.isRevoked,
+      expiresAt: s.expiresAt instanceof Date ? s.expiresAt.toISOString() : s.expiresAt,
+      lastActiveAt: s.lastActiveAt instanceof Date ? s.lastActiveAt.toISOString() : s.lastActiveAt,
+      createdAt: s.createdAt instanceof Date ? s.createdAt.toISOString() : s.createdAt,
+      isCurrent: actor.sessionId ? s.id === actor.sessionId : false,
+    }));
+  }
+
+  /**
+   * Revoke specific session belonging to authenticated actor.
+   */
+  async revokeSessionForActor(actor: CurrentActorPayload, sessionId: string) {
+    if (!actor || actor.id === '00000000-0000-0000-0000-000000000000') {
+      throw new UnauthorizedException('Authentication required');
+    }
+    return this.identityService.revokeSession(actor, actor.id, sessionId);
+  }
+
+  /**
+   * Revoke all sessions belonging to authenticated actor (suspected compromise or user global logout).
+   */
+  async revokeAllSessionsForActor(actor: CurrentActorPayload, reason = 'USER_GLOBAL_LOGOUT') {
+    if (!actor || actor.id === '00000000-0000-0000-0000-000000000000') {
+      throw new UnauthorizedException('Authentication required');
+    }
+    return this.identityService.revokeAllUserSessions(actor, actor.id, reason);
   }
 }

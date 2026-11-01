@@ -5,6 +5,7 @@ export interface CurrentActorPayload {
   id: string;
   role: PlatformRole | string;
   scopes: string[];
+  sessionId?: string;
   ipAddress?: string;
   correlationId?: string;
 }
@@ -20,7 +21,8 @@ export const CurrentActor = createParamDecorator(
       '00000000-0000-0000-0000-000000000000';
     const actorRole = (headers['x-actor-role'] as string) || request.user?.role || 'ANONYMOUS';
 
-    const scopes = ROLE_SCOPES[actorRole] || [];
+    const scopes = request.user?.scopes || ROLE_SCOPES[actorRole] || [];
+    const sessionId = request.user?.sessionId;
     const ipAddress = request.ip || (headers['x-forwarded-for'] as string) || '127.0.0.1';
     const correlationId = request.correlationId || (headers['x-correlation-id'] as string);
 
@@ -28,6 +30,7 @@ export const CurrentActor = createParamDecorator(
       id: actorId,
       role: actorRole,
       scopes,
+      sessionId,
       ipAddress,
       correlationId,
     };

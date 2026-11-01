@@ -12,6 +12,8 @@ import { IdentityModule } from '../identity/identity.module';
 import { ProvidersModule } from '../providers/providers.module';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
+import { TokenService } from './token.service';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Module({
   imports: [
@@ -20,7 +22,7 @@ import { AuthController } from './auth.controller';
     ProvidersModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService],
-  exports: [AuthService],
+  providers: [AuthService, TokenService, JwtAuthGuard],
+  exports: [AuthService, TokenService, JwtAuthGuard],
 })
 export class AuthModule {}

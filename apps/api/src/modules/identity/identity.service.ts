@@ -369,14 +369,28 @@ export class IdentityService {
 
   /**
    * List active sessions for a user. Ownership enforced.
+   * Never leaks raw tokenHash or previousTokenHash.
    */
   async getUserSessions(actor: CurrentActorPayload, targetUserId: string) {
     await this.assertCanAccessUser(actor, targetUserId, 'session:read', 'GET_USER_SESSIONS');
 
-    return this.sessionRepository.find({
+    const sessions = await this.sessionRepository.find({
       where: { userId: targetUserId, isRevoked: false },
       order: { lastActiveAt: 'DESC' },
     });
+
+    return sessions.map((s) => ({
+      id: s.id,
+      userId: s.userId,
+      platform: s.platform,
+      deviceId: s.deviceId,
+      ipAddress: s.ipAddress,
+      userAgent: s.userAgent,
+      isRevoked: s.isRevoked,
+      expiresAt: s.expiresAt instanceof Date ? s.expiresAt.toISOString() : s.expiresAt,
+      lastActiveAt: s.lastActiveAt instanceof Date ? s.lastActiveAt.toISOString() : s.lastActiveAt,
+      createdAt: s.createdAt instanceof Date ? s.createdAt.toISOString() : s.createdAt,
+    }));
   }
 
   /**
@@ -408,6 +422,37 @@ export class IdentityService {
     });
 
     return { success: true, sessionId, isRevoked: true };
+  }
+
+  /**
+   * Revoke all active sessions for a user (suspected compromise or user-initiated global logout).
+   * Caller must be self or SUPER_ADMIN.
+   */
+  async revokeAllUserSessions(
+    actor: CurrentActorPayload,
+    targetUserId: string,
+    reason = 'USER_INITIATED',
+  ) {
+    await this.assertCanAccessUser(actor, targetUserId, 'session:revoke', 'REVOKE_ALL_SESSIONS');
+
+    const result = await this.sessionRepository.update(
+      { userId: targetUserId, isRevoked: false },
+      { isRevoked: true },
+    );
+
+    await this.recordAuditEvent({
+      actorId: actor.id,
+      targetUserId,
+      action: 'GLOBAL_SESSION_REVOCATION',
+      entityType: 'SESSION',
+      entityId: targetUserId,
+      newState: { reason, revokedCount: result.affected ?? 0 },
+      ipAddress: actor.ipAddress,
+      correlationId: actor.correlationId,
+      status: 'SUCCESS',
+    });
+
+    return { success: true, revokedCount: result.affected ?? 0 };
   }
 
   /**

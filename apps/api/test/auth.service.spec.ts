@@ -1,18 +1,29 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { BadRequestException, HttpException, HttpStatus, ForbiddenException } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  ForbiddenException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
+import * as crypto from 'crypto';
 import { AuthService } from '../src/modules/auth/auth.service';
 import { MockOtpProvider } from '../src/modules/providers/mock/mock-otp.provider';
 import { OTP_PROVIDER } from '../src/modules/providers/providers.constants';
 import { IdentityService } from '../src/modules/identity/identity.service';
-import { User, RiderProfile } from '../src/database/entities';
-import { PlatformRole, ApiErrorCode } from '@ecoride/contracts';
+import { TokenService } from '../src/modules/auth/token.service';
+import { ConfigService } from '@nestjs/config';
+import { User, RiderProfile, Session } from '../src/database/entities';
+import { PlatformRole, ApiErrorCode, ACCESS_TOKEN_EXPIRY_SECONDS } from '@ecoride/contracts';
 
-describe('AuthService & Mock OTP Verification (EV-016)', () => {
+describe('AuthService — OTP Verification & Token Lifecycle (EV-016 & EV-017)', () => {
   let authService: AuthService;
+  let tokenService: TokenService;
   let otpProvider: MockOtpProvider;
   let userRepository: jest.Mocked<Partial<Repository<User>>>;
+  let sessionRepository: jest.Mocked<Partial<Repository<Session>>>;
   let identityService: jest.Mocked<Partial<IdentityService>>;
   let mockQueryRunner: {
     connect: jest.Mock;
@@ -35,6 +46,10 @@ describe('AuthService & Mock OTP Verification (EV-016)', () => {
     delete process.env.ENABLE_MOCK_PROVIDERS;
 
     otpProvider = new MockOtpProvider();
+    const mockConfigService = {
+      get: jest.fn().mockReturnValue('test_jwt_secret_key_12345'),
+    } as unknown as ConfigService;
+    tokenService = new TokenService(mockConfigService);
 
     userRepository = {
       findOne: jest.fn().mockResolvedValue(null),
@@ -42,18 +57,33 @@ describe('AuthService & Mock OTP Verification (EV-016)', () => {
       save: jest.fn().mockImplementation(async (entity) => ({ id: 'mock-user-uuid', ...entity })),
     };
 
+    sessionRepository = {
+      findOne: jest.fn().mockResolvedValue(null),
+      find: jest.fn().mockResolvedValue([]),
+      create: jest.fn().mockImplementation((dto) => ({
+        id: 'mock-session-uuid',
+        createdAt: new Date(),
+        lastActiveAt: new Date(),
+        isRevoked: false,
+        ...dto,
+      })),
+      save: jest.fn().mockImplementation(async (entity) => ({
+        id: entity.id || 'mock-session-uuid',
+        createdAt: new Date(),
+        lastActiveAt: new Date(),
+        ...entity,
+      })),
+      update: jest.fn().mockResolvedValue({ affected: 1 } as never),
+    };
+
     identityService = {
       recordAuditEvent: jest
         .fn()
         .mockResolvedValue({ id: 'mock-audit-uuid' } as unknown as User as never),
-      createSession: jest.fn().mockResolvedValue({
-        rawToken: 'mock-bearer-token-1234567890abcdef',
-        session: {
-          id: 'mock-session-uuid',
-          userId: 'mock-user-uuid',
-          expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-        },
-      } as unknown as { session: never; rawToken: string }),
+      revokeSession: jest
+        .fn()
+        .mockResolvedValue({ id: 'mock-session-uuid', isRevoked: true } as never),
+      revokeAllUserSessions: jest.fn().mockResolvedValue({ count: 2, revoked: true } as never),
     };
 
     mockQueryRunner = {
@@ -87,12 +117,20 @@ describe('AuthService & Mock OTP Verification (EV-016)', () => {
           useValue: userRepository,
         },
         {
+          provide: getRepositoryToken(Session),
+          useValue: sessionRepository,
+        },
+        {
           provide: getRepositoryToken(RiderProfile),
           useValue: {},
         },
         {
           provide: IdentityService,
           useValue: identityService,
+        },
+        {
+          provide: TokenService,
+          useValue: tokenService,
         },
         {
           provide: DataSource,
@@ -250,7 +288,7 @@ describe('AuthService & Mock OTP Verification (EV-016)', () => {
     });
   });
 
-  describe('User Auto-Provisioning & Session Issuance', () => {
+  describe('User Auto-Provisioning & Session Issuance (EV-017)', () => {
     it('should auto-provision new RIDER user and create session on valid LOGIN OTP', async () => {
       userRepository.findOne = jest.fn().mockResolvedValue(null);
 
@@ -268,13 +306,19 @@ describe('AuthService & Mock OTP Verification (EV-016)', () => {
       expect(result.valid).toBe(true);
       expect(result.verified).toBe(true);
       expect(result.user?.role).toBe(PlatformRole.RIDER);
-      expect(result.session?.token).toBe('mock-bearer-token-1234567890abcdef');
-      expect(identityService.createSession).toHaveBeenCalledWith(
-        'mock-new-user-id',
-        'RIDER_APP',
-        'device-test-123',
-        undefined,
-        undefined,
+      expect(result.session).toBeDefined();
+      expect(result.session?.token).toBeDefined();
+      expect(result.session?.accessToken).toBeDefined();
+      expect(result.session?.refreshToken).toBeDefined();
+      expect(result.session?.expiresIn).toBe(ACCESS_TOKEN_EXPIRY_SECONDS);
+      expect(result.session?.tokenType).toBe('Bearer');
+      expect(sessionRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 'mock-new-user-id',
+          platform: 'RIDER_APP',
+          deviceId: 'device-test-123',
+          isRevoked: false,
+        }),
       );
     });
 
@@ -301,6 +345,12 @@ describe('AuthService & Mock OTP Verification (EV-016)', () => {
       expect(result.user?.id).toBe('existing-user-uuid');
       expect(result.user?.role).toBe(PlatformRole.CAPTAIN);
       expect(mockQueryRunner.startTransaction).not.toHaveBeenCalled();
+      expect(sessionRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 'existing-user-uuid',
+          platform: 'CAPTAIN_APP',
+        }),
+      );
     });
 
     it('should reject login for deactivated user with 403 Forbidden', async () => {
@@ -338,7 +388,7 @@ describe('AuthService & Mock OTP Verification (EV-016)', () => {
       expect(verifyResult.valid).toBe(true);
       expect(verifyResult.purpose).toBe('RIDE_START');
       expect(verifyResult.session).toBeUndefined();
-      expect(identityService.createSession).not.toHaveBeenCalled();
+      expect(sessionRepository.create).not.toHaveBeenCalled();
     });
   });
 
@@ -355,6 +405,325 @@ describe('AuthService & Mock OTP Verification (EV-016)', () => {
       expect(() => new MockOtpProvider()).toThrow(
         'FATAL: MockOtpProvider is disabled when ENABLE_MOCK_PROVIDERS is set to false.',
       );
+    });
+  });
+
+  describe('Token and Session Lifecycle (EV-017)', () => {
+    const rawRefreshToken = 'initial_refresh_token_64_characters_hex_0123456789abcdef0123456789';
+    const rawTokenHash = crypto.createHash('sha256').update(rawRefreshToken).digest('hex');
+
+    const mockSession: Partial<Session> = {
+      id: 'mock-session-uuid',
+      userId: 'mock-user-uuid',
+      tokenHash: rawTokenHash,
+      previousTokenHash: undefined,
+      platform: 'MOBILE',
+      deviceId: 'device-1',
+      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days in future
+      isRevoked: false,
+      lastActiveAt: new Date(),
+      createdAt: new Date(),
+      user: {
+        id: 'mock-user-uuid',
+        phone: '+919876543210',
+        role: PlatformRole.RIDER,
+        isActive: true,
+      } as User,
+    };
+
+    describe('Refresh Token Rotation (RFC 6819)', () => {
+      it('should successfully rotate tokens, updating previousTokenHash and returning new tokens', async () => {
+        sessionRepository.findOne = jest.fn().mockImplementation(async (options) => {
+          if (options?.where?.previousTokenHash) return null;
+          if (options?.where?.tokenHash === rawTokenHash) return { ...mockSession };
+          return null;
+        });
+
+        const refreshResult = await authService.refreshTokens(
+          { refreshToken: rawRefreshToken },
+          '127.0.0.1',
+          'JestClient/1.0',
+        );
+
+        expect(refreshResult.accessToken).toBeDefined();
+        expect(refreshResult.refreshToken).toBeDefined();
+        expect(refreshResult.refreshToken).not.toEqual(rawRefreshToken);
+        expect(refreshResult.expiresIn).toBe(ACCESS_TOKEN_EXPIRY_SECONDS);
+        expect(refreshResult.tokenType).toBe('Bearer');
+
+        // Check session repository save was called with rotated tokens
+        expect(sessionRepository.save).toHaveBeenCalledWith(
+          expect.objectContaining({
+            id: 'mock-session-uuid',
+            previousTokenHash: rawTokenHash,
+            tokenHash: tokenService.hashToken(refreshResult.refreshToken),
+          }),
+        );
+
+        // Verify JWT accessToken payload
+        const verified = tokenService.verifyAccessToken(refreshResult.accessToken);
+        expect(verified.sub).toBe('mock-user-uuid');
+        expect(verified.role).toBe(PlatformRole.RIDER);
+        expect(verified.sessionId).toBe('mock-session-uuid');
+      });
+    });
+
+    describe('Replay Attack Detection & Global Revocation', () => {
+      it('should detect reuse of a previously rotated refresh token and revoke all user sessions', async () => {
+        const stolenOldToken = 'stolen_old_refresh_token_which_was_already_rotated_by_victim';
+        const stolenHash = tokenService.hashToken(stolenOldToken);
+
+        // Mock session where previousTokenHash matches the stolen old token
+        sessionRepository.findOne = jest.fn().mockImplementation(async (options) => {
+          if (options?.where?.previousTokenHash === stolenHash) {
+            return {
+              id: 'victim-session-id',
+              userId: 'victim-user-id',
+              tokenHash: 'newly_rotated_hash',
+              previousTokenHash: stolenHash,
+              isRevoked: false,
+            };
+          }
+          return null;
+        });
+
+        await expect(
+          authService.refreshTokens(
+            { refreshToken: stolenOldToken },
+            '192.168.1.100',
+            'MaliciousAttacker/1.0',
+          ),
+        ).rejects.toThrow(
+          new UnauthorizedException(
+            'Suspected token compromise detected. All user sessions have been terminated. Please log in again.',
+          ),
+        );
+
+        // Must trigger global session revocation for victim user
+        expect(sessionRepository.update).toHaveBeenCalledWith(
+          { userId: 'victim-user-id' },
+          { isRevoked: true },
+        );
+
+        // Must record audit event
+        expect(identityService.recordAuditEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            targetUserId: 'victim-user-id',
+            action: 'TOKEN_REUSE_DETECTED',
+            status: 'DENIED',
+          }),
+        );
+      });
+    });
+
+    describe('Revoked Session Rejection', () => {
+      it('should reject refresh on an already revoked session and trigger global revocation', async () => {
+        const revokedSession = {
+          ...mockSession,
+          isRevoked: true,
+        };
+
+        sessionRepository.findOne = jest.fn().mockImplementation(async (options) => {
+          if (options?.where?.previousTokenHash) return null;
+          if (options?.where?.tokenHash === rawTokenHash) return revokedSession;
+          return null;
+        });
+
+        await expect(authService.refreshTokens({ refreshToken: rawRefreshToken })).rejects.toThrow(
+          new UnauthorizedException(
+            'This session has been revoked. All active sessions terminated. Please log in again.',
+          ),
+        );
+
+        expect(sessionRepository.update).toHaveBeenCalledWith(
+          { userId: 'mock-user-uuid' },
+          { isRevoked: true },
+        );
+
+        expect(identityService.recordAuditEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            targetUserId: 'mock-user-uuid',
+            action: 'REVOKED_TOKEN_REUSE',
+            status: 'DENIED',
+          }),
+        );
+      });
+    });
+
+    describe('Expired Refresh Token', () => {
+      it('should reject refresh if the session has expired', async () => {
+        const expiredSession = {
+          ...mockSession,
+          expiresAt: new Date(Date.now() - 1000), // In past
+        };
+
+        sessionRepository.findOne = jest.fn().mockImplementation(async (options) => {
+          if (options?.where?.previousTokenHash) return null;
+          if (options?.where?.tokenHash === rawTokenHash) return expiredSession;
+          return null;
+        });
+
+        await expect(authService.refreshTokens({ refreshToken: rawRefreshToken })).rejects.toThrow(
+          new UnauthorizedException('Refresh token session has expired. Please log in again.'),
+        );
+      });
+    });
+
+    describe('Deactivated User Refresh', () => {
+      it('should reject refresh if the user account is deactivated', async () => {
+        const deactivatedUserSession = {
+          ...mockSession,
+          user: {
+            id: 'mock-user-uuid',
+            phone: '+919876543210',
+            role: PlatformRole.RIDER,
+            isActive: false,
+          } as User,
+        };
+
+        sessionRepository.findOne = jest.fn().mockImplementation(async (options) => {
+          if (options?.where?.previousTokenHash) return null;
+          if (options?.where?.tokenHash === rawTokenHash) return deactivatedUserSession;
+          return null;
+        });
+
+        await expect(authService.refreshTokens({ refreshToken: rawRefreshToken })).rejects.toThrow(
+          new ForbiddenException('User account is deactivated. Please contact customer support.'),
+        );
+      });
+    });
+
+    describe('Logout', () => {
+      it('should revoke session by refreshToken on logout', async () => {
+        const activeSession = { ...mockSession, isRevoked: false };
+        sessionRepository.findOne = jest.fn().mockResolvedValue(activeSession);
+
+        const res = await authService.logout({ refreshToken: rawRefreshToken });
+
+        expect(res.success).toBe(true);
+        expect(res.message).toBe('Logged out successfully');
+        expect(sessionRepository.save).toHaveBeenCalledWith(
+          expect.objectContaining({
+            isRevoked: true,
+          }),
+        );
+        expect(identityService.recordAuditEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            action: 'LOGOUT',
+            entityType: 'SESSION',
+            status: 'SUCCESS',
+          }),
+        );
+      });
+
+      it('should revoke session by actor.sessionId if refreshToken is not passed in body', async () => {
+        const activeSession = { ...mockSession, id: 'actor-session-id', isRevoked: false };
+        sessionRepository.findOne = jest.fn().mockResolvedValue(activeSession);
+
+        const res = await authService.logout(
+          {},
+          {
+            id: 'mock-user-uuid',
+            role: PlatformRole.RIDER,
+            scopes: [],
+            sessionId: 'actor-session-id',
+          },
+        );
+
+        expect(res.success).toBe(true);
+        expect(sessionRepository.save).toHaveBeenCalledWith(
+          expect.objectContaining({
+            id: 'actor-session-id',
+            isRevoked: true,
+          }),
+        );
+      });
+    });
+
+    describe('Session Listing & Privacy (Never Leaking Secrets)', () => {
+      it('should list sessions for actor without leaking token secrets or hashes', async () => {
+        const callerSession: Session = {
+          id: 'caller-session-id',
+          userId: 'mock-user-uuid',
+          tokenHash: 'secret-hash-1',
+          previousTokenHash: 'secret-prev-hash-1',
+          platform: 'RIDER_APP',
+          deviceId: 'device-1',
+          ipAddress: '127.0.0.1',
+          userAgent: 'Flutter/3.0',
+          isRevoked: false,
+          expiresAt: new Date(Date.now() + 86400000),
+          lastActiveAt: new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          user: mockSession.user as User,
+        };
+
+        sessionRepository.find = jest.fn().mockResolvedValue([callerSession]);
+
+        const sessions = await authService.getSessionsForActor({
+          id: 'mock-user-uuid',
+          role: PlatformRole.RIDER,
+          scopes: [],
+          sessionId: 'caller-session-id',
+        });
+
+        expect(sessions).toHaveLength(1);
+        const s = sessions[0];
+        expect(s.id).toBe('caller-session-id');
+        expect(s.isCurrent).toBe(true);
+        expect(s.platform).toBe('RIDER_APP');
+        expect(s.deviceId).toBe('device-1');
+
+        // Verify token secrets and hashes are completely omitted from response
+        expect((s as unknown as Record<string, unknown>).tokenHash).toBeUndefined();
+        expect((s as unknown as Record<string, unknown>).previousTokenHash).toBeUndefined();
+        expect((s as unknown as Record<string, unknown>).rawToken).toBeUndefined();
+      });
+
+      it('should reject unauthenticated call to list sessions', async () => {
+        await expect(
+          authService.getSessionsForActor({
+            id: '00000000-0000-0000-0000-000000000000',
+            role: PlatformRole.RIDER,
+            scopes: [],
+          }),
+        ).rejects.toThrow(UnauthorizedException);
+      });
+    });
+
+    describe('Session Revocation Actions', () => {
+      it('should delegate revokeSessionForActor to identityService.revokeSession', async () => {
+        const actor = {
+          id: 'mock-user-uuid',
+          role: PlatformRole.RIDER,
+          scopes: [],
+          sessionId: 'session-1',
+        };
+        const res = await authService.revokeSessionForActor(actor, 'session-to-revoke');
+        expect(identityService.revokeSession).toHaveBeenCalledWith(
+          actor,
+          'mock-user-uuid',
+          'session-to-revoke',
+        );
+        expect(res).toBeDefined();
+      });
+
+      it('should delegate revokeAllSessionsForActor to identityService.revokeAllUserSessions', async () => {
+        const actor = {
+          id: 'mock-user-uuid',
+          role: PlatformRole.RIDER,
+          scopes: [],
+          sessionId: 'session-1',
+        };
+        const res = await authService.revokeAllSessionsForActor(actor, 'SUSPECTED_COMPROMISE');
+        expect(identityService.revokeAllUserSessions).toHaveBeenCalledWith(
+          actor,
+          'mock-user-uuid',
+          'SUSPECTED_COMPROMISE',
+        );
+        expect(res).toBeDefined();
+      });
     });
   });
 });
