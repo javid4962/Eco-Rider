@@ -11,3 +11,4 @@ export * from './booking.entity';
 export * from './ledger-entry.entity';
 export * from './audit-log.entity';
 export * from './service-flag.entity';
+export * from './saved-location.entity';

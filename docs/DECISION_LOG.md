@@ -261,3 +261,29 @@
      - `LogSanitizer` automatically redacts `authkey`, `apikey`, and query parameters.
      - Logs print masked phone numbers (`+91*****0001`) and never output raw OTP values or secret credentials.
      - Secret scanner rule added to `scripts/scan-secrets.ts` to detect and block live MSG91 auth keys in commits.
+
+
+## ADR-0020: Rider Profile Management, Chosen Language, and Privacy-Safe Saved Locations
+- **Date**: 2026-11-01
+- **Status**: Accepted
+- **Context**: Commuters using the EcoRide Rider App in Andhra Pradesh need to manage their personal profile, select their preferred interface and SMS notification language (`te` Telugu default, `en` English, `hi` Hindi), and store frequently used pickup and drop locations (e.g., Home, Office, Railway Station). To safeguard commuter privacy and prevent spatial surveillance or unauthorized profile scraping, saved locations must strictly store only necessary metadata, enforce maximum capacity constraints, and enforce multi-layered row-level and path-level account ownership checks.
+- **Decision**:
+  1. **Preferred Language Enforcement**:
+     - Add `preferred_language` (`VARCHAR(10) NOT NULL DEFAULT 'te'`) to `rider_profiles` with database check constraint `IN ('te', 'en', 'hi')`.
+     - Update DTO and service layer to validate and accept language changes (`AppLanguage`), defaulting to Telugu (`te`) per regional EV mobility guidelines.
+  2. **Privacy-Safe Saved Locations Schema**:
+     - Create `saved_locations` table with UUID primary key, `user_id` foreign key with `ON DELETE CASCADE`, `label` (`VARCHAR(50)`), `address_type` (`PICKUP`, `DROP`, `BOTH`), `address_line` (`VARCHAR(255)`), optional `landmark` (`VARCHAR(100)`), `latitude`, `longitude`, and PostGIS `geometry(Point, 4326)` column.
+     - Add database constraints on coordinate bounds (`latitude BETWEEN -90 AND 90`, `longitude BETWEEN -180 AND 180`) and create a PostGIS GiST index on `location`.
+     - Exclude continuous tracking, user visit timestamps, and device sensor breadcrumbs from saved locations to minimize stored sensitive geo-data.
+  3. **Row-Level & Path-Level Ownership Isolation**:
+     - Implement dual-layer ownership enforcement in `IdentityService`:
+       - Path-level: `assertCanAccessUser(actor, targetUserId)` rejects attempts by Rider A to target Rider B's endpoints with HTTP 403 Forbidden (`CROSS_ACCOUNT_ACCESS_DENIED` audit event).
+       - Row-level: Queries filtering by `locationId` verify `location.userId === targetUserId`, returning HTTP 404 Not Found if the resource does not belong to the user, completely preventing horizontal privilege escalation (IDOR).
+  4. **Input Limits & Pagination**:
+     - Limit commuters to a maximum of 20 saved locations. Attempting to add a 21st location is rejected with HTTP 400 Bad Request ("Maximum limit of 20 saved locations reached").
+     - Implement pagination query (`page`, `limit` clamped between 1 and 50) returning `{ items, total, page, limit, totalPages }` with optional `type` filter.
+  5. **Dual Routing Architecture**:
+     - Commuter shortcut routes under `/v1/riders/profile` and `/v1/riders/saved-locations` bound directly to the authenticated caller's identity (`actor.id`).
+     - Administrative / platform routes under `/v1/identity/users/:userId/saved-locations` protected by RBAC scopes and ownership checks.
+  6. **Authoritative Security Auditing**:
+     - Record immutable audit events in `audit_events` table for `RIDER_PROFILE_UPDATED`, `SAVED_LOCATION_CREATED`, `SAVED_LOCATION_UPDATED`, `SAVED_LOCATION_DELETED`, and `CROSS_ACCOUNT_ACCESS_DENIED`.

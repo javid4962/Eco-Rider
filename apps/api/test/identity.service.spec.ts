@@ -11,6 +11,7 @@ import {
   Session,
   Consent,
   AuditEvent,
+  SavedLocation,
 } from '../src/database/entities';
 import { PlatformRole, ROLE_SCOPES } from '@ecoride/contracts';
 import { CurrentActorPayload } from '../src/modules/identity/current-actor.decorator';
@@ -24,6 +25,7 @@ describe('IdentityService & Role Scopes (EV-015)', () => {
   let mockSessionRepo: Partial<Repository<Session>>;
   let mockConsentRepo: Partial<Repository<Consent>>;
   let mockAuditEventRepo: Partial<Repository<AuditEvent>>;
+  let mockSavedLocationRepo: Partial<Repository<SavedLocation>>;
   let mockDataSource: Partial<DataSource>;
 
   let auditEventsList: Partial<AuditEvent>[] = [];
@@ -160,6 +162,14 @@ describe('IdentityService & Role Scopes (EV-015)', () => {
       find: jest.fn().mockResolvedValue([]),
     };
 
+    mockSavedLocationRepo = {
+      count: jest.fn().mockResolvedValue(0),
+      find: jest.fn().mockResolvedValue([]),
+      findOne: jest.fn().mockResolvedValue(null),
+      create: jest.fn().mockImplementation((dto) => dto as SavedLocation),
+      save: jest.fn().mockImplementation(async (dto) => ({ id: 'loc-uuid', ...dto })),
+    };
+
     mockDataSource = {
       createQueryRunner: jest.fn().mockReturnValue({
         connect: jest.fn().mockResolvedValue(undefined),
@@ -194,6 +204,7 @@ describe('IdentityService & Role Scopes (EV-015)', () => {
         { provide: getRepositoryToken(Session), useValue: mockSessionRepo },
         { provide: getRepositoryToken(Consent), useValue: mockConsentRepo },
         { provide: getRepositoryToken(AuditEvent), useValue: mockAuditEventRepo },
+        { provide: getRepositoryToken(SavedLocation), useValue: mockSavedLocationRepo },
         { provide: DataSource, useValue: mockDataSource },
       ],
     }).compile();

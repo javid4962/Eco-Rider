@@ -23,6 +23,14 @@ export class RiderProfile {
   @JoinColumn({ name: 'user_id' })
   user?: User;
 
+  @Column({
+    type: 'varchar',
+    length: 10,
+    default: 'te',
+    name: 'preferred_language',
+  })
+  preferredLanguage!: string;
+
   @Column({ type: 'varchar', length: 100, nullable: true, name: 'emergency_contact_name' })
   emergencyContactName?: string;
 

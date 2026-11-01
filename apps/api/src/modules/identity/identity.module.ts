@@ -9,9 +9,11 @@ import {
   Consent,
   AuditEvent,
   Vehicle,
+  SavedLocation,
 } from '../../database/entities';
 import { IdentityService } from './identity.service';
 import { IdentityController } from './identity.controller';
+import { RidersController } from './riders.controller';
 
 @Module({
   imports: [
@@ -24,9 +26,10 @@ import { IdentityController } from './identity.controller';
       Consent,
       AuditEvent,
       Vehicle,
+      SavedLocation,
     ]),
   ],
-  controllers: [IdentityController],
+  controllers: [IdentityController, RidersController],
   providers: [IdentityService],
   exports: [IdentityService],
 })

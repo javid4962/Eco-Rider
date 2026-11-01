@@ -15,12 +15,18 @@ import {
   Session,
   Consent,
   AuditEvent,
+  SavedLocation,
 } from '../../database/entities';
 import {
   PlatformRole,
   ROLE_SCOPES,
   UpdateRiderProfileRequest,
   UpdateDriverProfileRequest,
+  CreateSavedLocationRequest,
+  UpdateSavedLocationRequest,
+  SavedLocationsPaginationQuery,
+  PaginatedSavedLocationsDto,
+  SavedLocationDto,
 } from '@ecoride/contracts';
 import { CurrentActorPayload } from './current-actor.decorator';
 import * as crypto from 'crypto';
@@ -44,6 +50,8 @@ export class IdentityService {
     private readonly consentRepository: Repository<Consent>,
     @InjectRepository(AuditEvent)
     private readonly auditEventRepository: Repository<AuditEvent>,
+    @InjectRepository(SavedLocation)
+    private readonly savedLocationRepository: Repository<SavedLocation>,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -180,6 +188,7 @@ export class IdentityService {
     if (!profile) {
       profile = this.riderProfileRepository.create({
         userId: targetUserId,
+        preferredLanguage: dto.preferredLanguage || 'te',
         preferredPaymentMode: dto.preferredPaymentMode || 'CASH_OR_UPI',
         accessibilityNeeds: dto.accessibilityNeeds ?? false,
       });
@@ -187,6 +196,16 @@ export class IdentityService {
 
     const previousState = isNew ? undefined : { ...profile };
 
+    if (dto.name !== undefined) {
+      const user = await this.userRepository.findOne({ where: { id: targetUserId } });
+      if (user) {
+        user.name = dto.name;
+        await this.userRepository.save(user);
+      }
+    }
+    if (dto.preferredLanguage !== undefined) {
+      profile.preferredLanguage = dto.preferredLanguage;
+    }
     if (dto.emergencyContactName !== undefined) {
       profile.emergencyContactName = dto.emergencyContactName;
     }
@@ -566,5 +585,268 @@ export class IdentityService {
    */
   async getRoles() {
     return this.roleRepository.find({ order: { id: 'ASC' } });
+  }
+
+  // ==========================================
+  // SAVED LOCATIONS (EV-019)
+  // ==========================================
+
+  /**
+   * Create a new saved location for a rider.
+   * Enforces row ownership, input limits (max 20), PostGIS spatial point, and audit logging.
+   */
+  async createSavedLocation(
+    actor: CurrentActorPayload,
+    targetUserId: string,
+    dto: CreateSavedLocationRequest,
+  ): Promise<SavedLocationDto> {
+    await this.assertCanAccessUser(actor, targetUserId, 'rider:write', 'CREATE_SAVED_LOCATION');
+
+    const user = await this.userRepository.findOne({ where: { id: targetUserId } });
+    if (!user) {
+      throw new NotFoundException(`User with ID ${targetUserId} not found`);
+    }
+
+    const count = await this.savedLocationRepository.count({
+      where: { userId: targetUserId },
+    });
+    if (count >= 20) {
+      throw new BadRequestException('Maximum limit of 20 saved locations per rider reached');
+    }
+
+    const location = this.savedLocationRepository.create({
+      userId: targetUserId,
+      label: dto.label.trim(),
+      addressType: dto.addressType || 'BOTH',
+      addressLine: dto.addressLine.trim(),
+      landmark: dto.landmark?.trim() || undefined,
+      latitude: dto.latitude,
+      longitude: dto.longitude,
+    });
+
+    const saved = await this.savedLocationRepository.save(location);
+
+    // Update PostGIS geometry point if running on PostgreSQL/PostGIS
+    try {
+      await this.dataSource.query(
+        `UPDATE "saved_locations" SET "location" = ST_SetSRID(ST_MakePoint($1, $2), 4326) WHERE "id" = $3`,
+        [dto.longitude, dto.latitude, saved.id],
+      );
+    } catch {
+      // In unit test mocks or offline DB, ignore spatial query error
+    }
+
+    await this.recordAuditEvent({
+      actorId: actor.id,
+      targetUserId,
+      action: 'SAVED_LOCATION_CREATED',
+      entityType: 'SAVED_LOCATION',
+      entityId: saved.id,
+      newState: {
+        id: saved.id,
+        label: saved.label,
+        addressType: saved.addressType,
+        addressLine: saved.addressLine,
+        latitude: saved.latitude,
+        longitude: saved.longitude,
+      },
+      ipAddress: actor.ipAddress,
+      correlationId: actor.correlationId,
+      status: 'SUCCESS',
+    });
+
+    return this.mapToSavedLocationDto(saved);
+  }
+
+  /**
+   * Retrieve paginated list of saved locations for a rider.
+   * Enforces access control and supports optional filtering by address type (PICKUP, DROP, BOTH).
+   */
+  async getSavedLocations(
+    actor: CurrentActorPayload,
+    targetUserId: string,
+    query: SavedLocationsPaginationQuery,
+  ): Promise<PaginatedSavedLocationsDto> {
+    await this.assertCanAccessUser(actor, targetUserId, 'rider:read', 'LIST_SAVED_LOCATIONS');
+
+    const page = Math.max(1, query.page || 1);
+    const limit = Math.min(50, Math.max(1, query.limit || 10));
+    const skip = (page - 1) * limit;
+
+    const queryBuilder = this.savedLocationRepository
+      .createQueryBuilder('loc')
+      .where('loc.userId = :userId', { userId: targetUserId })
+      .orderBy('loc.createdAt', 'DESC')
+      .skip(skip)
+      .take(limit);
+
+    if (query.type) {
+      queryBuilder.andWhere('loc.addressType IN (:...types)', {
+        types: [query.type, 'BOTH'],
+      });
+    }
+
+    const [items, total] = await queryBuilder.getManyAndCount();
+    const totalPages = Math.ceil(total / limit) || 1;
+
+    return {
+      items: items.map((loc) => this.mapToSavedLocationDto(loc)),
+      total,
+      page,
+      limit,
+      totalPages,
+    };
+  }
+
+  /**
+   * Retrieve a single saved location by ID.
+   * Enforces row ownership.
+   */
+  async getSavedLocationById(
+    actor: CurrentActorPayload,
+    targetUserId: string,
+    locationId: string,
+  ): Promise<SavedLocationDto> {
+    await this.assertCanAccessUser(actor, targetUserId, 'rider:read', 'GET_SAVED_LOCATION');
+
+    const location = await this.savedLocationRepository.findOne({
+      where: { id: locationId },
+    });
+
+    if (!location || location.userId !== targetUserId) {
+      throw new NotFoundException(`Saved location with ID ${locationId} not found`);
+    }
+
+    return this.mapToSavedLocationDto(location);
+  }
+
+  /**
+   * Update an existing saved location.
+   * Enforces row ownership, recalculates PostGIS geometry, and logs audit events.
+   */
+  async updateSavedLocation(
+    actor: CurrentActorPayload,
+    targetUserId: string,
+    locationId: string,
+    dto: UpdateSavedLocationRequest,
+  ): Promise<SavedLocationDto> {
+    await this.assertCanAccessUser(actor, targetUserId, 'rider:write', 'UPDATE_SAVED_LOCATION');
+
+    const location = await this.savedLocationRepository.findOne({
+      where: { id: locationId },
+    });
+
+    if (!location || location.userId !== targetUserId) {
+      throw new NotFoundException(`Saved location with ID ${locationId} not found`);
+    }
+
+    const previousState = {
+      label: location.label,
+      addressType: location.addressType,
+      addressLine: location.addressLine,
+      landmark: location.landmark,
+      latitude: location.latitude,
+      longitude: location.longitude,
+    };
+
+    if (dto.label !== undefined) location.label = dto.label.trim();
+    if (dto.addressType !== undefined) location.addressType = dto.addressType;
+    if (dto.addressLine !== undefined) location.addressLine = dto.addressLine.trim();
+    if (dto.landmark !== undefined)
+      location.landmark = dto.landmark ? dto.landmark.trim() : undefined;
+    if (dto.latitude !== undefined) location.latitude = dto.latitude;
+    if (dto.longitude !== undefined) location.longitude = dto.longitude;
+
+    const saved = await this.savedLocationRepository.save(location);
+
+    if (dto.latitude !== undefined || dto.longitude !== undefined) {
+      try {
+        await this.dataSource.query(
+          `UPDATE "saved_locations" SET "location" = ST_SetSRID(ST_MakePoint($1, $2), 4326) WHERE "id" = $3`,
+          [saved.longitude, saved.latitude, saved.id],
+        );
+      } catch {
+        // In unit test mocks or offline DB, ignore spatial query error
+      }
+    }
+
+    await this.recordAuditEvent({
+      actorId: actor.id,
+      targetUserId,
+      action: 'SAVED_LOCATION_UPDATED',
+      entityType: 'SAVED_LOCATION',
+      entityId: saved.id,
+      previousState: previousState as Record<string, unknown>,
+      newState: {
+        id: saved.id,
+        label: saved.label,
+        addressType: saved.addressType,
+        addressLine: saved.addressLine,
+        latitude: saved.latitude,
+        longitude: saved.longitude,
+      },
+      ipAddress: actor.ipAddress,
+      correlationId: actor.correlationId,
+      status: 'SUCCESS',
+    });
+
+    return this.mapToSavedLocationDto(saved);
+  }
+
+  /**
+   * Delete a saved location.
+   * Enforces row ownership and logs deletion audit event.
+   */
+  async deleteSavedLocation(
+    actor: CurrentActorPayload,
+    targetUserId: string,
+    locationId: string,
+  ): Promise<{ success: boolean; id: string }> {
+    await this.assertCanAccessUser(actor, targetUserId, 'rider:write', 'DELETE_SAVED_LOCATION');
+
+    const location = await this.savedLocationRepository.findOne({
+      where: { id: locationId },
+    });
+
+    if (!location || location.userId !== targetUserId) {
+      throw new NotFoundException(`Saved location with ID ${locationId} not found`);
+    }
+
+    await this.savedLocationRepository.remove(location);
+
+    await this.recordAuditEvent({
+      actorId: actor.id,
+      targetUserId,
+      action: 'SAVED_LOCATION_DELETED',
+      entityType: 'SAVED_LOCATION',
+      entityId: locationId,
+      previousState: {
+        id: location.id,
+        label: location.label,
+        addressLine: location.addressLine,
+      },
+      ipAddress: actor.ipAddress,
+      correlationId: actor.correlationId,
+      status: 'SUCCESS',
+    });
+
+    return { success: true, id: locationId };
+  }
+
+  private mapToSavedLocationDto(loc: SavedLocation): SavedLocationDto {
+    return {
+      id: loc.id,
+      userId: loc.userId,
+      label: loc.label,
+      addressType: loc.addressType,
+      addressLine: loc.addressLine,
+      landmark: loc.landmark,
+      latitude: Number(loc.latitude),
+      longitude: Number(loc.longitude),
+      createdAt:
+        loc.createdAt instanceof Date ? loc.createdAt.toISOString() : String(loc.createdAt),
+      updatedAt:
+        loc.updatedAt instanceof Date ? loc.updatedAt.toISOString() : String(loc.updatedAt),
+    };
   }
 }

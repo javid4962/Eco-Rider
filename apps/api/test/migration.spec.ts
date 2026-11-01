@@ -2,6 +2,7 @@ import { EnablePostgisExtension1700000000000 } from '../src/database/migrations/
 import { CreateInitialSchema1700000000001 } from '../src/database/migrations/1700000000001-CreateInitialSchema';
 import { CreateIdentityAndRoleSchema1700000000003 } from '../src/database/migrations/1700000000003-CreateIdentityAndRoleSchema';
 import { AddSessionTokenRotation1700000000004 } from '../src/database/migrations/1700000000004-AddSessionTokenRotation';
+import { CreateSavedLocationsAndRiderLanguage1700000000005 } from '../src/database/migrations/1700000000005-CreateSavedLocationsAndRiderLanguage';
 import { QueryRunner } from 'typeorm';
 
 describe('Database Migrations', () => {
@@ -155,6 +156,35 @@ describe('Database Migrations', () => {
       expect(allQueries).toContain('DROP INDEX IF EXISTS "idx_sessions_previous_token_hash"');
       expect(allQueries).toContain('ALTER TABLE "sessions"');
       expect(allQueries).toContain('DROP COLUMN IF EXISTS "previous_token_hash"');
+    });
+  });
+
+  describe('CreateSavedLocationsAndRiderLanguage1700000000005', () => {
+    let migration: CreateSavedLocationsAndRiderLanguage1700000000005;
+
+    beforeEach(() => {
+      migration = new CreateSavedLocationsAndRiderLanguage1700000000005();
+    });
+
+    it('should add preferred_language to rider_profiles and create saved_locations table in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('ALTER TABLE "rider_profiles"');
+      expect(allQueries).toContain('ADD COLUMN IF NOT EXISTS "preferred_language"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "saved_locations"');
+      expect(allQueries).toContain('CREATE INDEX IF NOT EXISTS "idx_saved_locations_user_id"');
+      expect(allQueries).toContain('CREATE INDEX IF NOT EXISTS "idx_saved_locations_point_gist"');
+    });
+
+    it('should drop saved_locations table and preferred_language column in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "saved_locations" CASCADE;');
+      expect(allQueries).toContain(
+        'ALTER TABLE "rider_profiles" DROP COLUMN IF EXISTS "preferred_language";',
+      );
     });
   });
 });

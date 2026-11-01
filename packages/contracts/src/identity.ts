@@ -98,9 +98,18 @@ export interface UserSummaryDto {
   updatedAt: string;
 }
 
+export type AppLanguage = 'te' | 'en' | 'hi';
+
+export enum SavedAddressType {
+  PICKUP = 'PICKUP',
+  DROP = 'DROP',
+  BOTH = 'BOTH',
+}
+
 export interface RiderProfileDto {
   id: string;
   userId: string;
+  preferredLanguage: AppLanguage | string;
   emergencyContactName?: string;
   emergencyContactPhone?: string;
   preferredPaymentMode: string;
@@ -166,11 +175,58 @@ export interface AuditEventDto {
 }
 
 export interface UpdateRiderProfileRequest {
+  name?: string;
+  preferredLanguage?: AppLanguage;
   emergencyContactName?: string;
   emergencyContactPhone?: string;
   preferredPaymentMode?: string;
   defaultPickupNotes?: string;
   accessibilityNeeds?: boolean;
+}
+
+export interface SavedLocationDto {
+  id: string;
+  userId: string;
+  label: string;
+  addressType: SavedAddressType | string;
+  addressLine: string;
+  landmark?: string;
+  latitude: number;
+  longitude: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateSavedLocationRequest {
+  label: string;
+  addressType?: SavedAddressType | string;
+  addressLine: string;
+  landmark?: string;
+  latitude: number;
+  longitude: number;
+}
+
+export interface UpdateSavedLocationRequest {
+  label?: string;
+  addressType?: SavedAddressType | string;
+  addressLine?: string;
+  landmark?: string;
+  latitude?: number;
+  longitude?: number;
+}
+
+export interface SavedLocationsPaginationQuery {
+  page?: number;
+  limit?: number;
+  type?: SavedAddressType | string;
+}
+
+export interface PaginatedSavedLocationsDto {
+  items: SavedLocationDto[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
 }
 
 export interface UpdateDriverProfileRequest {

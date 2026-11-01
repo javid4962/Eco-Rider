@@ -12,6 +12,7 @@ import type { RiderProfile } from './rider-profile.entity';
 import type { DriverProfile } from './driver-profile.entity';
 import type { Session } from './session.entity';
 import type { Consent } from './consent.entity';
+import type { SavedLocation } from './saved-location.entity';
 
 export type UserRole =
   | 'RIDER'
@@ -62,6 +63,9 @@ export class User {
 
   @OneToMany('Consent', (consent: Consent) => consent.user)
   consents?: Consent[];
+
+  @OneToMany('SavedLocation', (location: SavedLocation) => location.user)
+  savedLocations?: SavedLocation[];
 
   @CreateDateColumn({ type: 'timestamptz', name: 'created_at' })
   createdAt!: Date;

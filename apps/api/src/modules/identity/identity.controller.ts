@@ -18,6 +18,9 @@ import {
   UpdateDriverProfileDto,
   ChangeUserRoleDto,
   RecordConsentDto,
+  CreateSavedLocationDto,
+  UpdateSavedLocationDto,
+  SavedLocationsQueryDto,
 } from './dto';
 
 @Controller('identity')
@@ -122,5 +125,57 @@ export class IdentityController {
     @Query('limit') limit?: number,
   ) {
     return this.identityService.getAuditEvents(actor, { targetUserId, action, limit });
+  }
+
+  // ==========================================
+  // SAVED LOCATIONS (EV-019)
+  // ==========================================
+
+  @Post('users/:userId/saved-locations')
+  @HttpCode(HttpStatus.CREATED)
+  async createSavedLocation(
+    @CurrentActor() actor: CurrentActorPayload,
+    @Param('userId', ParseUUIDPipe) userId: string,
+    @Body() dto: CreateSavedLocationDto,
+  ) {
+    return this.identityService.createSavedLocation(actor, userId, dto);
+  }
+
+  @Get('users/:userId/saved-locations')
+  async getSavedLocations(
+    @CurrentActor() actor: CurrentActorPayload,
+    @Param('userId', ParseUUIDPipe) userId: string,
+    @Query() query: SavedLocationsQueryDto,
+  ) {
+    return this.identityService.getSavedLocations(actor, userId, query);
+  }
+
+  @Get('users/:userId/saved-locations/:locationId')
+  async getSavedLocationById(
+    @CurrentActor() actor: CurrentActorPayload,
+    @Param('userId', ParseUUIDPipe) userId: string,
+    @Param('locationId', ParseUUIDPipe) locationId: string,
+  ) {
+    return this.identityService.getSavedLocationById(actor, userId, locationId);
+  }
+
+  @Patch('users/:userId/saved-locations/:locationId')
+  async updateSavedLocation(
+    @CurrentActor() actor: CurrentActorPayload,
+    @Param('userId', ParseUUIDPipe) userId: string,
+    @Param('locationId', ParseUUIDPipe) locationId: string,
+    @Body() dto: UpdateSavedLocationDto,
+  ) {
+    return this.identityService.updateSavedLocation(actor, userId, locationId, dto);
+  }
+
+  @Delete('users/:userId/saved-locations/:locationId')
+  @HttpCode(HttpStatus.OK)
+  async deleteSavedLocation(
+    @CurrentActor() actor: CurrentActorPayload,
+    @Param('userId', ParseUUIDPipe) userId: string,
+    @Param('locationId', ParseUUIDPipe) locationId: string,
+  ) {
+    return this.identityService.deleteSavedLocation(actor, userId, locationId);
   }
 }
