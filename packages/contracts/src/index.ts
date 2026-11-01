@@ -7,3 +7,4 @@ export * from './identity';
 export * from './auth';
 export * from './privacy';
 export * from './localization';
+export * from './documents';

@@ -333,3 +333,33 @@
      - `LocaleController`: Persistent language state manager extending `ChangeNotifier`, supporting `setLocale(Locale)` and `toggleLocale()` with automatic client-side storage persistence across app restarts and rebuilds.
      - `LanguageSwitcherButton`: One-tap dynamic language switcher widget embedded in AppBars with responsive feedback.
      - Refactored `RiderHomeScreen` and `CaptainHomeScreen` to replace all hardcoded English/Telugu strings with `AppLocalizations` typed getters.
+
+
+
+## ADR-0023: Secure KYC Document Management, Private Object Storage, and Temporary Signed Access
+- **Date**: 2026-11-01
+- **Status**: Accepted
+- **Context**: The EcoRide electric mobility platform in Andhra Pradesh requires driver captains and commuters to upload official verification documents (Driving Licenses, Green-Plate 100% BEV Commercial Permits, Vehicle Registration Certificates, Aadhaar/PAN, and Police Verification certificates). Per AGENTS.md Rule 5, KYC files, personal identification, and driver documents must never be exposed publicly or cross-account. Storage infrastructure must protect against extension spoofing (e.g. executable binaries disguised as `.jpg` or `.pdf`), oversized uploads, malware injection, and unauthorized or expired link access.
+- **Decision**:
+  1. **Private Object Storage Architecture (`IObjectStoreAdapter` & `PrivateDiskStorageAdapter`)**:
+     - Store objects strictly in private storage with no public HTTP endpoints or open cloud buckets.
+     - Generate isolated storage keys partitioned by user and document type (`kyc/{userId}/{documentType}_{timestamp}_{uuid}.ext`).
+     - Sanitize paths to prevent directory traversal (`../`) attacks.
+  2. **Binary Inspection & Anti-Spoofing (`inspectMagicBytes`)**:
+     - Inspect raw binary magic bytes independently of file extensions or client-reported MIME types.
+     - Authorize only standard document types: JPEG (`FF D8 FF`), PNG (`89 50 4E 47...`), PDF (`%PDF`), WebP (`RIFF...WEBP`).
+     - Actively detect and reject executable payloads (Windows `MZ` binaries, Unix ELF executables, shell scripts `#!`, HTML/JavaScript markup) with HTTP 400 Bad Request.
+  3. **Buffer Size Enforcement**:
+     - Enforce a strict 5 MB limit (`MAX_FILE_SIZE_BYTES = 5,242,880`). Oversized uploads are rejected with HTTP 413 Payload Too Large.
+  4. **Pluggable Malware Scanning Integration Point (`IMalwareScanner` & `DefaultMalwareScanner`)**:
+     - Integrate a security scanner scanning document buffers for synthetic EICAR signatures and malicious embedded PDF actions.
+     - Infected files are rejected with HTTP 422 Unprocessable Entity, quarantined, and audited without persisting active records.
+  5. **Cryptographic Temporary Signed Access (HMAC-SHA256)**:
+     - Direct unauthenticated access to KYC files is refused with HTTP 401 Unauthorized.
+     - Cross-account access attempts (Rider B attempting to view Captain A's KYC files) fail with HTTP 403 Forbidden.
+     - Presigned access URLs use HMAC-SHA256 signed tokens encoding document ID, storage key, user ID, and millisecond expiration timestamp. Expired links (`Date.now() > exp`) or tampered signatures fail with HTTP 403 Forbidden.
+  6. **Statutory Retention Policies & Automatic Expiry**:
+     - Enforce `KYC_STATUTORY_5_YEARS` (5-year retention under Motor Vehicles Act 1988/2019 for transport captain licenses) and `TEMPORARY_90_DAYS` for session artifacts.
+     - Expired documents refuse download access; `evaluateRetentionPolicies` marks expired records and purges stored files.
+  7. **Comprehensive Security Auditing**:
+     - Record immutable audit logs for all security events: `DOCUMENT_UPLOADED`, `DOCUMENT_ACCESS_LINK_GENERATED`, `DOCUMENT_DOWNLOADED`, `DOCUMENT_SPOOFING_REJECTED`, `DOCUMENT_MALWARE_REJECTED`, `DOCUMENT_EXPIRED_ACCESS_ATTEMPT`, `CROSS_ACCOUNT_DOCUMENT_ACCESS_DENIED`, and `DOCUMENT_DELETED`.

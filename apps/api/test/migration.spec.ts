@@ -4,6 +4,7 @@ import { CreateIdentityAndRoleSchema1700000000003 } from '../src/database/migrat
 import { AddSessionTokenRotation1700000000004 } from '../src/database/migrations/1700000000004-AddSessionTokenRotation';
 import { CreateSavedLocationsAndRiderLanguage1700000000005 } from '../src/database/migrations/1700000000005-CreateSavedLocationsAndRiderLanguage';
 import { CreatePrivacyAndDataDeletionWorkflows1700000000006 } from '../src/database/migrations/1700000000006-CreatePrivacyAndDataDeletionWorkflows';
+import { CreateDocumentsSchema1700000000007 } from '../src/database/migrations/1700000000007-CreateDocumentsSchema';
 import { QueryRunner } from 'typeorm';
 
 describe('Database Migrations', () => {
@@ -214,6 +215,36 @@ describe('Database Migrations', () => {
       expect(allQueries).toContain('DROP INDEX IF EXISTS "idx_deletion_requests_status"');
       expect(allQueries).toContain('DROP INDEX IF EXISTS "idx_deletion_requests_user_id"');
       expect(allQueries).toContain('DROP TABLE IF EXISTS "data_deletion_requests" CASCADE');
+    });
+  });
+
+  describe('CreateDocumentsSchema1700000000007', () => {
+    let migration: CreateDocumentsSchema1700000000007;
+
+    beforeEach(() => {
+      migration = new CreateDocumentsSchema1700000000007();
+    });
+
+    it('should create documents table, constraints, and indexes in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "documents"');
+      expect(allQueries).toContain('CREATE INDEX IF NOT EXISTS "idx_documents_user_id"');
+      expect(allQueries).toContain('CREATE INDEX IF NOT EXISTS "idx_documents_storage_key"');
+      expect(allQueries).toContain('CREATE INDEX IF NOT EXISTS "idx_documents_status"');
+      expect(allQueries).toContain('CREATE INDEX IF NOT EXISTS "idx_documents_expires_at"');
+    });
+
+    it('should drop documents table and indexes in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP INDEX IF EXISTS "idx_documents_expires_at"');
+      expect(allQueries).toContain('DROP INDEX IF EXISTS "idx_documents_status"');
+      expect(allQueries).toContain('DROP INDEX IF EXISTS "idx_documents_storage_key"');
+      expect(allQueries).toContain('DROP INDEX IF EXISTS "idx_documents_user_id"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "documents" CASCADE');
     });
   });
 });

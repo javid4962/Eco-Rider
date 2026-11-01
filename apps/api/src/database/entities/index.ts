@@ -13,3 +13,4 @@ export * from './audit-log.entity';
 export * from './service-flag.entity';
 export * from './saved-location.entity';
 export * from './data-deletion-request.entity';
+export * from './document.entity';

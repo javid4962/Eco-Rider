@@ -14,6 +14,7 @@ import type { Session } from './session.entity';
 import type { Consent } from './consent.entity';
 import type { SavedLocation } from './saved-location.entity';
 import type { DataDeletionRequest } from './data-deletion-request.entity';
+import type { Document } from './document.entity';
 
 export type UserRole =
   | 'RIDER'
@@ -70,6 +71,9 @@ export class User {
 
   @OneToMany('DataDeletionRequest', (req: DataDeletionRequest) => req.user)
   deletionRequests?: DataDeletionRequest[];
+
+  @OneToMany('Document', (doc: Document) => doc.user)
+  documents?: Document[];
 
   @CreateDateColumn({ type: 'timestamptz', name: 'created_at' })
   createdAt!: Date;
