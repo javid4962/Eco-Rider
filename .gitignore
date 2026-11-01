@@ -7,6 +7,29 @@ dist/
 build/
 *.tsbuildinfo
 
+# Next.js
+.next/
+out/
+
+# Flutter & Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+apps/*/android/.gradle
+apps/*/android/local.properties
+apps/*/android/app/build/
+apps/*/ios/.symlinks/
+apps/*/ios/Pods/
+apps/*/ios/Podfile.lock
+apps/*/windows/flutter/ephemeral/
+apps/*/linux/flutter/ephemeral/
+apps/*/macos/Flutter/ephemeral/
+*.apk
+*.aab
+*.ipa
+
 # Environment and secrets (NEVER commit secrets)
 .env
 .env.local
