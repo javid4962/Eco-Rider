@@ -1,0 +1,464 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/health": {
+      "get": {
+        "operationId": "HealthController_getHealth",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/v1/release-boundaries/matrix": {
+      "get": {
+        "operationId": "ReleaseBoundariesController_getScopeMatrix",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/v1/release-boundaries/settings": {
+      "get": {
+        "operationId": "ReleaseBoundariesController_getSettings",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/v1/release-boundaries/check": {
+      "get": {
+        "operationId": "ReleaseBoundariesController_checkServiceAccess",
+        "parameters": [
+          {
+            "name": "city",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "service",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/v1/journeys/stories": {
+      "get": {
+        "operationId": "JourneysController_getUserStories",
+        "parameters": [
+          {
+            "name": "role",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/v1/journeys/flows": {
+      "get": {
+        "operationId": "JourneysController_getAllFlows",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/v1/journeys/flows/{type}": {
+      "get": {
+        "operationId": "JourneysController_getFlowByType",
+        "parameters": [
+          {
+            "name": "type",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/v1/journeys/screens": {
+      "get": {
+        "operationId": "JourneysController_getAllScreens",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/v1/journeys/graph-validation": {
+      "get": {
+        "operationId": "JourneysController_validateGraph",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/v1/journeys/validate-transition": {
+      "post": {
+        "operationId": "JourneysController_validateTransition",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/v1/design-system/tokens": {
+      "get": {
+        "operationId": "DesignSystemController_getTokens",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/v1/design-system/screens": {
+      "get": {
+        "operationId": "DesignSystemController_getScreenInventory",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/v1/design-system/screens/{id}": {
+      "get": {
+        "operationId": "DesignSystemController_getScreenById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/v1/design-system/localization": {
+      "get": {
+        "operationId": "DesignSystemController_getLocalization",
+        "parameters": [
+          {
+            "name": "lang",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/v1/design-system/accessibility-audit": {
+      "get": {
+        "operationId": "DesignSystemController_getAccessibilityAudit",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/v1/test-matrix": {
+      "get": {
+        "operationId": "TestMatrixController_getAllMappings",
+        "parameters": [
+          {
+            "name": "category",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/v1/test-matrix/summary": {
+      "get": {
+        "operationId": "TestMatrixController_getSummary",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/v1/test-matrix/p0-blockers": {
+      "get": {
+        "operationId": "TestMatrixController_getP0Blockers",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/v1/test-matrix/coverage-validation": {
+      "get": {
+        "operationId": "TestMatrixController_validateCoverage",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/v1/quotes": {
+      "post": {
+        "operationId": "QuotesController_calculateQuote",
+        "summary": "Calculate electric ride quote with geofencing and EV fare estimation",
+        "description": "Computes spherical distance and integer paise fare for EV rides in Andhra Pradesh pilot cities.",
+        "parameters": [
+          {
+            "name": "x-correlation-id",
+            "in": "header",
+            "description": "Optional client-supplied tracing correlation ID. Echoed back in response header and error envelopes.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuoteRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Quote calculated successfully with integer paise fare and expiration timestamp"
+          },
+          "400": {
+            "description": "Invalid coordinates, missing required parameters, or restricted pilot zone"
+          }
+        },
+        "tags": [
+          "Quotes"
+        ]
+      }
+    },
+    "/v1/seed/status": {
+      "get": {
+        "operationId": "SeedController_getStatus",
+        "summary": "Check synthetic test data seed status",
+        "description": "Returns counts of seeded synthetic users, BEVs, zones, bookings, and ledger entries.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Seed status retrieved successfully"
+          }
+        },
+        "tags": [
+          "Development & Seed"
+        ]
+      }
+    },
+    "/v1/seed/run": {
+      "post": {
+        "operationId": "SeedController_runSeed",
+        "summary": "Seed synthetic EV mobility data",
+        "description": "Idempotently provisions fake AP cities, PostGIS zones, 100% BEVs, drivers, riders, and service flags.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Synthetic dataset seeded successfully"
+          }
+        },
+        "tags": [
+          "Development & Seed"
+        ]
+      }
+    },
+    "/v1/seed/reset": {
+      "post": {
+        "operationId": "SeedController_resetSeed",
+        "summary": "Reset and re-seed synthetic demo data",
+        "description": "Cleans synthetic demo records and re-provisions a fresh deterministic dataset for demos and tests.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Synthetic demo data reset and re-seeded successfully"
+          }
+        },
+        "tags": [
+          "Development & Seed"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "EcoRide EV Mobility API",
+    "description": "Authoritative OpenAPI 3.0 specification for EcoRide original EV-only mobility platform in Andhra Pradesh",
+    "version": "1.0.0",
+    "contact": {}
+  },
+  "tags": [
+    {
+      "name": "Health",
+      "description": "Platform health check and synthetic dependency probes"
+    },
+    {
+      "name": "Release Boundaries",
+      "description": "Gated release scopes, feature flags, and pilot zone permissions"
+    },
+    {
+      "name": "Journeys",
+      "description": "User state machine flows and role-based transitions"
+    },
+    {
+      "name": "Design System",
+      "description": "Original EV-only design tokens and bilingual UI parity"
+    },
+    {
+      "name": "Test Matrix",
+      "description": "Traceability matrix and release blocker governance"
+    },
+    {
+      "name": "Quotes",
+      "description": "Electric ride quoting with geofencing and integer paise calculation"
+    }
+  ],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "bearer": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http"
+      }
+    },
+    "schemas": {
+      "QuoteRequestDto": {
+        "type": "object",
+        "properties": {
+          "city": {
+            "type": "string",
+            "description": "Target city in Andhra Pradesh for the EV ride quote",
+            "example": "visakhapatnam",
+            "enum": [
+              "visakhapatnam",
+              "vijayawada",
+              "guntur",
+              "tirupati"
+            ]
+          },
+          "serviceCategory": {
+            "type": "string",
+            "description": "Service category (e.g. CITY_COMMUTE_2W, SHARED_SHUTTLE_4W)",
+            "example": "CITY_COMMUTE_2W"
+          },
+          "pickupLatitude": {
+            "type": "number",
+            "description": "Pickup latitude within Andhra Pradesh",
+            "example": 17.6868,
+            "minimum": 12,
+            "maximum": 20
+          },
+          "pickupLongitude": {
+            "type": "number",
+            "description": "Pickup longitude within Andhra Pradesh",
+            "example": 83.2185,
+            "minimum": 76,
+            "maximum": 85
+          },
+          "dropoffLatitude": {
+            "type": "number",
+            "description": "Dropoff latitude within Andhra Pradesh",
+            "example": 17.7275,
+            "minimum": 12,
+            "maximum": 20
+          },
+          "dropoffLongitude": {
+            "type": "number",
+            "description": "Dropoff longitude within Andhra Pradesh",
+            "example": 83.3038,
+            "minimum": 76,
+            "maximum": 85
+          }
+        },
+        "required": [
+          "city",
+          "serviceCategory",
+          "pickupLatitude",
+          "pickupLongitude",
+          "dropoffLatitude",
+          "dropoffLongitude"
+        ]
+      }
+    }
+  }
+}

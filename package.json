@@ -23,8 +23,12 @@
     "infra:status": "docker compose -f infrastructure/docker-compose.dev.yml ps",
     "infra:reset": "powershell -ExecutionPolicy Bypass -File ./infrastructure/manage-stack.ps1 -Action reset",
     "infra:verify": "powershell -ExecutionPolicy Bypass -File ./infrastructure/manage-stack.ps1 -Action verify",
+    "openapi:export": "pnpm --filter api openapi:export",
+    "flutter:generate": "node apps/api/node_modules/ts-node/dist/bin.js scripts/generate-flutter-client.ts",
     "migration:run": "pnpm --filter api migration:run",
-    "migration:revert": "pnpm --filter api migration:revert"
+    "migration:revert": "pnpm --filter api migration:revert",
+    "seed": "pnpm --filter api seed",
+    "seed:reset": "pnpm --filter api seed:reset"
   },
   "devDependencies": {
     "prettier": "^3.4.2"

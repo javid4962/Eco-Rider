@@ -84,7 +84,7 @@ class _CaptainHomeScreenState extends State<CaptainHomeScreen> {
                       ),
                       Switch(
                         value: isOnline,
-                        activeColor: const Color(0xFF059669),
+                        activeThumbColor: const Color(0xFF059669),
                         onChanged: (val) {
                           setState(() {
                             isOnline = val;

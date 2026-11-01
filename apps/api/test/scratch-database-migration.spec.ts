@@ -183,7 +183,7 @@ describe('Scratch Database Migration Up/Down Test', () => {
       const insideCheck = await queryRunner.query(`
         SELECT name, ST_Contains(boundary, ST_SetSRID(ST_MakePoint(83.3012, 17.7126), 4326)) as is_inside
         FROM "zones"
-        WHERE city = 'visakhapatnam'
+        WHERE name = 'Vizag Urban Core Pilot'
         LIMIT 1;
       `);
       expect(insideCheck[0].is_inside).toBe(true);
@@ -192,7 +192,7 @@ describe('Scratch Database Migration Up/Down Test', () => {
       const outsideCheck = await queryRunner.query(`
         SELECT name, ST_Contains(boundary, ST_SetSRID(ST_MakePoint(80.6480, 16.5062), 4326)) as is_inside
         FROM "zones"
-        WHERE city = 'visakhapatnam'
+        WHERE name = 'Vizag Urban Core Pilot'
         LIMIT 1;
       `);
       expect(outsideCheck[0].is_inside).toBe(false);
