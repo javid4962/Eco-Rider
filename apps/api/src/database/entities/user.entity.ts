@@ -13,6 +13,7 @@ import type { DriverProfile } from './driver-profile.entity';
 import type { Session } from './session.entity';
 import type { Consent } from './consent.entity';
 import type { SavedLocation } from './saved-location.entity';
+import type { DataDeletionRequest } from './data-deletion-request.entity';
 
 export type UserRole =
   | 'RIDER'
@@ -66,6 +67,9 @@ export class User {
 
   @OneToMany('SavedLocation', (location: SavedLocation) => location.user)
   savedLocations?: SavedLocation[];
+
+  @OneToMany('DataDeletionRequest', (req: DataDeletionRequest) => req.user)
+  deletionRequests?: DataDeletionRequest[];
 
   @CreateDateColumn({ type: 'timestamptz', name: 'created_at' })
   createdAt!: Date;

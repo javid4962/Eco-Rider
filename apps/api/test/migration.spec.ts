@@ -3,6 +3,7 @@ import { CreateInitialSchema1700000000001 } from '../src/database/migrations/170
 import { CreateIdentityAndRoleSchema1700000000003 } from '../src/database/migrations/1700000000003-CreateIdentityAndRoleSchema';
 import { AddSessionTokenRotation1700000000004 } from '../src/database/migrations/1700000000004-AddSessionTokenRotation';
 import { CreateSavedLocationsAndRiderLanguage1700000000005 } from '../src/database/migrations/1700000000005-CreateSavedLocationsAndRiderLanguage';
+import { CreatePrivacyAndDataDeletionWorkflows1700000000006 } from '../src/database/migrations/1700000000006-CreatePrivacyAndDataDeletionWorkflows';
 import { QueryRunner } from 'typeorm';
 
 describe('Database Migrations', () => {
@@ -185,6 +186,34 @@ describe('Database Migrations', () => {
       expect(allQueries).toContain(
         'ALTER TABLE "rider_profiles" DROP COLUMN IF EXISTS "preferred_language";',
       );
+    });
+  });
+
+  describe('CreatePrivacyAndDataDeletionWorkflows1700000000006', () => {
+    let migration: CreatePrivacyAndDataDeletionWorkflows1700000000006;
+
+    beforeEach(() => {
+      migration = new CreatePrivacyAndDataDeletionWorkflows1700000000006();
+    });
+
+    it('should create data_deletion_requests table and consent optimization index in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "data_deletion_requests"');
+      expect(allQueries).toContain('CREATE INDEX IF NOT EXISTS "idx_deletion_requests_user_id"');
+      expect(allQueries).toContain('CREATE INDEX IF NOT EXISTS "idx_deletion_requests_status"');
+      expect(allQueries).toContain('CREATE INDEX IF NOT EXISTS "idx_consents_user_type_granted"');
+    });
+
+    it('should drop data_deletion_requests table and indexes in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP INDEX IF EXISTS "idx_consents_user_type_granted"');
+      expect(allQueries).toContain('DROP INDEX IF EXISTS "idx_deletion_requests_status"');
+      expect(allQueries).toContain('DROP INDEX IF EXISTS "idx_deletion_requests_user_id"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "data_deletion_requests" CASCADE');
     });
   });
 });

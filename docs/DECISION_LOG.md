@@ -287,3 +287,28 @@
      - Administrative / platform routes under `/v1/identity/users/:userId/saved-locations` protected by RBAC scopes and ownership checks.
   6. **Authoritative Security Auditing**:
      - Record immutable audit events in `audit_events` table for `RIDER_PROFILE_UPDATED`, `SAVED_LOCATION_CREATED`, `SAVED_LOCATION_UPDATED`, `SAVED_LOCATION_DELETED`, and `CROSS_ACCOUNT_ACCESS_DENIED`.
+
+
+## ADR-0021: Privacy, Granular Consent Architecture, DPDP Data Portability, and Erasure with Statutory Retention Exceptions
+- **Date**: 2026-11-01
+- **Status**: Accepted
+- **Context**: The EcoRide electric mobility platform operates in Andhra Pradesh subject to the Digital Personal Data Protection (DPDP) Act 2023, the Companies Act 2013, the Central Goods and Services Tax (CGST) Act 2017, and the Motor Vehicles Act (1988/2019). Commuters and drivers require transparent policy versions, explicit notice acceptance, granular communications opt-ins, and purpose-specific location consents. Furthermore, users have statutory rights to export their personal data portfolio and request account erasure, while the platform must uphold mandatory statutory retention obligations for financial invoices, tax audits, and transport safety records.
+- **Decision**:
+  1. **Granular Consent & Policy Versioning**:
+     - Maintain authoritative policy versioning (`PolicyVersionDto`) across mandatory legal notices (`TERMS_OF_SERVICE` v1.2, `PRIVACY_POLICY` v1.2) and purpose-specific consents (`LOCATION_TRIP_PROCESSING` v1.0, `LOCATION_BACKGROUND_FLEET` v1.0, `LOCATION_NEARBY_OFFERS` v1.0, `COMMUNICATIONS_MARKETING_SMS` v1.0, `COMMUNICATIONS_MARKETING_EMAIL` v1.0, `COMMUNICATIONS_PROMOTIONAL_PUSH` v1.0).
+     - Store granular consents in `consents` table with unique constraint `(user_id, consent_type, consent_version)` and composite index `(user_id, consent_type, is_granted)`.
+  2. **Authoritative Enforcement of Revoked Permissions**:
+     - Implement `PrivacyService.evaluatePermission()`: when an optional permission (e.g. `MARKETING_SMS`, `LOCATION_NEARBY_OFFERS`) is revoked, the system returns `isAllowed: false`, `consentStatus: 'REVOKED'`, and explicitly discloses the revocation timestamp. Dispatches, promotional notifications, and marketing location queries strictly respect revoked permissions server-side.
+  3. **DPDP Data Portability & Personal Portfolio Export**:
+     - Implement `POST /v1/privacy/export` generating a portable structured JSON export including user identifiers, preferred language, granted/revoked consents, saved locations, sessions, and aggregate booking counts.
+     - Strictly mask phone numbers (`+91*****0001`) and emails, and never expose plaintext passwords or session token hashes.
+  4. **Account Erasure Workflow & Statutory Retention Exceptions**:
+     - Implement `POST /v1/privacy/deletion-request` with blocking retention checks:
+       - Active bookings in progress (`IN_PROGRESS`, `IN_TRIP`, `DISPATCHED`, `ARRIVED`, `MATCHING`, `CONFIRMED`) reject deletion with HTTP 422 Unprocessable Entity (`ACTIVE_RIDE_BLOCKS_DELETION`).
+       - If eligible, transparently disclose statutory retention exceptions:
+         1. `FINANCIAL_TRANSACTIONS_AND_TAX`: 8 years retention under Section 128 of the Companies Act 2013 and CGST Act 2017 for invoices, tax ledger entries, and transaction records in pseudonymized format.
+         2. `TRANSPORT_SAFETY_AND_INCIDENT_AUDIT`: 3 years retention under the Motor Vehicles Act (1988/2019) and Andhra Pradesh Aggregator Guidelines for safety audit logs and SOS incident records.
+       - Execute immediate erasure: delete saved locations, revoke all active sessions, revoke optional consents, set `isActive: false`, set `name: 'DELETED_COMMUTER'`, and pseudonymize `phone` to `del_<timestamp>` to preserve foreign key references while releasing the user's phone number.
+  5. **Auditable Governance & Cross-Account Isolation**:
+     - Authoritatively log immutable audit events to `audit_events`: `CONSENT_GRANTED`, `CONSENT_REVOKED`, `DATA_EXPORT_REQUESTED`, `DATA_DELETION_PROCESSED`, `DATA_DELETION_REJECTED`, and `CROSS_ACCOUNT_ACCESS_DENIED`.
+     - Enforce strict account ownership (`assertCanAccessUser`): Rider A cannot view, grant, revoke, export, or request deletion of Rider B's data (HTTP 403 Forbidden).

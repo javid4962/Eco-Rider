@@ -5,3 +5,4 @@ export * from './test-matrix';
 export * from './api-contracts';
 export * from './identity';
 export * from './auth';
+export * from './privacy';
