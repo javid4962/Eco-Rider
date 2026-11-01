@@ -128,3 +128,4 @@ The platform normalizes disparate telco carrier receipts into 8 authoritative de
    - Real keys are injected strictly via runtime secrets management (e.g. AWS Secrets Manager or Kubernetes Secrets).
    - Repository secret scanning (`scripts/scan-secrets.ts`) actively blocks commits containing live keys or master bypasses.
    - Application logging interceptors (`LogSanitizer`) automatically mask phone numbers (`+91*****0001`) and redact any occurrences of `authkey`, `apikey`, or raw OTP digits.
+

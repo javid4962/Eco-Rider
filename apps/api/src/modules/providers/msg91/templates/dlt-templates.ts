@@ -86,3 +86,4 @@ export function getDltTemplate(
   const purposeTemplates = DLT_TEMPLATES[purpose] || DLT_TEMPLATES.LOGIN;
   return purposeTemplates[locale] || purposeTemplates.en;
 }
+
