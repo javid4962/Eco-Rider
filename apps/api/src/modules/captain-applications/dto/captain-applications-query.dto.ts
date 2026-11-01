@@ -37,3 +37,4 @@ export class CaptainApplicationsQueryDto implements CaptainApplicationsQuery {
   @IsUUID()
   userId?: string;
 }
+

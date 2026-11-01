@@ -12,3 +12,4 @@ export class SubmitCaptainApplicationDto implements SubmitCaptainApplicationRequ
   @MaxLength(500)
   notes?: string;
 }
+
