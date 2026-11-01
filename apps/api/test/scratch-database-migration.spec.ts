@@ -1,5 +1,8 @@
 import { DataSource, QueryRunner } from 'typeorm';
 import { CreateInitialSchema1700000000001 } from '../src/database/migrations/1700000000001-CreateInitialSchema';
+import { CreateServiceFlagsTable1700000000002 } from '../src/database/migrations/1700000000002-CreateServiceFlagsTable';
+import { CreateIdentityAndRoleSchema1700000000003 } from '../src/database/migrations/1700000000003-CreateIdentityAndRoleSchema';
+import { AddSessionTokenRotation1700000000004 } from '../src/database/migrations/1700000000004-AddSessionTokenRotation';
 
 describe('Scratch Database Migration Up/Down Test', () => {
   let dataSource: DataSource | null = null;
@@ -228,6 +231,9 @@ describe('Scratch Database Migration Up/Down Test', () => {
 
       // Re-apply up so container remains provisioned for local development
       await migration.up(queryRunner);
+      await new CreateServiceFlagsTable1700000000002().up(queryRunner);
+      await new CreateIdentityAndRoleSchema1700000000003().up(queryRunner);
+      await new AddSessionTokenRotation1700000000004().up(queryRunner);
     });
   });
 });

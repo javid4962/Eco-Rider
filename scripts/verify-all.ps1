@@ -95,6 +95,7 @@ if (-not $SkipFlutter) {
 # 8. Backend E2E Tests
 if (-not $Fast) {
     Run-Step -Name "8. Backend E2E Integration Tests" -Action {
+        pnpm run migration:run
         pnpm run test:e2e
     }
 } else {

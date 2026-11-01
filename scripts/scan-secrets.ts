@@ -38,6 +38,11 @@ const SECRET_RULES: SecretRule[] = [
     pattern: /(?:otp|start_otp|code)\s*(?:===|==)\s*['"](?:1234|0000|9999)['"]/i,
     description: 'Hardcoded test OTP bypass detected in production logic',
   },
+  {
+    name: 'MSG91 Live AuthKey',
+    pattern: /(?:msg91_auth_key|msg91_key)\s*[:=]\s*['"][0-9a-zA-Z]{24,}['"]/i,
+    description: 'Live MSG91 AuthKey detected in configuration or source code',
+  },
 ];
 
 const IGNORED_DIRS = new Set([

@@ -15,6 +15,18 @@ export interface AppConfig {
     port: number;
     password?: string;
   };
+  otp: {
+    providerType: string;
+    msg91: {
+      enabled: boolean;
+      authKey?: string;
+      senderId: string;
+      baseUrl: string;
+      timeoutMs: number;
+      maxRetries: number;
+      dltPeId: string;
+    };
+  };
 }
 
 export const configuration = (): AppConfig => ({
@@ -33,5 +45,17 @@ export const configuration = (): AppConfig => ({
     host: process.env.REDIS_HOST || 'localhost',
     port: parseInt(process.env.REDIS_PORT || '6379', 10),
     password: process.env.REDIS_PASSWORD || undefined,
+  },
+  otp: {
+    providerType: process.env.OTP_PROVIDER_TYPE || 'MOCK',
+    msg91: {
+      enabled: process.env.MSG91_ENABLED === 'true',
+      authKey: process.env.MSG91_AUTH_KEY || undefined,
+      senderId: process.env.MSG91_SENDER_ID || 'ECORID',
+      baseUrl: process.env.MSG91_BASE_URL || 'https://control.msg91.com/api/v5/otp',
+      timeoutMs: parseInt(process.env.MSG91_TIMEOUT_MS || '5000', 10),
+      maxRetries: parseInt(process.env.MSG91_MAX_RETRIES || '2', 10),
+      dltPeId: process.env.MSG91_DLT_PE_ID || '1101550000000012345',
+    },
   },
 });

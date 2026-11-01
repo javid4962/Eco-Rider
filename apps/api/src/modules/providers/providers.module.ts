@@ -1,4 +1,5 @@
 import { Module, Global } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import {
   MAPS_PROVIDER,
   OTP_PROVIDER,
@@ -13,6 +14,7 @@ import {
   MockSmsProvider,
   MockPushProvider,
 } from './mock';
+import { Msg91OtpProvider } from './msg91';
 
 @Global()
 @Module({
@@ -22,8 +24,20 @@ import {
       useClass: MockMapsProvider,
     },
     {
+      provide: Msg91OtpProvider,
+      useFactory: (configService: ConfigService) => new Msg91OtpProvider(configService),
+      inject: [ConfigService],
+    },
+    {
       provide: OTP_PROVIDER,
-      useClass: MockOtpProvider,
+      useFactory: (configService: ConfigService, msg91: Msg91OtpProvider) => {
+        const providerType = configService.get<string>('OTP_PROVIDER_TYPE') || 'MOCK';
+        if (providerType === 'MSG91') {
+          return msg91;
+        }
+        return new MockOtpProvider();
+      },
+      inject: [ConfigService, Msg91OtpProvider],
     },
     {
       provide: PAYMENTS_PROVIDER,
@@ -51,6 +65,7 @@ import {
     PUSH_PROVIDER,
     MockMapsProvider,
     MockOtpProvider,
+    Msg91OtpProvider,
     MockPaymentsProvider,
     MockSmsProvider,
     MockPushProvider,

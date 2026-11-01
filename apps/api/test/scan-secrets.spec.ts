@@ -27,4 +27,10 @@ describe('Secret Scanner Unit Tests (EV-013)', () => {
     expect(otpBypassRule.test(bypass1)).toBe(true);
     expect(otpBypassRule.test(bypass2)).toBe(true);
   });
+
+  it('should detect simulated MSG91 live AuthKey leaks', () => {
+    const simulatedMsg91 = 'const MSG91_KEY = "381920Aabcdef1234567890abcdef";';
+    const msg91Rule = /(?:msg91_auth_key|msg91_key)\s*[:=]\s*['"][0-9a-zA-Z]{24,}['"]/i;
+    expect(msg91Rule.test(simulatedMsg91)).toBe(true);
+  });
 });

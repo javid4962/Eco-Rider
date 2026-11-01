@@ -8,6 +8,7 @@
   "moduleNameMapper": {
     "^@ecoride/contracts$": "<rootDir>/../../packages/contracts/src"
   },
-  "testEnvironment": "node"
+  "testEnvironment": "node",
+  "maxWorkers": 1
 }
 

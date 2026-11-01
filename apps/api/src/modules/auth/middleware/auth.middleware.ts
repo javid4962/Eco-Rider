@@ -39,4 +39,3 @@ export class AuthMiddleware implements NestMiddleware {
     next();
   }
 }
-

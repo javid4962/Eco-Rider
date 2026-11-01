@@ -3,6 +3,8 @@ import { MockOtpProvider } from '../src/modules/providers/mock/mock-otp.provider
 import { MockPaymentsProvider } from '../src/modules/providers/mock/mock-payments.provider';
 import { MockSmsProvider } from '../src/modules/providers/mock/mock-sms.provider';
 import { MockPushProvider } from '../src/modules/providers/mock/mock-push.provider';
+import { Msg91OtpProvider } from '../src/modules/providers/msg91/msg91-otp.provider';
+import { ConfigService } from '@nestjs/config';
 import { createHmac } from 'crypto';
 
 describe('External Provider Mock Adapters (EV-012)', () => {
@@ -245,6 +247,25 @@ describe('External Provider Mock Adapters (EV-012)', () => {
 
       expect(multicastResult.successCount).toBe(3);
       expect(pushProvider.getDispatchedNotifications().length).toBe(4);
+    });
+  });
+
+  describe('Msg91OtpProvider Integration (EV-018)', () => {
+    it('should initialize with default disabled state and enforce safety guard', async () => {
+      const mockConfig = {
+        get: jest.fn().mockImplementation((key: string) => {
+          if (key === 'MSG91_ENABLED') return 'false';
+          return undefined;
+        }),
+      } as unknown as ConfigService;
+
+      const provider = new Msg91OtpProvider(mockConfig);
+      expect(provider.getConfig().enabled).toBe(false);
+      expect(provider.getConfig().senderId).toBe('ECORID');
+
+      await expect(provider.sendOtp('+919876543210', 'LOGIN')).rejects.toThrow(
+        'MSG91 OTP provider is not activated. Live sending is disabled until operational approval.',
+      );
     });
   });
 });

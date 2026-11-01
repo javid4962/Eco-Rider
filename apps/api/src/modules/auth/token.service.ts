@@ -109,4 +109,3 @@ export class TokenService {
     return crypto.createHmac('sha256', this.jwtSecret).update(data).digest('base64url');
   }
 }
-

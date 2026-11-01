@@ -235,3 +235,29 @@
      - In all session responses, `token_hash`, `previous_token_hash`, and secret keys are completely stripped and never exposed to clients.
   6. **Endpoint-Driven Global Revocation**:
      `POST /v1/auth/revoke-all` enables authenticated users to immediately revoke all active sessions across all devices (e.g., lost phone, suspicious activity), returning a confirmation of revoked session count.
+
+
+## ADR-0019: Production OTP Provider Interface (MSG91), DLT Sender Compliance, and Key Segregation
+- **Date**: 2026-11-01
+- **Status**: Accepted
+- **Context**: The EcoRide mobility platform requires SMS OTP verification for passenger and driver onboarding (`LOGIN`), boarding authentication (`RIDE_START`), and critical security alerts (`EMERGENCY`) in Andhra Pradesh. Under the Telecom Regulatory Authority of India (TRAI) TCCCPR (2018) regulations, all SMS traffic must route through registered Distributed Ledger Technology (DLT) portals with approved Principal Entity (PE) credentials, pre-registered 6-alpha headers, and static content templates with variable markers. Real external gateway calls must remain strictly disabled until operational approval, with zero secret leaks.
+- **Decision**:
+  1. **Production Provider Adapter (`Msg91OtpProvider`)**:
+     Implement a robust production adapter implementing `IOtpProvider` for the MSG91 v5 OTP platform. To guarantee production safety, the adapter is protected by a double guard:
+     - `MSG91_ENABLED` defaults to `false`. Any dispatch attempt while inactive immediately throws a safe `ServiceUnavailableException` without attempting remote network communication.
+     - If `MSG91_ENABLED=true` but `MSG91_AUTH_KEY` is missing or empty, the provider immediately fails safely with `ServiceUnavailableException`.
+  2. **TRAI DLT Template Localization (Telugu, English, Hindi)**:
+     Register and configure localized DLT templates across the 3 primary languages of Andhra Pradesh:
+     - `LOGIN` (6-digit, 5-minute validity): Localized in Telugu (`te`: `1107160000000010001`), English (`en`: `1107160000000010002`), and Hindi (`hi`: `1107160000000010003`).
+     - `RIDE_START` (4-digit, 5-minute validity): Localized in Telugu (`te`: `1107160000000010004`), English (`en`: `1107160000000010005`), and Hindi (`hi`: `1107160000000010006`).
+     - `EMERGENCY` (6-digit, 5-minute validity): Localized in Telugu (`te`: `1107160000000010007`), English (`en`: `1107160000000010008`), and Hindi (`hi`: `1107160000000010009`).
+  3. **Timeout Enforcement & Exponential Backoff Retry**:
+     - Configurable request timeout (`MSG91_TIMEOUT_MS`, default 5000ms) enforced via `AbortController`.
+     - Automatic exponential backoff retry for transient network anomalies and 5xx carrier errors (`MSG91_MAX_RETRIES`, default 2).
+     - Strict no-retry policy for 4xx client errors (e.g., 401 Unauthorized, 400 Bad Request) to prevent resource exhaustion.
+  4. **Unified Delivery Status Categories**:
+     Map telco SMSC and MSG91 status responses to 8 standard categories: `DELIVERED`, `SUBMITTED`, `PENDING`, `RETRYING`, `FAILED_DND`, `FAILED_OPERATOR`, `FAILED_EXPIRED`, `REJECTED_CREDENTIALS`.
+  5. **Privacy Redaction & Secret Scanning**:
+     - `LogSanitizer` automatically redacts `authkey`, `apikey`, and query parameters.
+     - Logs print masked phone numbers (`+91*****0001`) and never output raw OTP values or secret credentials.
+     - Secret scanner rule added to `scripts/scan-secrets.ts` to detect and block live MSG91 auth keys in commits.

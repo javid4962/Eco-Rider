@@ -79,6 +79,12 @@ export class LogSanitizer {
     // 4. Mask phone numbers: +919123400001 -> +91*****0001
     sanitized = sanitized.replace(PHONE_REGEX, '$1*****$2');
 
+    // 5. Redact authkey or api_key in URL parameters or query strings
+    sanitized = sanitized.replace(
+      /(?:authkey|auth_key|apikey|api_key)\s*[:=]\s*['"]?([a-zA-Z0-9_-]+)['"]?/gi,
+      'authkey=[REDACTED_SECRET]',
+    );
+
     return sanitized;
   }
 }
