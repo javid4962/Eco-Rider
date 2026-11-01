@@ -159,3 +159,4 @@ export class TestMatrixService {
     return normalized as TestCategory;
   }
 }
+
