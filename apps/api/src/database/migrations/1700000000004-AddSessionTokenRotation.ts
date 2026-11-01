@@ -24,3 +24,4 @@ export class AddSessionTokenRotation1700000000004 implements MigrationInterface 
     `);
   }
 }
+
