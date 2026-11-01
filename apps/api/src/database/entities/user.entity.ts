@@ -15,6 +15,7 @@ import type { Consent } from './consent.entity';
 import type { SavedLocation } from './saved-location.entity';
 import type { DataDeletionRequest } from './data-deletion-request.entity';
 import type { Document } from './document.entity';
+import type { Vehicle } from './vehicle.entity';
 
 export type UserRole =
   | 'RIDER'
@@ -74,6 +75,9 @@ export class User {
 
   @OneToMany('Document', (doc: Document) => doc.user)
   documents?: Document[];
+
+  @OneToMany('Vehicle', (vehicle: Vehicle) => vehicle.owner)
+  vehicles?: Vehicle[];
 
   @CreateDateColumn({ type: 'timestamptz', name: 'created_at' })
   createdAt!: Date;

@@ -18,6 +18,7 @@ out/
 .pub-cache/
 .pub/
 apps/*/android/.gradle
+apps/*/android/.kotlin/
 apps/*/android/local.properties
 apps/*/android/app/build/
 apps/*/ios/.symlinks/

@@ -5,6 +5,7 @@ import { AddSessionTokenRotation1700000000004 } from '../src/database/migrations
 import { CreateSavedLocationsAndRiderLanguage1700000000005 } from '../src/database/migrations/1700000000005-CreateSavedLocationsAndRiderLanguage';
 import { CreatePrivacyAndDataDeletionWorkflows1700000000006 } from '../src/database/migrations/1700000000006-CreatePrivacyAndDataDeletionWorkflows';
 import { CreateDocumentsSchema1700000000007 } from '../src/database/migrations/1700000000007-CreateDocumentsSchema';
+import { ExpandVehiclesTableWithEVCompliance1700000000008 } from '../src/database/migrations/1700000000008-ExpandVehiclesTableWithEVCompliance';
 import { QueryRunner } from 'typeorm';
 
 describe('Database Migrations', () => {
@@ -245,6 +246,43 @@ describe('Database Migrations', () => {
       expect(allQueries).toContain('DROP INDEX IF EXISTS "idx_documents_storage_key"');
       expect(allQueries).toContain('DROP INDEX IF EXISTS "idx_documents_user_id"');
       expect(allQueries).toContain('DROP TABLE IF EXISTS "documents" CASCADE');
+    });
+  });
+
+  describe('ExpandVehiclesTableWithEVCompliance1700000000008', () => {
+    let migration: ExpandVehiclesTableWithEVCompliance1700000000008;
+
+    beforeEach(() => {
+      migration = new ExpandVehiclesTableWithEVCompliance1700000000008();
+    });
+
+    it('should add EV compliance columns, check constraints, and indexes in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('ALTER TABLE "vehicles"');
+      expect(allQueries).toContain('ADD COLUMN IF NOT EXISTS "make"');
+      expect(allQueries).toContain('ADD COLUMN IF NOT EXISTS "approved_passenger_seating"');
+      expect(allQueries).toContain('ADD COLUMN IF NOT EXISTS "rated_range_km"');
+      expect(allQueries).toContain('ADD COLUMN IF NOT EXISTS "range_telemetry_source"');
+      expect(allQueries).toContain('ADD COLUMN IF NOT EXISTS "green_plate_verified"');
+      expect(allQueries).toContain('chk_vehicles_seating_positive');
+      expect(allQueries).toContain('chk_vehicles_rated_range_positive');
+      expect(allQueries).toContain('CREATE INDEX IF NOT EXISTS "idx_vehicles_owner_id"');
+      expect(allQueries).toContain('CREATE INDEX IF NOT EXISTS "idx_vehicles_verification_status"');
+      expect(allQueries).toContain('CREATE INDEX IF NOT EXISTS "idx_vehicles_city"');
+    });
+
+    it('should drop indexes, constraints, and EV columns in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP INDEX IF EXISTS "idx_vehicles_city"');
+      expect(allQueries).toContain('DROP INDEX IF EXISTS "idx_vehicles_verification_status"');
+      expect(allQueries).toContain('DROP INDEX IF EXISTS "idx_vehicles_owner_id"');
+      expect(allQueries).toContain('DROP CONSTRAINT IF EXISTS "chk_vehicles_rated_range_positive"');
+      expect(allQueries).toContain('DROP CONSTRAINT IF EXISTS "chk_vehicles_seating_positive"');
+      expect(allQueries).toContain('DROP COLUMN IF EXISTS "make"');
     });
   });
 });

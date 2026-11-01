@@ -8,3 +8,4 @@ export * from './auth';
 export * from './privacy';
 export * from './localization';
 export * from './documents';
+export * from './vehicles';

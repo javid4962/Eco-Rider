@@ -363,3 +363,28 @@
      - Expired documents refuse download access; `evaluateRetentionPolicies` marks expired records and purges stored files.
   7. **Comprehensive Security Auditing**:
      - Record immutable audit logs for all security events: `DOCUMENT_UPLOADED`, `DOCUMENT_ACCESS_LINK_GENERATED`, `DOCUMENT_DOWNLOADED`, `DOCUMENT_SPOOFING_REJECTED`, `DOCUMENT_MALWARE_REJECTED`, `DOCUMENT_EXPIRED_ACCESS_ATTEMPT`, `CROSS_ACCOUNT_DOCUMENT_ACCESS_DENIED`, and `DOCUMENT_DELETED`.
+
+## ADR-0024: Verified EV Vehicle Records, Electric-Only Enforcement, and Range Telemetry
+- **Date**: 2026-11-01
+- **Status**: Accepted
+- **Context**: Per PRD and AGENTS.md Rule 2, propulsion on the EcoRide mobility platform in Andhra Pradesh must be 100% ELECTRIC (`BATTERY_ELECTRIC`). Category availability and roadworthiness must be enforced server-side by city, vehicle status, green-plate commercial verification, and regulatory document expiry dates. Client requests (such as tampered Flutter payloads or malicious API consumers submitting non-electric vehicles) must never be able to bypass electric-only enforcement.
+- **Decision**:
+  1. **Authoritative Server-Side Electric-Only Propulsion Enforcement**:
+     - Implement `VehiclesService.assertElectricPropulsion()`: strictly validates that `propulsionType === 'BATTERY_ELECTRIC'`.
+     - Explicitly checks against `DISALLOWED_PROPULSION_TYPES` (`PETROL`, `DIESEL`, `CNG`, `HYBRID`, `PLUGIN_HYBRID`, `LPG`, `INTERNAL_COMBUSTION`) and rejects non-electric propulsion with HTTP 400 Bad Request.
+     - Enforces the same check on `updateVehicle`, preventing any existing vehicle from having its propulsion altered to non-electric.
+     - Database Check Constraint `chk_vehicles_electric_only` (`"propulsion_type" = 'BATTERY_ELECTRIC'`) enforces propulsion integrity at the PostgreSQL storage layer.
+  2. **Comprehensive EV Vehicle Schema & Multi-Tier Regulatory Compliance**:
+     - Expand `vehicles` entity and migration `1700000000008-ExpandVehiclesTableWithEVCompliance`:
+       - Electric specs: `make`, `model`, `yearOfManufacture`, `batteryCapacityKwh`, `ratedRangeKm`, `currentSocPercent`.
+       - Regulatory fields: `registrationNumber` (unique), `greenPlateVerified`, `insurancePolicyNumber`, `insuranceExpiryDate`, `fitnessCertificateNumber`, `fitnessExpiryDate`, `commercialPermitNumber`, `commercialPermitExpiry`, `verificationStatus`, `rejectionReason`, `city`, `isActive`.
+       - Category & seating constraints: Check constraint `chk_vehicles_seating_positive` (`approved_passenger_seating BETWEEN 1 AND 10`) and server-side category caps (2W: 1 seat, 3W: 3 seats, 4W cab: 4 seats, 4W van: 10 seats).
+       - Roadworthiness getter `isRoadworthy`: evaluates active flag, green plate verification, verified status, and real-time expiration checks across commercial insurance, transport fitness, and AP green-plate permits.
+  3. **Real-Time Battery Telemetry & Dynamic Range Calculation**:
+     - Support multiple telemetry sources (`OBD_TELEMATICS`, `BMS_IOT_GATEWAY`, `OEM_CLOUD_API`, `MANUAL_TELEMETRY`).
+     - Real-time telemetry endpoint `POST /v1/vehicles/:id/telemetry` updates `currentSocPercent`, `telemetryDeviceId`, and `telemetryLastPingAt`.
+     - Dynamically computes `estimatedRangeKm = Math.round(ratedRangeKm * soc / 100)`.
+  4. **Regulatory Verification & Compliance Audit Breakdown**:
+     - Expose `GET /v1/vehicles/:id/compliance` providing real-time evaluation of `insuranceValid`, `insuranceDaysRemaining`, `fitnessValid`, `commercialPermitValid`, `greenPlateVerified`, `propulsionValid`, and human-readable actionable issues.
+     - Restrict verification actions (`POST /v1/vehicles/:id/verify`) to platform operators and fleet administrators with audit logging (`VEHICLE_VERIFICATION_STATUS_CHANGED`). Non-operators attempting verification are rejected with HTTP 403 Forbidden.
+
