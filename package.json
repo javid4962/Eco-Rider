@@ -18,6 +18,11 @@
     "test:watch": "pnpm --filter api test:watch",
     "test:cov": "pnpm --filter api test:cov",
     "test:e2e": "pnpm --filter api test:e2e",
+    "infra:up": "docker compose -f infrastructure/docker-compose.dev.yml up -d",
+    "infra:down": "docker compose -f infrastructure/docker-compose.dev.yml down",
+    "infra:status": "docker compose -f infrastructure/docker-compose.dev.yml ps",
+    "infra:reset": "powershell -ExecutionPolicy Bypass -File ./infrastructure/manage-stack.ps1 -Action reset",
+    "infra:verify": "powershell -ExecutionPolicy Bypass -File ./infrastructure/manage-stack.ps1 -Action verify",
     "migration:run": "pnpm --filter api migration:run",
     "migration:revert": "pnpm --filter api migration:revert"
   },

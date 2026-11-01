@@ -1,0 +1,52 @@
+services:
+  postgis:
+    image: postgis/postgis:16-3.4
+    container_name: ecoride-postgis-dev
+    restart: unless-stopped
+    env_file:
+      - path: .env.dev
+        required: false
+      - path: ../.env
+        required: false
+    environment:
+      POSTGRES_USER: ${DATABASE_USER:-ecoride_dev}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-ecoride_dev_secret}
+      POSTGRES_DB: ${DATABASE_NAME:-ecoride_db}
+    ports:
+      - "${DATABASE_PORT:-5432}:5432"
+    volumes:
+      - ecoride_postgis_dev_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-ecoride_dev} -d ${DATABASE_NAME:-ecoride_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ecoride_dev_net
+
+  redis:
+    image: redis:7-alpine
+    container_name: ecoride-redis-dev
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - ecoride_redis_dev_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ecoride_dev_net
+
+volumes:
+  ecoride_postgis_dev_data:
+    name: ecoride_postgis_dev_data
+  ecoride_redis_dev_data:
+    name: ecoride_redis_dev_data
+
+networks:
+  ecoride_dev_net:
+    name: ecoride_dev_net
+
