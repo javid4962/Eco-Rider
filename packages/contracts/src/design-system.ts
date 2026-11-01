@@ -154,4 +154,3 @@ export interface DesignTokens {
   mapTheme: MapThemeTokens;
   buttons: ButtonTokenConfig;
 }
-

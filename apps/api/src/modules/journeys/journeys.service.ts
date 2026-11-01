@@ -7,11 +7,7 @@ import {
   ScreenNode,
   ScreenGraphValidationResult,
 } from '@ecoride/contracts';
-import {
-  USER_STORIES,
-  JOURNEY_FLOWS,
-  SCREEN_REGISTRY,
-} from './journeys.constants';
+import { USER_STORIES, JOURNEY_FLOWS, SCREEN_REGISTRY } from './journeys.constants';
 
 @Injectable()
 export class JourneysService {
@@ -85,10 +81,7 @@ export class JourneysService {
     // Analyze transitions across all 5 journeys
     for (const flow of this.flows) {
       // Flow root screen gets an inherent entry point
-      incomingEdges.set(
-        flow.initialScreenId,
-        (incomingEdges.get(flow.initialScreenId) || 0) + 1
-      );
+      incomingEdges.set(flow.initialScreenId, (incomingEdges.get(flow.initialScreenId) || 0) + 1);
 
       for (const step of flow.steps) {
         const fromScreen = step.screenId;
@@ -104,14 +97,8 @@ export class JourneysService {
         if (successTarget) {
           totalTransitions++;
           if (registeredScreenIds.has(successTarget)) {
-            incomingEdges.set(
-              successTarget,
-              (incomingEdges.get(successTarget) || 0) + 1
-            );
-            outgoingEdges.set(
-              fromScreen,
-              (outgoingEdges.get(fromScreen) || 0) + 1
-            );
+            incomingEdges.set(successTarget, (incomingEdges.get(successTarget) || 0) + 1);
+            outgoingEdges.set(fromScreen, (outgoingEdges.get(fromScreen) || 0) + 1);
           } else {
             missingDestinations.push(successTarget);
           }
@@ -121,14 +108,8 @@ export class JourneysService {
         if (failureTarget) {
           totalTransitions++;
           if (registeredScreenIds.has(failureTarget)) {
-            incomingEdges.set(
-              failureTarget,
-              (incomingEdges.get(failureTarget) || 0) + 1
-            );
-            outgoingEdges.set(
-              fromScreen,
-              (outgoingEdges.get(fromScreen) || 0) + 1
-            );
+            incomingEdges.set(failureTarget, (incomingEdges.get(failureTarget) || 0) + 1);
+            outgoingEdges.set(fromScreen, (outgoingEdges.get(fromScreen) || 0) + 1);
           } else {
             missingDestinations.push(failureTarget);
           }
@@ -143,12 +124,9 @@ export class JourneysService {
         if (registeredScreenIds.has(screen.recoveryScreenId)) {
           incomingEdges.set(
             screen.recoveryScreenId,
-            (incomingEdges.get(screen.recoveryScreenId) || 0) + 1
+            (incomingEdges.get(screen.recoveryScreenId) || 0) + 1,
           );
-          outgoingEdges.set(
-            screen.screenId,
-            (outgoingEdges.get(screen.screenId) || 0) + 1
-          );
+          outgoingEdges.set(screen.screenId, (outgoingEdges.get(screen.screenId) || 0) + 1);
         } else {
           missingDestinations.push(screen.recoveryScreenId);
         }
@@ -184,7 +162,7 @@ export class JourneysService {
     typeRaw: string,
     fromState: string,
     toState: string,
-    actorRaw: string
+    actorRaw: string,
   ): { valid: boolean; reason?: string } {
     const type = this.validateJourneyType(typeRaw);
     const actor = this.validateRole(actorRaw);
@@ -205,7 +183,7 @@ export class JourneysService {
     // Role check: Only the designated responsible actor may execute transition
     if (step.responsibleActor !== actor) {
       this.logger.warn(
-        `Unauthorized transition attempt in '${type}': Actor '${actor}' cannot execute step '${fromState}'`
+        `Unauthorized transition attempt in '${type}': Actor '${actor}' cannot execute step '${fromState}'`,
       );
       return {
         valid: false,
@@ -235,7 +213,7 @@ export class JourneysService {
     const validRoles = Object.values(UserRole) as string[];
     if (!validRoles.includes(normalized)) {
       throw new BadRequestException(
-        `Invalid role '${roleRaw}'. Valid roles: ${validRoles.join(', ')}.`
+        `Invalid role '${roleRaw}'. Valid roles: ${validRoles.join(', ')}.`,
       );
     }
     return normalized as UserRole;
@@ -249,7 +227,7 @@ export class JourneysService {
     const validTypes = Object.values(JourneyType) as string[];
     if (!validTypes.includes(normalized)) {
       throw new BadRequestException(
-        `Invalid journey type '${typeRaw}'. Valid journey types: ${validTypes.join(', ')}.`
+        `Invalid journey type '${typeRaw}'. Valid journey types: ${validTypes.join(', ')}.`,
       );
     }
     return normalized as JourneyType;

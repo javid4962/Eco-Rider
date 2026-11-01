@@ -65,4 +65,3 @@ describe('Test Matrix Integration (e2e)', () => {
     expect(() => controller.getAllMappings('invalid_category')).toThrow();
   });
 });
-

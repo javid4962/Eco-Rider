@@ -1,10 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException } from '@nestjs/common';
 import { JourneysService } from '../src/modules/journeys/journeys.service';
-import {
-  UserRole,
-  JourneyType,
-} from '@ecoride/contracts';
+import { UserRole, JourneyType } from '@ecoride/contracts';
 
 describe('JourneysService', () => {
   let service: JourneysService;
@@ -57,9 +54,7 @@ describe('JourneysService', () => {
     });
 
     it('should throw BadRequestException on invalid role', () => {
-      expect(() => service.getUserStoriesByRole('unknown_role')).toThrow(
-        BadRequestException
-      );
+      expect(() => service.getUserStoriesByRole('unknown_role')).toThrow(BadRequestException);
     });
   });
 
@@ -114,9 +109,7 @@ describe('JourneysService', () => {
       const privateRide = service.getJourneyByType('private_ride');
       expect(privateRide.type).toBe(JourneyType.PRIVATE_RIDE);
 
-      expect(() => service.getJourneyByType('invalid_type')).toThrow(
-        BadRequestException
-      );
+      expect(() => service.getJourneyByType('invalid_type')).toThrow(BadRequestException);
     });
   });
 
@@ -137,7 +130,7 @@ describe('JourneysService', () => {
         JourneyType.PRIVATE_RIDE,
         'ARRIVED',
         'IN_TRANSIT',
-        UserRole.CAPTAIN
+        UserRole.CAPTAIN,
       );
 
       expect(result.valid).toBe(true);
@@ -148,7 +141,7 @@ describe('JourneysService', () => {
         JourneyType.PRIVATE_RIDE,
         'ARRIVED',
         'OTP_FAILED',
-        UserRole.CAPTAIN
+        UserRole.CAPTAIN,
       );
 
       expect(result.valid).toBe(true);
@@ -159,7 +152,7 @@ describe('JourneysService', () => {
         JourneyType.PRIVATE_RIDE,
         'ARRIVED',
         'IN_TRANSIT',
-        UserRole.RIDER // Rider cannot validate OTP and start ride meter
+        UserRole.RIDER, // Rider cannot validate OTP and start ride meter
       );
 
       expect(result.valid).toBe(false);
@@ -172,7 +165,7 @@ describe('JourneysService', () => {
         JourneyType.PRIVATE_RIDE,
         'LOCATION_SEARCH',
         'TRIP_COMPLETED',
-        UserRole.RIDER
+        UserRole.RIDER,
       );
 
       expect(result.valid).toBe(false);
@@ -184,7 +177,7 @@ describe('JourneysService', () => {
         JourneyType.PRIVATE_RIDE,
         'UNKNOWN_STATE',
         'FARE_ESTIMATION',
-        UserRole.RIDER
+        UserRole.RIDER,
       );
 
       expect(result.valid).toBe(false);
@@ -200,14 +193,14 @@ describe('JourneysService', () => {
             JourneyType.PRIVATE_RIDE,
             'ARRIVED',
             'IN_TRANSIT',
-            UserRole.CAPTAIN
+            UserRole.CAPTAIN,
           );
         } else {
           return service.validateTransition(
             JourneyType.PRIVATE_RIDE,
             'ARRIVED',
             'IN_TRANSIT',
-            UserRole.RIDER
+            UserRole.RIDER,
           );
         }
       });
@@ -225,4 +218,3 @@ describe('JourneysService', () => {
     });
   });
 });
-

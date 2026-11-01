@@ -35,4 +35,3 @@ export const configuration = (): AppConfig => ({
     password: process.env.REDIS_PASSWORD || undefined,
   },
 });
-

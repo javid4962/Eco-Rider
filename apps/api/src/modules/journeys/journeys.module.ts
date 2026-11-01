@@ -8,4 +8,3 @@ import { JourneysService } from './journeys.service';
   exports: [JourneysService],
 })
 export class JourneysModule {}
-

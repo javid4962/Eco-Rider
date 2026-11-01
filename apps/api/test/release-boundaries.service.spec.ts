@@ -1,12 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException } from '@nestjs/common';
 import { ReleaseBoundariesService } from '../src/modules/release-boundaries/release-boundaries.service';
-import {
-  ServiceCategory,
-  ReleasePhase,
-  PhaseType,
-  AndhraPradeshCity,
-} from '@ecoride/contracts';
+import { ServiceCategory, ReleasePhase, PhaseType, AndhraPradeshCity } from '@ecoride/contracts';
 
 describe('ReleaseBoundariesService', () => {
   let service: ReleaseBoundariesService;
@@ -77,10 +72,7 @@ describe('ReleaseBoundariesService', () => {
 
   describe('Initial Disabled Settings & Server-Side Feature Flag Evaluation', () => {
     it('should allow Release A Private EV in the authorized pilot city (Visakhapatnam)', () => {
-      const result = service.evaluate(
-        AndhraPradeshCity.VISAKHAPATNAM,
-        ServiceCategory.PRIVATE_EV
-      );
+      const result = service.evaluate(AndhraPradeshCity.VISAKHAPATNAM, ServiceCategory.PRIVATE_EV);
 
       expect(result.allowed).toBe(true);
       expect(result.city).toBe(AndhraPradeshCity.VISAKHAPATNAM);
@@ -93,7 +85,7 @@ describe('ReleaseBoundariesService', () => {
     it('should block Release B Scheduled Sharing in Visakhapatnam pending launch gates', () => {
       const result = service.evaluate(
         AndhraPradeshCity.VISAKHAPATNAM,
-        ServiceCategory.SCHEDULED_SHARING
+        ServiceCategory.SCHEDULED_SHARING,
       );
 
       expect(result.allowed).toBe(false);
@@ -107,7 +99,7 @@ describe('ReleaseBoundariesService', () => {
     it('should block Release C Passes and Guarantees across all cities', () => {
       const passResult = service.evaluate(
         AndhraPradeshCity.VISAKHAPATNAM,
-        ServiceCategory.COMMUTER_PASS
+        ServiceCategory.COMMUTER_PASS,
       );
       expect(passResult.allowed).toBe(false);
       expect(passResult.releasePhase).toBe(ReleasePhase.RELEASE_C);
@@ -115,7 +107,7 @@ describe('ReleaseBoundariesService', () => {
 
       const guaranteeResult = service.evaluate(
         AndhraPradeshCity.VISAKHAPATNAM,
-        ServiceCategory.ON_TIME_GUARANTEE
+        ServiceCategory.ON_TIME_GUARANTEE,
       );
       expect(guaranteeResult.allowed).toBe(false);
       expect(guaranteeResult.releasePhase).toBe(ReleasePhase.RELEASE_C);
@@ -125,7 +117,7 @@ describe('ReleaseBoundariesService', () => {
     it('should block Release D Optimization across all cities', () => {
       const result = service.evaluate(
         AndhraPradeshCity.VISAKHAPATNAM,
-        ServiceCategory.FLEET_OPTIMIZATION
+        ServiceCategory.FLEET_OPTIMIZATION,
       );
       expect(result.allowed).toBe(false);
       expect(result.releasePhase).toBe(ReleasePhase.RELEASE_D);
@@ -158,23 +150,21 @@ describe('ReleaseBoundariesService', () => {
 
     it('should throw BadRequestException on invalid city', () => {
       expect(() => service.evaluate('hyderabad', ServiceCategory.PRIVATE_EV)).toThrow(
-        BadRequestException
+        BadRequestException,
       );
     });
 
     it('should throw BadRequestException on invalid service category', () => {
-      expect(() =>
-        service.evaluate(AndhraPradeshCity.VISAKHAPATNAM, 'diesel_suv')
-      ).toThrow(BadRequestException);
+      expect(() => service.evaluate(AndhraPradeshCity.VISAKHAPATNAM, 'diesel_suv')).toThrow(
+        BadRequestException,
+      );
     });
 
     it('should throw BadRequestException on empty parameters', () => {
-      expect(() => service.evaluate('', ServiceCategory.PRIVATE_EV)).toThrow(
-        BadRequestException
+      expect(() => service.evaluate('', ServiceCategory.PRIVATE_EV)).toThrow(BadRequestException);
+      expect(() => service.evaluate(AndhraPradeshCity.VISAKHAPATNAM, '')).toThrow(
+        BadRequestException,
       );
-      expect(() =>
-        service.evaluate(AndhraPradeshCity.VISAKHAPATNAM, '')
-      ).toThrow(BadRequestException);
     });
   });
 
@@ -182,7 +172,8 @@ describe('ReleaseBoundariesService', () => {
     it('should return consistent results under concurrent evaluation requests without state corruption', async () => {
       const requests = Array.from({ length: 50 }, (_, i) => {
         const city = i % 2 === 0 ? AndhraPradeshCity.VISAKHAPATNAM : AndhraPradeshCity.TIRUPATI;
-        const category = i % 2 === 0 ? ServiceCategory.PRIVATE_EV : ServiceCategory.SCHEDULED_SHARING;
+        const category =
+          i % 2 === 0 ? ServiceCategory.PRIVATE_EV : ServiceCategory.SCHEDULED_SHARING;
         return service.evaluate(city, category);
       });
 

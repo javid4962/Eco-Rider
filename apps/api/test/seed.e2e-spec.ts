@@ -64,4 +64,3 @@ describe('Seed & Mock Providers (E2E Integration)', () => {
     expect(status.ledgerEntriesCount).toBe(3);
   });
 });
-

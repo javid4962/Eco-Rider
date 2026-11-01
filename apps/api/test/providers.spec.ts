@@ -40,7 +40,7 @@ describe('External Provider Mock Adapters (EV-012)', () => {
     });
 
     it('should reverse geocode known Andhra Pradesh landmarks', async () => {
-      const rkBeach = { latitude: 17.7145, longitude: 83.3230 };
+      const rkBeach = { latitude: 17.7145, longitude: 83.323 };
       const address = await mapsProvider.reverseGeocode(rkBeach);
 
       expect(address).toContain('RK Beach, Visakhapatnam');
@@ -48,14 +48,14 @@ describe('External Provider Mock Adapters (EV-012)', () => {
 
     it('should accurately test point-in-polygon containment', () => {
       const polygon = [
-        { latitude: 17.7000, longitude: 83.3000 },
-        { latitude: 17.7500, longitude: 83.3000 },
-        { latitude: 17.7500, longitude: 83.3500 },
-        { latitude: 17.7000, longitude: 83.3500 },
+        { latitude: 17.7, longitude: 83.3 },
+        { latitude: 17.75, longitude: 83.3 },
+        { latitude: 17.75, longitude: 83.35 },
+        { latitude: 17.7, longitude: 83.35 },
       ];
 
-      const insidePoint = { latitude: 17.7250, longitude: 83.3250 };
-      const outsidePoint = { latitude: 17.8000, longitude: 83.4000 };
+      const insidePoint = { latitude: 17.725, longitude: 83.325 };
+      const outsidePoint = { latitude: 17.8, longitude: 83.4 };
 
       expect(mapsProvider.isPointInPolygon(insidePoint, polygon)).toBe(true);
       expect(mapsProvider.isPointInPolygon(outsidePoint, polygon)).toBe(false);
@@ -171,7 +171,9 @@ describe('External Provider Mock Adapters (EV-012)', () => {
       const validSignature = createHmac('sha256', secret).update(payload).digest('hex');
 
       expect(paymentsProvider.verifyWebhookSignature(payload, validSignature, secret)).toBe(true);
-      expect(paymentsProvider.verifyWebhookSignature(payload, 'tampered_signature', secret)).toBe(false);
+      expect(paymentsProvider.verifyWebhookSignature(payload, 'tampered_signature', secret)).toBe(
+        false,
+      );
     });
 
     it('should enforce idempotency on refund processing', async () => {
@@ -246,4 +248,3 @@ describe('External Provider Mock Adapters (EV-012)', () => {
     });
   });
 });
-

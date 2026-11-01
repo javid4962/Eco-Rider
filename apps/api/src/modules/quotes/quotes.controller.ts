@@ -13,11 +13,13 @@ export class QuotesController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Calculate electric ride quote with geofencing and EV fare estimation',
-    description: 'Computes spherical distance and integer paise fare for EV rides in Andhra Pradesh pilot cities.',
+    description:
+      'Computes spherical distance and integer paise fare for EV rides in Andhra Pradesh pilot cities.',
   })
   @ApiHeader({
     name: CORRELATION_ID_HEADER,
-    description: 'Optional client-supplied tracing correlation ID. Echoed back in response header and error envelopes.',
+    description:
+      'Optional client-supplied tracing correlation ID. Echoed back in response header and error envelopes.',
     required: false,
   })
   @ApiResponse({
@@ -32,4 +34,3 @@ export class QuotesController {
     return this.quotesService.calculateQuote(dto);
   }
 }
-

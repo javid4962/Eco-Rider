@@ -22,7 +22,12 @@ export const AUTHORITATIVE_TEST_MATRIX: TestRequirementMapping[] = [
       'Only 100% Battery Electric Vehicles (BEVs) are permitted on the platform. ICE, hybrid, and CNG vehicles are strictly rejected at registration.',
     measurableCriteria:
       'Server validation rejects non-electric fuel types with HTTP 422. PostGIS spatial entity constraints prohibit non-EV registration. Zero ICE records in database.',
-    applicableCategories: [TestCategory.API, TestCategory.MOBILE, TestCategory.ADMIN, TestCategory.SECURITY],
+    applicableCategories: [
+      TestCategory.API,
+      TestCategory.MOBILE,
+      TestCategory.ADMIN,
+      TestCategory.SECURITY,
+    ],
     testImplementationReference: 'apps/api/test/vehicles.spec.ts',
     humanOwner: {
       name: 'S. K. Verma',
@@ -41,7 +46,12 @@ export const AUTHORITATIVE_TEST_MATRIX: TestRequirementMapping[] = [
       'Trips and dispatches are strictly restricted to authorized pilot zones in Andhra Pradesh (Visakhapatnam urban corridor for Release A).',
     measurableCriteria:
       'ST_Contains spatial query returns false for coordinates outside authorized boundary polygon. API returns HTTP 400 ZONE_RESTRICTED with zero dispatch broadcast.',
-    applicableCategories: [TestCategory.API, TestCategory.MOBILE, TestCategory.ADMIN, TestCategory.FIELD],
+    applicableCategories: [
+      TestCategory.API,
+      TestCategory.MOBILE,
+      TestCategory.ADMIN,
+      TestCategory.FIELD,
+    ],
     testImplementationReference: 'apps/api/test/release-boundaries.service.spec.ts',
     humanOwner: {
       name: 'Ananya Rao',
@@ -174,7 +184,12 @@ export const AUTHORITATIVE_TEST_MATRIX: TestRequirementMapping[] = [
       'One-touch SOS button in Rider and Captain apps triggers a high-priority alert on the Safety Console within 1000ms with live telemetry and police escalation bridge.',
     measurableCriteria:
       'End-to-end alert latency < 1000ms. Dispatch packet includes GPS coordinate, speed, vehicle plate, driver photo, and passenger contact for AP Police 112.',
-    applicableCategories: [TestCategory.API, TestCategory.MOBILE, TestCategory.ADMIN, TestCategory.FIELD],
+    applicableCategories: [
+      TestCategory.API,
+      TestCategory.MOBILE,
+      TestCategory.ADMIN,
+      TestCategory.FIELD,
+    ],
     testImplementationReference: 'apps/api/test/journeys.service.spec.ts',
     humanOwner: {
       name: 'D. Srinivas',
@@ -241,4 +256,3 @@ export const AUTHORITATIVE_TEST_MATRIX: TestRequirementMapping[] = [
     },
   },
 ];
-

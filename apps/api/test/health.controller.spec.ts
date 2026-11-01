@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { HealthController } from '../src/modules/health/health.controller';
 import { HealthService } from '../src/modules/health/health.service';
+import { MetricsService } from '../src/modules/health/metrics.service';
 import { DataSource } from 'typeorm';
 import { RedisService } from '../src/modules/redis/redis.service';
 import { ConfigService } from '@nestjs/config';
@@ -28,6 +29,7 @@ describe('HealthController & HealthService', () => {
       controllers: [HealthController],
       providers: [
         HealthService,
+        MetricsService,
         {
           provide: DataSource,
           useValue: mockDataSource,
@@ -78,7 +80,9 @@ describe('HealthController & HealthService', () => {
 
   describe('when database is down', () => {
     it('should return status degraded and 503 status code without leaking connection info', async () => {
-      mockDataSource.query.mockRejectedValue(new Error('Connection to postgresql://user:secret@db:5432 failed'));
+      mockDataSource.query.mockRejectedValue(
+        new Error('Connection to postgresql://user:secret@db:5432 failed'),
+      );
       const mockResponse = {
         status: jest.fn().mockReturnThis(),
       } as unknown as Response;
@@ -113,4 +117,3 @@ describe('HealthController & HealthService', () => {
     });
   });
 });
-

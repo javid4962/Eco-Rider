@@ -38,4 +38,3 @@ export interface IPaymentsProvider {
   verifyWebhookSignature(payload: string, signature: string, secret: string): boolean;
   processRefund(request: PaymentRefundRequest): Promise<PaymentRefundResult>;
 }
-

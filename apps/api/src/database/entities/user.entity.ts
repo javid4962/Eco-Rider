@@ -41,4 +41,3 @@ export class User {
   @UpdateDateColumn({ type: 'timestamptz', name: 'updated_at' })
   updatedAt!: Date;
 }
-

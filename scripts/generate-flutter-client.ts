@@ -268,8 +268,14 @@ class QuoteResponse {
 }
 `;
 
-  const riderTargetPath = path.resolve(process.cwd(), 'apps/rider_app/lib/core/api/api_contracts.dart');
-  const captainTargetPath = path.resolve(process.cwd(), 'apps/captain_app/lib/core/api/api_contracts.dart');
+  const riderTargetPath = path.resolve(
+    process.cwd(),
+    'apps/rider_app/lib/core/api/api_contracts.dart',
+  );
+  const captainTargetPath = path.resolve(
+    process.cwd(),
+    'apps/captain_app/lib/core/api/api_contracts.dart',
+  );
 
   fs.mkdirSync(path.dirname(riderTargetPath), { recursive: true });
   fs.mkdirSync(path.dirname(captainTargetPath), { recursive: true });
@@ -283,4 +289,3 @@ class QuoteResponse {
 }
 
 generateFlutterClient();
-

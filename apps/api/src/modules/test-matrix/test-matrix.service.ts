@@ -34,9 +34,7 @@ export class TestMatrixService {
    * Returns only P0 release-blocking requirements.
    */
   getP0Blockers(): TestRequirementMapping[] {
-    return this.matrix.filter(
-      (m) => m.priority === RequirementPriority.P0 && m.isReleaseBlocker
-    );
+    return this.matrix.filter((m) => m.priority === RequirementPriority.P0 && m.isReleaseBlocker);
   }
 
   /**
@@ -124,13 +122,11 @@ export class TestMatrixService {
     }
 
     const valid =
-      missingBlockers.length === 0 &&
-      unassignedOwners.length === 0 &&
-      uncoveredP0Count === 0;
+      missingBlockers.length === 0 && unassignedOwners.length === 0 && uncoveredP0Count === 0;
 
     if (!valid) {
       this.logger.warn(
-        `Test matrix validation failed: missingBlockers: ${missingBlockers.length}, unassignedOwners: ${unassignedOwners.length}, uncoveredP0: ${uncoveredP0Count}`
+        `Test matrix validation failed: missingBlockers: ${missingBlockers.length}, unassignedOwners: ${unassignedOwners.length}, uncoveredP0: ${uncoveredP0Count}`,
       );
     }
 
@@ -153,10 +149,9 @@ export class TestMatrixService {
     const validCategories = Object.values(TestCategory) as string[];
     if (!validCategories.includes(normalized)) {
       throw new BadRequestException(
-        `Invalid category '${categoryRaw}'. Valid test categories: ${validCategories.join(', ')}.`
+        `Invalid category '${categoryRaw}'. Valid test categories: ${validCategories.join(', ')}.`,
       );
     }
     return normalized as TestCategory;
   }
 }
-

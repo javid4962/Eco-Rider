@@ -1,9 +1,5 @@
 import { Injectable, BadRequestException, Logger } from '@nestjs/common';
-import {
-  DesignTokens,
-  ScreenInventoryItem,
-  LanguageCode,
-} from '@ecoride/contracts';
+import { DesignTokens, ScreenInventoryItem, LanguageCode } from '@ecoride/contracts';
 import {
   AUTHORITATIVE_DESIGN_TOKENS,
   SCREEN_INVENTORY,
@@ -59,7 +55,9 @@ export class DesignSystemService {
     const normalized = screenIdRaw.trim().toUpperCase();
     const screen = this.screens.find((s) => s.screenId === normalized);
     if (!screen) {
-      throw new BadRequestException(`Screen with ID '${screenIdRaw}' not found in design inventory.`);
+      throw new BadRequestException(
+        `Screen with ID '${screenIdRaw}' not found in design inventory.`,
+      );
     }
     return screen;
   }
@@ -163,7 +161,9 @@ export class DesignSystemService {
     const teluguKeys = Object.values(this.dictionary).filter((v) => Boolean(v.te)).length;
     const bilingualCoveragePercent = (teluguKeys / totalKeys) * 100;
 
-    this.logger.log(`Accessibility audit completed. Contrast passed: ${passed}, Min touch target: ${touchTargetOk}`);
+    this.logger.log(
+      `Accessibility audit completed. Contrast passed: ${passed}, Min touch target: ${touchTargetOk}`,
+    );
 
     return {
       passed: passed && touchTargetOk && bilingualCoveragePercent === 100,

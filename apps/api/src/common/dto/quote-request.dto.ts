@@ -1,12 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsString,
-  IsNotEmpty,
-  IsIn,
-  IsNumber,
-  Min,
-  Max,
-} from 'class-validator';
+import { IsString, IsNotEmpty, IsIn, IsNumber, Min, Max } from 'class-validator';
 
 export class QuoteRequestDto {
   @ApiProperty({
@@ -71,4 +64,3 @@ export class QuoteRequestDto {
   @Max(85.0)
   dropoffLongitude!: number;
 }
-

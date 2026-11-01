@@ -1,11 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException } from '@nestjs/common';
 import { TestMatrixService } from '../src/modules/test-matrix/test-matrix.service';
-import {
-  TestCategory,
-  RequirementPriority,
-  RequirementType,
-} from '@ecoride/contracts';
+import { TestCategory, RequirementPriority, RequirementType } from '@ecoride/contracts';
 
 describe('TestMatrixService', () => {
   let service: TestMatrixService;
@@ -126,27 +122,25 @@ describe('TestMatrixService', () => {
       const concurrencyTests = service.getMappingsByCategory('concurrency');
       expect(concurrencyTests.length).toBeGreaterThanOrEqual(2);
       expect(
-        concurrencyTests.every((m) => m.applicableCategories.includes(TestCategory.CONCURRENCY))
+        concurrencyTests.every((m) => m.applicableCategories.includes(TestCategory.CONCURRENCY)),
       ).toBe(true);
 
       const fieldTests = service.getMappingsByCategory('FIELD');
       expect(fieldTests.length).toBeGreaterThanOrEqual(3);
-      expect(
-        fieldTests.every((m) => m.applicableCategories.includes(TestCategory.FIELD))
-      ).toBe(true);
+      expect(fieldTests.every((m) => m.applicableCategories.includes(TestCategory.FIELD))).toBe(
+        true,
+      );
     });
 
     it('should throw BadRequestException on invalid category', () => {
-      expect(() => service.getMappingsByCategory('invalid_category')).toThrow(
-        BadRequestException
-      );
+      expect(() => service.getMappingsByCategory('invalid_category')).toThrow(BadRequestException);
     });
   });
 
   describe('Concurrency & Immutability', () => {
     it('should handle concurrent matrix validation calls without corruption', async () => {
       const requests = Array.from({ length: 50 }, () =>
-        Promise.resolve(service.validateMatrixCoverage())
+        Promise.resolve(service.validateMatrixCoverage()),
       );
 
       const results = await Promise.all(requests);
@@ -158,4 +152,3 @@ describe('TestMatrixService', () => {
     });
   });
 });
-

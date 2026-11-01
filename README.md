@@ -113,3 +113,43 @@ pnpm run build
 # Run linting across all web and backend workspaces:
 pnpm run lint
 ```
+
+---
+
+## Developer Scripts & Quality Gates (EV-013 Verified)
+
+The monorepo provides standardized PowerShell-compatible developer commands for code formatting, linting, typechecking, Dart static analysis, unit/e2e testing, build compilation, dependency auditing, and secret scanning.
+
+### Verified Commands Matrix
+
+| Quality Check / Action | PowerShell Command | Verified Output / Gate | CI Enforcement |
+|---|---|---|---|
+| **Secret Scanning** | `pnpm run scan:secrets`<br>`powershell -ExecutionPolicy Bypass -File ./scripts/scan-secrets.ps1` | `Zero live credentials or secret leaks found` (0 findings) | **BLOCKING** on PR / Push |
+| **Code Formatting** | `pnpm run format:check`<br>`pnpm run format:write` | `All matched files use Prettier code style` | **BLOCKING** on PR / Push |
+| **Code Quality & Linting** | `pnpm run lint` | `0 errors, 0 warnings` across API & Ops Web | **BLOCKING** on PR / Push |
+| **TypeScript Strict Check** | `pnpm run typecheck` | `tsc --noEmit` clean across `@ecoride/contracts`, `api`, `ops-web` | **BLOCKING** on PR / Push |
+| **Dart Static Analysis** | `pnpm run analyze:dart`<br>`cd apps/rider_app; dart analyze; cd ../captain_app; dart analyze` | `No issues found!` across Rider and Captain apps | **BLOCKING** on PR / Push |
+| **Backend Unit Tests** | `pnpm run test:unit` (or `pnpm run test`) | **104/104 tests passed** (11 test suites) | **BLOCKING** on PR / Push |
+| **Flutter Mobile Tests** | `pnpm run test:flutter`<br>`cd apps/rider_app; flutter test; cd ../captain_app; flutter test` | Rider smoke test passed, Captain smoke test passed | **BLOCKING** on PR / Push |
+| **Backend E2E Tests** | `pnpm run test:e2e` | **34/34 tests passed** (7 test suites) | **BLOCKING** on PR / Push |
+| **Production Builds** | `pnpm run build` | `@ecoride/contracts`, `apps/api`, `apps/ops-web` compiled clean | **BLOCKING** on PR / Push |
+| **Dependency Audit** | `pnpm run scan:deps` | Critical vulnerability gate verification | **BLOCKING** on PR / Push |
+| **Master Verification** | `pnpm run verify:all`<br>`powershell -ExecutionPolicy Bypass -File ./scripts/verify-all.ps1` | Sequentially verifies all 10 checks with timing report | Local Pre-PR Gate |
+
+### Master Verification Pipeline
+To execute the complete pre-merge check locally on Windows:
+```powershell
+powershell -ExecutionPolicy Bypass -File ./scripts/verify-all.ps1
+```
+Options:
+- `-Fast`: Runs essential fast checks (secrets, formatting, linting, typechecks, unit tests, and builds), skipping E2E tests.
+- `-SkipFlutter`: Runs backend and web verification, skipping mobile checks if Flutter SDK is not installed on host.
+
+### Continuous Integration Architecture
+The GitHub Actions workflow at [`.github/workflows/ci.yml`](file:///.github/workflows/ci.yml) executes on every push and pull request targeting `main`, `master`, and `develop`:
+1. **`lint-format-and-secrets`**: Validates secret scanning, Prettier code style, and ESLint quality.
+2. **`typecheck`**: Strictly enforces TypeScript typechecks across all monorepo packages. Broken type definitions will fail and block merge.
+3. **`flutter-quality`**: Sets up Flutter stable channel, runs `dart analyze`, and executes mobile unit/widget test suites.
+4. **`backend-test`**: Boots live PostGIS 16 and Redis 7 service containers, executes TypeORM migrations, verifies synthetic demo data provisioning, and runs the entire Jest unit and E2E test suites. Any failing test will block merge.
+5. **`build-and-audit`**: Generates optimized production bundles and executes dependency vulnerability audits.
+

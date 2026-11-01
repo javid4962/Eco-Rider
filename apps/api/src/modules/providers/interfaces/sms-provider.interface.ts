@@ -16,4 +16,3 @@ export interface SmsSendResult {
 export interface ISmsProvider {
   sendSms(request: SmsSendRequest): Promise<SmsSendResult>;
 }
-

@@ -22,4 +22,3 @@ export interface IMapsProvider {
   reverseGeocode(point: GeoPoint): Promise<string>;
   isPointInPolygon(point: GeoPoint, polygon: GeoPoint[]): boolean;
 }
-

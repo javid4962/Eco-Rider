@@ -15,4 +15,3 @@ export interface IOtpProvider {
   sendOtp(phone: string, purpose: OtpPurpose): Promise<OtpSendResult>;
   verifyOtp(phone: string, code: string, referenceId?: string): Promise<OtpVerifyResult>;
 }
-

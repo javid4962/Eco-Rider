@@ -19,4 +19,3 @@ export class MoneyAmountDto {
   @IsIn(['INR'])
   currency!: 'INR';
 }
-

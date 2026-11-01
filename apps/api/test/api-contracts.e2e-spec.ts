@@ -81,8 +81,8 @@ describe('API Contracts & OpenAPI (E2E Integration)', () => {
           serviceCategory: 'CITY_COMMUTE_2W',
           pickupLatitude: 13.6288,
           pickupLongitude: 79.4192,
-          dropoffLatitude: 13.6350,
-          dropoffLongitude: 79.4250,
+          dropoffLatitude: 13.635,
+          dropoffLongitude: 79.425,
         });
       }).toThrow();
     });
@@ -108,4 +108,3 @@ describe('API Contracts & OpenAPI (E2E Integration)', () => {
     });
   });
 });
-

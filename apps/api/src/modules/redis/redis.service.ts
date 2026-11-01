@@ -43,7 +43,7 @@ export class RedisService implements OnModuleDestroy {
       const response = await Promise.race([
         this.client.ping(),
         new Promise<string>((_, reject) =>
-          setTimeout(() => reject(new Error('Redis ping timeout')), 1500)
+          setTimeout(() => reject(new Error('Redis ping timeout')), 1500),
         ),
       ]);
       return response === 'PONG';
@@ -66,4 +66,3 @@ export class RedisService implements OnModuleDestroy {
     }
   }
 }
-

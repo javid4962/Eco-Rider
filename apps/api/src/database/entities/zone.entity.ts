@@ -35,4 +35,3 @@ export class Zone {
   @UpdateDateColumn({ type: 'timestamptz', name: 'updated_at' })
   updatedAt!: Date;
 }
-

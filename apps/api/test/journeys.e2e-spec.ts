@@ -87,8 +87,7 @@ describe('Journeys Integration (e2e)', () => {
         fromState: '',
         toState: '',
         actor: '',
-      })
+      }),
     ).toThrow();
   });
 });
-

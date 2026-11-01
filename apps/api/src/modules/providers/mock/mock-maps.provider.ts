@@ -8,23 +8,57 @@ import {
 
 @Injectable()
 export class MockMapsProvider implements IMapsProvider {
-
   private readonly knownLandmarks: Array<{ name: string; point: GeoPoint; radiusKm: number }> = [
-    { name: 'RK Beach, Visakhapatnam', point: { latitude: 17.7142, longitude: 83.3235 }, radiusKm: 1.5 },
-    { name: 'MVP Colony Sector 1, Visakhapatnam', point: { latitude: 17.7412, longitude: 83.3371 }, radiusKm: 2.0 },
-    { name: 'Dwaraka Nagar RTC Complex, Visakhapatnam', point: { latitude: 17.7275, longitude: 83.3038 }, radiusKm: 1.5 },
-    { name: 'Visakhapatnam Railway Station Junction', point: { latitude: 17.7215, longitude: 83.2906 }, radiusKm: 1.5 },
-    { name: 'Rushikonda IT SEZ & Hill 2, Visakhapatnam', point: { latitude: 17.7818, longitude: 83.3776 }, radiusKm: 2.5 },
-    { name: 'Gajuwaka Industrial Junction, Visakhapatnam', point: { latitude: 17.6908, longitude: 83.2085 }, radiusKm: 3.0 },
-    { name: 'Benz Circle, Vijayawada', point: { latitude: 16.4975, longitude: 80.6558 }, radiusKm: 2.0 },
-    { name: 'Pandit Nehru Bus Station (PNBS), Vijayawada', point: { latitude: 16.5085, longitude: 80.6178 }, radiusKm: 2.0 },
+    {
+      name: 'RK Beach, Visakhapatnam',
+      point: { latitude: 17.7142, longitude: 83.3235 },
+      radiusKm: 1.5,
+    },
+    {
+      name: 'MVP Colony Sector 1, Visakhapatnam',
+      point: { latitude: 17.7412, longitude: 83.3371 },
+      radiusKm: 2.0,
+    },
+    {
+      name: 'Dwaraka Nagar RTC Complex, Visakhapatnam',
+      point: { latitude: 17.7275, longitude: 83.3038 },
+      radiusKm: 1.5,
+    },
+    {
+      name: 'Visakhapatnam Railway Station Junction',
+      point: { latitude: 17.7215, longitude: 83.2906 },
+      radiusKm: 1.5,
+    },
+    {
+      name: 'Rushikonda IT SEZ & Hill 2, Visakhapatnam',
+      point: { latitude: 17.7818, longitude: 83.3776 },
+      radiusKm: 2.5,
+    },
+    {
+      name: 'Gajuwaka Industrial Junction, Visakhapatnam',
+      point: { latitude: 17.6908, longitude: 83.2085 },
+      radiusKm: 3.0,
+    },
+    {
+      name: 'Benz Circle, Vijayawada',
+      point: { latitude: 16.4975, longitude: 80.6558 },
+      radiusKm: 2.0,
+    },
+    {
+      name: 'Pandit Nehru Bus Station (PNBS), Vijayawada',
+      point: { latitude: 16.5085, longitude: 80.6178 },
+      radiusKm: 2.0,
+    },
   ];
 
   /**
    * Calculates spherical distance, urban driving duration, and EV energy consumption
    * using zero billable external API calls.
    */
-  async calculateDistanceMatrix(origin: GeoPoint, destination: GeoPoint): Promise<DistanceMatrixResult> {
+  async calculateDistanceMatrix(
+    origin: GeoPoint,
+    destination: GeoPoint,
+  ): Promise<DistanceMatrixResult> {
     const distanceMeters = this.calculateHaversineDistance(origin, destination);
     // Urban driving factor: 1.25x road winding factor
     const roadDistanceMeters = Math.round(distanceMeters * 1.25);
@@ -54,8 +88,14 @@ export class MockMapsProvider implements IMapsProvider {
     for (let i = 0; i <= steps; i++) {
       const fraction = i / steps;
       points.push({
-        latitude: Math.round((origin.latitude + (destination.latitude - origin.latitude) * fraction) * 1e6) / 1e6,
-        longitude: Math.round((origin.longitude + (destination.longitude - origin.longitude) * fraction) * 1e6) / 1e6,
+        latitude:
+          Math.round(
+            (origin.latitude + (destination.latitude - origin.latitude) * fraction) * 1e6,
+          ) / 1e6,
+        longitude:
+          Math.round(
+            (origin.longitude + (destination.longitude - origin.longitude) * fraction) * 1e6,
+          ) / 1e6,
       });
     }
 

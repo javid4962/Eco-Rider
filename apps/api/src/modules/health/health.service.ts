@@ -18,6 +18,32 @@ export interface HealthCheckResult {
   };
 }
 
+export interface LivenessResult {
+  status: 'ok';
+  uptimeSeconds: number;
+  timestamp: string;
+  memory: {
+    heapUsedMb: number;
+    rssMb: number;
+  };
+}
+
+export interface ReadinessResult {
+  status: 'ok' | 'not_ready';
+  ready: boolean;
+  timestamp: string;
+  dependencies: {
+    database: {
+      status: 'up' | 'down';
+      latencyMs?: number;
+    };
+    redis: {
+      status: 'up' | 'down';
+      latencyMs?: number;
+    };
+  };
+}
+
 @Injectable()
 export class HealthService {
   private readonly logger = new Logger(HealthService.name);
@@ -25,15 +51,18 @@ export class HealthService {
   constructor(
     private readonly dataSource: DataSource,
     private readonly redisService: RedisService,
-    private readonly configService: ConfigService<AppConfig, true>
+    private readonly configService: ConfigService<AppConfig, true>,
   ) {}
 
+  /**
+   * General health status probe.
+   */
   async check(): Promise<HealthCheckResult> {
     const serviceName = this.configService.get('serviceName', { infer: true }) || 'ecoride-api';
-    const dbStatus = await this.checkDatabase();
-    const redisStatus = await this.checkRedis();
+    const dbCheck = await this.probeDatabase();
+    const redisCheck = await this.probeRedis();
 
-    const isHealthy = dbStatus === 'up' && redisStatus === 'up';
+    const isHealthy = dbCheck.status === 'up' && redisCheck.status === 'up';
 
     return {
       status: isHealthy ? 'ok' : 'degraded',
@@ -41,40 +70,88 @@ export class HealthService {
       timestamp: new Date().toISOString(),
       dependencies: {
         database: {
-          status: dbStatus,
+          status: dbCheck.status,
         },
         redis: {
-          status: redisStatus,
+          status: redisCheck.status,
         },
       },
     };
   }
 
-  private async checkDatabase(): Promise<'up' | 'down'> {
+  /**
+   * Kubernetes / Container Liveness Probe (/health/live)
+   * Signals that the Node.js process is alive and responsive.
+   * Does NOT fail if external database/redis are temporarily unreachable.
+   */
+  async checkLiveness(): Promise<LivenessResult> {
+    const memory = process.memoryUsage();
+    return {
+      status: 'ok',
+      uptimeSeconds: Math.floor(process.uptime()),
+      timestamp: new Date().toISOString(),
+      memory: {
+        heapUsedMb: Math.round((memory.heapUsed / 1024 / 1024) * 100) / 100,
+        rssMb: Math.round((memory.rss / 1024 / 1024) * 100) / 100,
+      },
+    };
+  }
+
+  /**
+   * Kubernetes / Load Balancer Readiness Probe (/health/ready)
+   * Strictly evaluates whether external dependencies (PostgreSQL + Redis) are operational.
+   * A down database or redis forces status 'not_ready' and HTTP 503.
+   */
+  async checkReadiness(): Promise<ReadinessResult> {
+    const dbCheck = await this.probeDatabase();
+    const redisCheck = await this.probeRedis();
+
+    const isReady = dbCheck.status === 'up' && redisCheck.status === 'up';
+
+    return {
+      status: isReady ? 'ok' : 'not_ready',
+      ready: isReady,
+      timestamp: new Date().toISOString(),
+      dependencies: {
+        database: dbCheck,
+        redis: redisCheck,
+      },
+    };
+  }
+
+  private async probeDatabase(): Promise<{ status: 'up' | 'down'; latencyMs?: number }> {
+    const start = Date.now();
     try {
       if (!this.dataSource.isInitialized) {
-        return 'down';
+        return { status: 'down' };
       }
       await Promise.race([
         this.dataSource.query('SELECT 1'),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 2000)),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('probe_timeout')), 2000)),
       ]);
-      return 'up';
+      const latencyMs = Date.now() - start;
+      return { status: 'up', latencyMs };
     } catch {
-      // Intentionally log generic warning and never leak connection string or credentials
-      this.logger.warn('Database health check probe failed');
-      return 'down';
+      // Intentionally never log connection strings or credentials
+      this.logger.warn('Database readiness probe failed (status: down)');
+      return { status: 'down' };
     }
   }
 
-  private async checkRedis(): Promise<'up' | 'down'> {
+  private async probeRedis(): Promise<{ status: 'up' | 'down'; latencyMs?: number }> {
+    const start = Date.now();
     try {
-      const isUp = await this.redisService.ping();
-      return isUp ? 'up' : 'down';
+      const isUp = await Promise.race([
+        this.redisService.ping(),
+        new Promise<boolean>((_, reject) =>
+          setTimeout(() => reject(new Error('redis_timeout')), 2000),
+        ),
+      ]);
+      const latencyMs = Date.now() - start;
+      return { status: isUp ? 'up' : 'down', latencyMs };
     } catch {
-      this.logger.warn('Redis health check probe failed');
-      return 'down';
+      this.logger.warn('Redis readiness probe failed (status: down)');
+      return { status: 'down' };
     }
   }
 }
-

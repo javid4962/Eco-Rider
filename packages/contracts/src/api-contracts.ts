@@ -87,4 +87,3 @@ export function isValidIsoUtc(dateStr: string): boolean {
   const timestamp = Date.parse(dateStr);
   return !isNaN(timestamp);
 }
-

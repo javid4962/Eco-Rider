@@ -186,8 +186,7 @@ export const INITIAL_CITY_SERVICE_SETTINGS: CityServiceSettingsMap = {
     [ServiceCategory.ON_TIME_GUARANTEE]: {
       enabled: false,
       releasePhase: ReleasePhase.RELEASE_C,
-      blocker:
-        'Launch Gate Pending: 60-day historical route punctuality baseline >= 95% required.',
+      blocker: 'Launch Gate Pending: 60-day historical route punctuality baseline >= 95% required.',
     },
     [ServiceCategory.FLEET_OPTIMIZATION]: {
       enabled: false,
@@ -280,4 +279,3 @@ export const INITIAL_CITY_SERVICE_SETTINGS: CityServiceSettingsMap = {
     },
   },
 };
-

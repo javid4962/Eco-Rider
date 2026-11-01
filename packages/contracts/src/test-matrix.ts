@@ -51,4 +51,3 @@ export interface TestMatrixSummary {
   categoryCoverage: Record<TestCategory, number>;
   humanOwnersCount: number;
 }
-

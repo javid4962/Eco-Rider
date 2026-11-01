@@ -1,8 +1,5 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
-import {
-  DesignSystemService,
-  AccessibilityAuditReport,
-} from './design-system.service';
+import { DesignSystemService, AccessibilityAuditReport } from './design-system.service';
 import { DesignTokens, ScreenInventoryItem } from '@ecoride/contracts';
 
 @Controller('design-system')
@@ -31,9 +28,7 @@ export class DesignSystemController {
   }
 
   @Get('localization')
-  getLocalization(
-    @Query('lang') lang?: string
-  ): { localization: Record<string, string> } {
+  getLocalization(@Query('lang') lang?: string): { localization: Record<string, string> } {
     return {
       localization: this.designSystemService.getLocalization(lang),
     };
@@ -44,4 +39,3 @@ export class DesignSystemController {
     return this.designSystemService.auditAccessibility();
   }
 }
-

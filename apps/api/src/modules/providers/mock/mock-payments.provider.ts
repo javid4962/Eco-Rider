@@ -49,9 +49,7 @@ export class MockPaymentsProvider implements IPaymentsProvider {
       return false;
     }
     try {
-      const expectedSignature = createHmac('sha256', secret)
-        .update(payload)
-        .digest('hex');
+      const expectedSignature = createHmac('sha256', secret).update(payload).digest('hex');
       return expectedSignature === signature;
     } catch {
       return false;
@@ -94,4 +92,3 @@ export class MockPaymentsProvider implements IPaymentsProvider {
     return result;
   }
 }
-

@@ -24,9 +24,8 @@ export class MockOtpProvider implements IOtpProvider {
   async sendOtp(phone: string, purpose: OtpPurpose): Promise<OtpSendResult> {
     const referenceId = randomUUID();
     // 4-digit code for ride start OTP; 6-digit code for login / emergency verification
-    const code = purpose === 'RIDE_START'
-      ? String(randomInt(1000, 9999))
-      : String(randomInt(100000, 999999));
+    const code =
+      purpose === 'RIDE_START' ? String(randomInt(1000, 9999)) : String(randomInt(100000, 999999));
 
     const expiresAtMs = Date.now() + this.ttlMs;
     const expiresAtIso = new Date(expiresAtMs).toISOString();
@@ -56,7 +55,9 @@ export class MockOtpProvider implements IOtpProvider {
     const normalizedPhone = this.normalizePhone(phone);
 
     // Look for matching record under any purpose
-    const matchingKey = Array.from(this.otpStore.keys()).find((k) => k.startsWith(`${normalizedPhone}:`));
+    const matchingKey = Array.from(this.otpStore.keys()).find((k) =>
+      k.startsWith(`${normalizedPhone}:`),
+    );
     if (!matchingKey) {
       return { valid: false, reason: 'OTP_NOT_FOUND_OR_EXPIRED' };
     }
@@ -102,4 +103,3 @@ export class MockOtpProvider implements IOtpProvider {
     return phone.replace(/[\s-]/g, '');
   }
 }
-

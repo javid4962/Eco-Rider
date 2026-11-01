@@ -51,4 +51,3 @@ export interface ServiceEvaluationResult {
   reason?: string;
   pendingGates: LaunchGate[];
 }
-

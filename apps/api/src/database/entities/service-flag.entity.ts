@@ -37,4 +37,3 @@ export class ServiceFlag {
   @UpdateDateColumn({ type: 'timestamptz', name: 'updated_at' })
   updatedAt!: Date;
 }
-

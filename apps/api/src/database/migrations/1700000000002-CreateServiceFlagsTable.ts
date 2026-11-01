@@ -18,12 +18,15 @@ export class CreateServiceFlagsTable1700000000002 implements MigrationInterface 
       );
     `);
 
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "idx_service_flags_city" ON "service_flags" ("city");`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "idx_service_flags_category" ON "service_flags" ("service_category");`);
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "idx_service_flags_city" ON "service_flags" ("city");`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "idx_service_flags_category" ON "service_flags" ("service_category");`,
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`DROP TABLE IF EXISTS "service_flags" CASCADE;`);
   }
 }
-

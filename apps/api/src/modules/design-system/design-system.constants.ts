@@ -1,8 +1,4 @@
-import {
-  DesignTokens,
-  ScreenInventoryItem,
-  BilingualText,
-} from '@ecoride/contracts';
+import { DesignTokens, ScreenInventoryItem, BilingualText } from '@ecoride/contracts';
 
 /**
  * Authoritative Design Tokens for EcoRide
@@ -146,8 +142,7 @@ export const SCREEN_INVENTORY: ScreenInventoryItem[] = [
     responsiveGuidelines: {
       mobileCompact360dp:
         'Search card docks to bottom 35% height; quick commute pill horizontal scroll.',
-      mobileStandard412dp:
-        'Search card docks to bottom 30% height; 2-column preset corridor grid.',
+      mobileStandard412dp: 'Search card docks to bottom 30% height; 2-column preset corridor grid.',
       tablet768dp:
         'Left split pane (40% width) for search and recent destinations; right pane (60% width) for interactive PostGIS EV map.',
     },
@@ -223,8 +218,7 @@ export const SCREEN_INVENTORY: ScreenInventoryItem[] = [
 +------------------------------------------+
 `,
     responsiveGuidelines: {
-      mobileCompact360dp:
-        'Category cards display compact 64dp rows; fare and ETA stacked.',
+      mobileCompact360dp: 'Category cards display compact 64dp rows; fare and ETA stacked.',
       mobileStandard412dp:
         'Category cards display 76dp rows with full battery SoC badge and CO2 savings.',
       tablet768dp:
@@ -302,8 +296,7 @@ export const SCREEN_INVENTORY: ScreenInventoryItem[] = [
         'Driver and speed telemetry condensed into single 80dp floating HUD card.',
       mobileStandard412dp:
         'Standard bottom sheet 140dp height with live battery meter and emergency bar.',
-      tablet768dp:
-        'Floating telemetry panel over landscape map with full speed history graph.',
+      tablet768dp: 'Floating telemetry panel over landscape map with full speed history graph.',
     },
     emptyStateGuidance: {
       condition: 'Telemetry stream initializing immediately after OTP entry',
@@ -325,7 +318,8 @@ export const SCREEN_INVENTORY: ScreenInventoryItem[] = [
       fallbackScreenId: 'SCR_RIDER_SOS_BUTTON',
     },
     accessibilityNotes: {
-      minTouchTarget: 'Emergency SOS button minimum 56dp (exceeds 48dp minimum standard) with haptic feedback',
+      minTouchTarget:
+        'Emergency SOS button minimum 56dp (exceeds 48dp minimum standard) with haptic feedback',
       contrastRatio: 'Emergency button #DC2626 text #FFFFFF: 4.6:1 (WCAG AA)',
       screenReaderSemantic: 'Alert: In-transit to Beach Road, ETA 8 minutes; Button: Emergency SOS',
     },
@@ -375,12 +369,10 @@ export const SCREEN_INVENTORY: ScreenInventoryItem[] = [
 +------------------------------------------+
 `,
     responsiveGuidelines: {
-      mobileCompact360dp:
-        'Boarding ticket fills 92% screen width; QR code sized at 160x160 dp.',
+      mobileCompact360dp: 'Boarding ticket fills 92% screen width; QR code sized at 160x160 dp.',
       mobileStandard412dp:
         'Boarding ticket centered with 200x200 dp high-contrast QR code for rapid laser/camera scanning.',
-      tablet768dp:
-        'Centered modal ticket card (440dp width) with surrounding stop map.',
+      tablet768dp: 'Centered modal ticket card (440dp width) with surrounding stop map.',
     },
     emptyStateGuidance: {
       condition: 'Awaiting seat confirmation from database transaction lock',
@@ -479,7 +471,8 @@ export const SCREEN_INVENTORY: ScreenInventoryItem[] = [
       fallbackScreenId: 'SCR_CAPTAIN_OTP_ERROR',
     },
     accessibilityNotes: {
-      minTouchTarget: 'Accept button 64dp height (exceeds 48dp minimum standard) with heavy haptic vibration feedback',
+      minTouchTarget:
+        'Accept button 64dp height (exceeds 48dp minimum standard) with heavy haptic vibration feedback',
       contrastRatio: 'Online text #059669 on surface #FFFFFF: 4.8:1 (WCAG AA)',
       screenReaderSemantic: 'Status: Online; Battery: 84 percent; Button: Accept Ride ₹140',
     },

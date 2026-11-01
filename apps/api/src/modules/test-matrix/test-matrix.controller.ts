@@ -1,21 +1,15 @@
 import { Controller, Get, Query } from '@nestjs/common';
-import {
-  TestMatrixService,
-  MatrixValidationResult,
-} from './test-matrix.service';
-import {
-  TestRequirementMapping,
-  TestMatrixSummary,
-} from '@ecoride/contracts';
+import { TestMatrixService, MatrixValidationResult } from './test-matrix.service';
+import { TestRequirementMapping, TestMatrixSummary } from '@ecoride/contracts';
 
 @Controller('test-matrix')
 export class TestMatrixController {
   constructor(private readonly testMatrixService: TestMatrixService) {}
 
   @Get()
-  getAllMappings(
-    @Query('category') category?: string
-  ): { mappings: readonly TestRequirementMapping[] | TestRequirementMapping[] } {
+  getAllMappings(@Query('category') category?: string): {
+    mappings: readonly TestRequirementMapping[] | TestRequirementMapping[];
+  } {
     if (category) {
       return {
         mappings: this.testMatrixService.getMappingsByCategory(category),
@@ -45,4 +39,3 @@ export class TestMatrixController {
     return this.testMatrixService.validateMatrixCoverage();
   }
 }
-

@@ -8,4 +8,3 @@ import { DesignSystemService } from './design-system.service';
   exports: [DesignSystemService],
 })
 export class DesignSystemModule {}
-

@@ -104,9 +104,7 @@ describe('DesignSystemService', () => {
       expect(riderHome.screenId).toBe('SCR_RIDER_HOME');
       expect(riderHome.role).toBe('rider');
 
-      expect(() => service.getScreenById('NON_EXISTENT')).toThrow(
-        BadRequestException
-      );
+      expect(() => service.getScreenById('NON_EXISTENT')).toThrow(BadRequestException);
     });
   });
 
@@ -124,9 +122,7 @@ describe('DesignSystemService', () => {
     });
 
     it('should throw BadRequestException on unsupported language', () => {
-      expect(() => service.getLocalization('fr')).toThrow(
-        BadRequestException
-      );
+      expect(() => service.getLocalization('fr')).toThrow(BadRequestException);
     });
   });
 
@@ -149,7 +145,7 @@ describe('DesignSystemService', () => {
   describe('Concurrency & State Immutability', () => {
     it('should handle concurrent audit requests without degradation', async () => {
       const requests = Array.from({ length: 50 }, () =>
-        Promise.resolve(service.auditAccessibility())
+        Promise.resolve(service.auditAccessibility()),
       );
 
       const results = await Promise.all(requests);

@@ -1,7 +1,13 @@
 import { BadRequestException, HttpStatus } from '@nestjs/common';
 import { ArgumentsHost } from '@nestjs/common';
 import { HttpExceptionFilter } from '../src/common/filters/http-exception.filter';
-import { ApiErrorCode, paiseToRupees, rupeesToPaise, formatInr, isValidIsoUtc } from '@ecoride/contracts';
+import {
+  ApiErrorCode,
+  paiseToRupees,
+  rupeesToPaise,
+  formatInr,
+  isValidIsoUtc,
+} from '@ecoride/contracts';
 import { QuotesService } from '../src/modules/quotes/quotes.service';
 
 describe('API Contracts, Error Envelopes, and Conventions', () => {
@@ -71,7 +77,9 @@ describe('API Contracts, Error Envelopes, and Conventions', () => {
 
     it('should securely sanitize unhandled 500 errors and NEVER leak stack traces or secrets', () => {
       const host = createMockHost('/v1/secure-op');
-      const sensitiveLeakException = new Error('FATAL: Database connection failed at postgres://user:SECRET_PASS@db:5432/ecoride');
+      const sensitiveLeakException = new Error(
+        'FATAL: Database connection failed at postgres://user:SECRET_PASS@db:5432/ecoride',
+      );
 
       filter.catch(sensitiveLeakException, host);
 
@@ -99,10 +107,10 @@ describe('API Contracts, Error Envelopes, and Conventions', () => {
 
   describe('Money Conventions (Integer Paise)', () => {
     it('should accurately convert between integer paise and rupees without floating-point drift', () => {
-      expect(paiseToRupees(15000)).toBe(150.00);
-      expect(paiseToRupees(2550)).toBe(25.50);
-      expect(rupeesToPaise(150.00)).toBe(15000);
-      expect(rupeesToPaise(25.50)).toBe(2550);
+      expect(paiseToRupees(15000)).toBe(150.0);
+      expect(paiseToRupees(2550)).toBe(25.5);
+      expect(rupeesToPaise(150.0)).toBe(15000);
+      expect(rupeesToPaise(25.5)).toBe(2550);
     });
 
     it('should format paise into Indian Rupee currency string', () => {
@@ -154,12 +162,11 @@ describe('API Contracts, Error Envelopes, and Conventions', () => {
           city: 'vijayawada',
           serviceCategory: 'CITY_COMMUTE_2W',
           pickupLatitude: 16.5062,
-          pickupLongitude: 80.6480,
-          dropoffLatitude: 16.5200,
-          dropoffLongitude: 80.6500,
+          pickupLongitude: 80.648,
+          dropoffLatitude: 16.52,
+          dropoffLongitude: 80.65,
         });
       }).toThrow(BadRequestException);
     });
   });
 });
-

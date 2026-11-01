@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, HttpStatus } from '@nestjs/common';
 import { HealthController } from '../src/modules/health/health.controller';
 import { HealthService } from '../src/modules/health/health.service';
+import { MetricsService } from '../src/modules/health/metrics.service';
 import { DataSource } from 'typeorm';
 import { RedisService } from '../src/modules/redis/redis.service';
 import { ConfigModule } from '@nestjs/config';
@@ -33,6 +34,7 @@ describe('Health Module Integration (e2e)', () => {
       controllers: [HealthController],
       providers: [
         HealthService,
+        MetricsService,
         {
           provide: DataSource,
           useValue: mockDataSource,

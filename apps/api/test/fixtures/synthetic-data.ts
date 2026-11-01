@@ -36,4 +36,3 @@ export const SYNTHETIC_HEALTH_OK = {
     redis: { status: 'up' as const },
   },
 };
-

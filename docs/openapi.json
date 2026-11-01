@@ -4,12 +4,87 @@
     "/health": {
       "get": {
         "operationId": "HealthController_getHealth",
+        "summary": "Platform overall health check",
+        "description": "Returns health status of the API service and its external infrastructure dependencies.",
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "All systems operational"
+          },
+          "503": {
+            "description": "One or more dependencies degraded"
           }
-        }
+        },
+        "tags": [
+          "Health & Diagnostics"
+        ]
+      }
+    },
+    "/health/live": {
+      "get": {
+        "operationId": "HealthController_getLiveness",
+        "summary": "Kubernetes Liveness Probe",
+        "description": "Signals whether the API application process is alive and responsive. Does not fail on DB issues.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Application process is alive"
+          }
+        },
+        "tags": [
+          "Health & Diagnostics"
+        ]
+      }
+    },
+    "/health/ready": {
+      "get": {
+        "operationId": "HealthController_getReadiness",
+        "summary": "Kubernetes Readiness Probe",
+        "description": "Signals whether the API is ready to accept traffic. Fails with HTTP 503 if database or redis is offline.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Service is ready to handle requests"
+          },
+          "503": {
+            "description": "Service is not ready (database or redis offline)"
+          }
+        },
+        "tags": [
+          "Health & Diagnostics"
+        ]
+      }
+    },
+    "/health/metrics": {
+      "get": {
+        "operationId": "HealthController_getMetrics",
+        "summary": "Service runtime metrics (JSON)",
+        "description": "Provides structured runtime metrics including memory, uptime, HTTP throughput, and EV fleet counters.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Service metrics retrieved successfully"
+          }
+        },
+        "tags": [
+          "Health & Diagnostics"
+        ]
+      }
+    },
+    "/metrics": {
+      "get": {
+        "operationId": "HealthController_getPrometheusMetrics",
+        "summary": "Prometheus metrics scrape endpoint",
+        "description": "Returns standard Prometheus exposition format metrics for scraping.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Prometheus text format metrics"
+          }
+        },
+        "tags": [
+          "Health & Diagnostics"
+        ]
       }
     },
     "/v1/release-boundaries/matrix": {

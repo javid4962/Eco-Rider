@@ -1,10 +1,4 @@
-import {
-  UserRole,
-  JourneyType,
-  UserStory,
-  JourneyFlow,
-  ScreenNode,
-} from '@ecoride/contracts';
+import { UserRole, JourneyType, UserStory, JourneyFlow, ScreenNode } from '@ecoride/contracts';
 
 /**
  * 7 Key Platform Roles User Stories
@@ -167,7 +161,8 @@ export const JOURNEY_FLOWS: JourneyFlow[] = [
         stateName: 'DISPATCHING',
         screenId: 'SCR_RIDER_MATCHING',
         responsibleActor: UserRole.CAPTAIN,
-        description: 'System broadcasts ride offer to nearby captains; captain accepts with mutex lock.',
+        description:
+          'System broadcasts ride offer to nearby captains; captain accepts with mutex lock.',
         successPath: {
           action: 'Captain accepts dispatch within 15-second window',
           nextState: 'EN_ROUTE_PICKUP',
@@ -233,7 +228,8 @@ export const JOURNEY_FLOWS: JourneyFlow[] = [
         stateName: 'IN_TRANSIT',
         screenId: 'SCR_RIDER_TRIP_PROGRESS',
         responsibleActor: UserRole.CAPTAIN,
-        description: 'Vehicle is travelling towards destination with active speed and battery tracking.',
+        description:
+          'Vehicle is travelling towards destination with active speed and battery tracking.',
         successPath: {
           action: 'Vehicle arrives at destination dropoff coordinate and captain ends trip',
           nextState: 'TRIP_COMPLETED',
@@ -319,7 +315,8 @@ export const JOURNEY_FLOWS: JourneyFlow[] = [
         },
         emptyState: {
           condition: 'Seat layout loaded, awaiting seat selection',
-          displayMessage: 'Select your preferred seat. Green is available, pink is female-priority.',
+          displayMessage:
+            'Select your preferred seat. Green is available, pink is female-priority.',
           recoveryAction: 'Tap available seat icon',
         },
         failurePath: {
@@ -341,7 +338,8 @@ export const JOURNEY_FLOWS: JourneyFlow[] = [
         },
         emptyState: {
           condition: 'Waiting for scheduled departure time',
-          displayMessage: 'Your seat is confirmed! Be at Virtual Stop A 5 minutes before departure.',
+          displayMessage:
+            'Your seat is confirmed! Be at Virtual Stop A 5 minutes before departure.',
           recoveryAction: 'View walking directions to virtual pickup stop',
         },
         failurePath: {
@@ -421,8 +419,7 @@ export const JOURNEY_FLOWS: JourneyFlow[] = [
   {
     type: JourneyType.PASS_REDEMPTION,
     title: 'Commuter Pass Purchase & Redemption Journey',
-    description:
-      'Lifecycle of purchasing, activating, and deducting prepaid EV ride entitlements.',
+    description: 'Lifecycle of purchasing, activating, and deducting prepaid EV ride entitlements.',
     participatingRoles: [UserRole.RIDER, UserRole.FINANCE, UserRole.INSTITUTION],
     initialState: 'PASS_CATALOG',
     initialScreenId: 'SCR_PASS_CATALOG',
@@ -633,7 +630,8 @@ export const JOURNEY_FLOWS: JourneyFlow[] = [
         stateName: 'SOS_TRIGGERED',
         screenId: 'SCR_RIDER_SOS_BUTTON',
         responsibleActor: UserRole.RIDER,
-        description: 'Rider or captain presses Emergency SOS button with 3-second haptic countdown.',
+        description:
+          'Rider or captain presses Emergency SOS button with 3-second haptic countdown.',
         successPath: {
           action: '3-second timer expires or user immediately confirms Emergency',
           nextState: 'CRITICAL_ALERT_ACTIVE',
@@ -655,7 +653,8 @@ export const JOURNEY_FLOWS: JourneyFlow[] = [
         stateName: 'CRITICAL_ALERT_ACTIVE',
         screenId: 'SCR_SAFETY_CONSOLE_INCIDENT',
         responsibleActor: UserRole.SAFETY,
-        description: 'Safety operations center console flashes siren with live GPS and vehicle telemetry.',
+        description:
+          'Safety operations center console flashes siren with live GPS and vehicle telemetry.',
         successPath: {
           action: 'Safety officer answers alert, verifies situation, and initiates escalation',
           nextState: 'INCIDENT_INTERVENTION',
@@ -677,7 +676,8 @@ export const JOURNEY_FLOWS: JourneyFlow[] = [
         stateName: 'INCIDENT_INTERVENTION',
         screenId: 'SCR_SAFETY_DISPATCH_ESCALATION',
         responsibleActor: UserRole.SAFETY,
-        description: 'Safety team coordinates with AP Police 112 / 100 and dispatches nearest patrol.',
+        description:
+          'Safety team coordinates with AP Police 112 / 100 and dispatches nearest patrol.',
         successPath: {
           action: 'AP Police dispatch intercepts vehicle, passenger safety verified',
           nextState: 'INCIDENT_RESOLVED',
@@ -720,60 +720,226 @@ export const JOURNEY_FLOWS: JourneyFlow[] = [
   },
 ];
 
-
 /**
  * Authoritative Screen Registry mapping all user interface states.
  * Proves graph connectivity: every screen has an active incoming path and an active recovery/outgoing route.
  */
 export const SCREEN_REGISTRY: ScreenNode[] = [
   // Primary Private Ride Screens
-  { screenId: 'SCR_RIDER_SEARCH', displayName: 'Rider Destination Search & Map', role: UserRole.RIDER },
-  { screenId: 'SCR_RIDER_VEHICLE_SELECT', displayName: 'EV Category & Fare Selection', role: UserRole.RIDER },
+  {
+    screenId: 'SCR_RIDER_SEARCH',
+    displayName: 'Rider Destination Search & Map',
+    role: UserRole.RIDER,
+  },
+  {
+    screenId: 'SCR_RIDER_VEHICLE_SELECT',
+    displayName: 'EV Category & Fare Selection',
+    role: UserRole.RIDER,
+  },
   { screenId: 'SCR_RIDER_MATCHING', displayName: 'Captain Matching Radar', role: UserRole.RIDER },
-  { screenId: 'SCR_RIDER_LIVE_TRACK', displayName: 'Live EV Captain Navigation Tracking', role: UserRole.RIDER },
-  { screenId: 'SCR_RIDER_OTP_DISPLAY', displayName: 'Rider 4-Digit Start OTP Display', role: UserRole.RIDER },
-  { screenId: 'SCR_RIDER_TRIP_PROGRESS', displayName: 'Trip Live In-Transit Telemetry', role: UserRole.RIDER },
-  { screenId: 'SCR_RIDER_RATING_RECEIPT', displayName: 'Trip Carbon Savings & Rating Receipt', role: UserRole.RIDER },
+  {
+    screenId: 'SCR_RIDER_LIVE_TRACK',
+    displayName: 'Live EV Captain Navigation Tracking',
+    role: UserRole.RIDER,
+  },
+  {
+    screenId: 'SCR_RIDER_OTP_DISPLAY',
+    displayName: 'Rider 4-Digit Start OTP Display',
+    role: UserRole.RIDER,
+  },
+  {
+    screenId: 'SCR_RIDER_TRIP_PROGRESS',
+    displayName: 'Trip Live In-Transit Telemetry',
+    role: UserRole.RIDER,
+  },
+  {
+    screenId: 'SCR_RIDER_RATING_RECEIPT',
+    displayName: 'Trip Carbon Savings & Rating Receipt',
+    role: UserRole.RIDER,
+  },
 
   // Fallback / Recovery Screens for Private Ride
-  { screenId: 'SCR_RIDER_ZONE_RESTRICTED', displayName: 'Out-of-Zone Pilot Boundary Modal', role: UserRole.RIDER, recoveryScreenId: 'SCR_RIDER_SEARCH' },
-  { screenId: 'SCR_RIDER_PAYMENT_ERROR', displayName: 'Payment Method Error & Retry Screen', role: UserRole.RIDER, recoveryScreenId: 'SCR_RIDER_VEHICLE_SELECT' },
-  { screenId: 'SCR_RIDER_NO_CAPTAINS_TIMEOUT', displayName: 'No Captain Available Timeout Modal', role: UserRole.RIDER, recoveryScreenId: 'SCR_RIDER_SEARCH' },
-  { screenId: 'SCR_RIDE_CANCELLED', displayName: 'Ride Cancellation Summary', role: UserRole.RIDER, recoveryScreenId: 'SCR_RIDER_SEARCH' },
-  { screenId: 'SCR_CAPTAIN_OTP_ERROR', displayName: 'Invalid OTP Retry Screen', role: UserRole.CAPTAIN, recoveryScreenId: 'SCR_RIDER_OTP_DISPLAY' },
-  { screenId: 'SCR_RIDER_SOS_BUTTON', displayName: 'One-Touch Emergency SOS Countdown', role: UserRole.RIDER, recoveryScreenId: 'SCR_RIDER_TRIP_PROGRESS' },
+  {
+    screenId: 'SCR_RIDER_ZONE_RESTRICTED',
+    displayName: 'Out-of-Zone Pilot Boundary Modal',
+    role: UserRole.RIDER,
+    recoveryScreenId: 'SCR_RIDER_SEARCH',
+  },
+  {
+    screenId: 'SCR_RIDER_PAYMENT_ERROR',
+    displayName: 'Payment Method Error & Retry Screen',
+    role: UserRole.RIDER,
+    recoveryScreenId: 'SCR_RIDER_VEHICLE_SELECT',
+  },
+  {
+    screenId: 'SCR_RIDER_NO_CAPTAINS_TIMEOUT',
+    displayName: 'No Captain Available Timeout Modal',
+    role: UserRole.RIDER,
+    recoveryScreenId: 'SCR_RIDER_SEARCH',
+  },
+  {
+    screenId: 'SCR_RIDE_CANCELLED',
+    displayName: 'Ride Cancellation Summary',
+    role: UserRole.RIDER,
+    recoveryScreenId: 'SCR_RIDER_SEARCH',
+  },
+  {
+    screenId: 'SCR_CAPTAIN_OTP_ERROR',
+    displayName: 'Invalid OTP Retry Screen',
+    role: UserRole.CAPTAIN,
+    recoveryScreenId: 'SCR_RIDER_OTP_DISPLAY',
+  },
+  {
+    screenId: 'SCR_RIDER_SOS_BUTTON',
+    displayName: 'One-Touch Emergency SOS Countdown',
+    role: UserRole.RIDER,
+    recoveryScreenId: 'SCR_RIDER_TRIP_PROGRESS',
+  },
 
   // Shared Seat Commute Screens
-  { screenId: 'SCR_COMMUTE_CORRIDORS', displayName: 'Corridor Route & Slot Browser', role: UserRole.RIDER },
-  { screenId: 'SCR_COMMUTE_SEAT_MAP', displayName: 'Interactive Vehicle Seat Map', role: UserRole.RIDER },
-  { screenId: 'SCR_COMMUTE_TICKET_BOARDING_PASS', displayName: 'Digital QR Boarding Pass', role: UserRole.RIDER },
-  { screenId: 'SCR_COMMUTE_QR_SCANNER', displayName: 'Captain Passenger QR Scanner', role: UserRole.CAPTAIN },
-  { screenId: 'SCR_COMMUTE_ROUTE_PROGRESS', displayName: 'Corridor Multi-Stop Progress Map', role: UserRole.CAPTAIN },
-  { screenId: 'SCR_COMMUTE_RECEIPT', displayName: 'Shared Commute Receipt & Savings', role: UserRole.RIDER },
-  { screenId: 'SCR_COMMUTE_CORRIDOR_CLOSED', displayName: 'Corridor Inactive Alert', role: UserRole.RIDER, recoveryScreenId: 'SCR_COMMUTE_CORRIDORS' },
-  { screenId: 'SCR_COMMUTE_SEAT_CONFLICT', displayName: 'Seat Conflict (Already Reserved) Alert', role: UserRole.RIDER, recoveryScreenId: 'SCR_COMMUTE_SEAT_MAP' },
+  {
+    screenId: 'SCR_COMMUTE_CORRIDORS',
+    displayName: 'Corridor Route & Slot Browser',
+    role: UserRole.RIDER,
+  },
+  {
+    screenId: 'SCR_COMMUTE_SEAT_MAP',
+    displayName: 'Interactive Vehicle Seat Map',
+    role: UserRole.RIDER,
+  },
+  {
+    screenId: 'SCR_COMMUTE_TICKET_BOARDING_PASS',
+    displayName: 'Digital QR Boarding Pass',
+    role: UserRole.RIDER,
+  },
+  {
+    screenId: 'SCR_COMMUTE_QR_SCANNER',
+    displayName: 'Captain Passenger QR Scanner',
+    role: UserRole.CAPTAIN,
+  },
+  {
+    screenId: 'SCR_COMMUTE_ROUTE_PROGRESS',
+    displayName: 'Corridor Multi-Stop Progress Map',
+    role: UserRole.CAPTAIN,
+  },
+  {
+    screenId: 'SCR_COMMUTE_RECEIPT',
+    displayName: 'Shared Commute Receipt & Savings',
+    role: UserRole.RIDER,
+  },
+  {
+    screenId: 'SCR_COMMUTE_CORRIDOR_CLOSED',
+    displayName: 'Corridor Inactive Alert',
+    role: UserRole.RIDER,
+    recoveryScreenId: 'SCR_COMMUTE_CORRIDORS',
+  },
+  {
+    screenId: 'SCR_COMMUTE_SEAT_CONFLICT',
+    displayName: 'Seat Conflict (Already Reserved) Alert',
+    role: UserRole.RIDER,
+    recoveryScreenId: 'SCR_COMMUTE_SEAT_MAP',
+  },
 
   // Pass Redemption Screens
-  { screenId: 'SCR_PASS_CATALOG', displayName: 'Commuter Pass Catalog & Pricing', role: UserRole.RIDER },
-  { screenId: 'SCR_PASS_WALLET_DASHBOARD', displayName: 'Pass Wallet & Token Balance', role: UserRole.RIDER },
-  { screenId: 'SCR_RIDER_CHECKOUT_WITH_PASS', displayName: 'Checkout with Token Deduction', role: UserRole.RIDER },
-  { screenId: 'SCR_PASS_CONFIRMATION', displayName: 'Pass Redemption Confirmation', role: UserRole.RIDER },
-  { screenId: 'SCR_PASS_QUOTA_EXHAUSTED', displayName: 'Pass Quota Exhausted Notice', role: UserRole.RIDER, recoveryScreenId: 'SCR_PASS_CATALOG' },
-  { screenId: 'SCR_PASS_LIMIT_REACHED', displayName: 'Daily Ride Limit Reached Modal', role: UserRole.RIDER, recoveryScreenId: 'SCR_PASS_WALLET_DASHBOARD' },
-  { screenId: 'SCR_PASS_DISTANCE_TOPUP', displayName: 'Distance Cap Top-Up Screen', role: UserRole.RIDER, recoveryScreenId: 'SCR_RIDER_CHECKOUT_WITH_PASS' },
+  {
+    screenId: 'SCR_PASS_CATALOG',
+    displayName: 'Commuter Pass Catalog & Pricing',
+    role: UserRole.RIDER,
+  },
+  {
+    screenId: 'SCR_PASS_WALLET_DASHBOARD',
+    displayName: 'Pass Wallet & Token Balance',
+    role: UserRole.RIDER,
+  },
+  {
+    screenId: 'SCR_RIDER_CHECKOUT_WITH_PASS',
+    displayName: 'Checkout with Token Deduction',
+    role: UserRole.RIDER,
+  },
+  {
+    screenId: 'SCR_PASS_CONFIRMATION',
+    displayName: 'Pass Redemption Confirmation',
+    role: UserRole.RIDER,
+  },
+  {
+    screenId: 'SCR_PASS_QUOTA_EXHAUSTED',
+    displayName: 'Pass Quota Exhausted Notice',
+    role: UserRole.RIDER,
+    recoveryScreenId: 'SCR_PASS_CATALOG',
+  },
+  {
+    screenId: 'SCR_PASS_LIMIT_REACHED',
+    displayName: 'Daily Ride Limit Reached Modal',
+    role: UserRole.RIDER,
+    recoveryScreenId: 'SCR_PASS_WALLET_DASHBOARD',
+  },
+  {
+    screenId: 'SCR_PASS_DISTANCE_TOPUP',
+    displayName: 'Distance Cap Top-Up Screen',
+    role: UserRole.RIDER,
+    recoveryScreenId: 'SCR_RIDER_CHECKOUT_WITH_PASS',
+  },
 
   // Refund & SLA Delay Screens
-  { screenId: 'SCR_RIDER_TRIP_DELAY_ALERT', displayName: 'Trip Delay Notification & SLA Claim', role: UserRole.RIDER },
-  { screenId: 'SCR_FINANCE_REFUND_DESK', displayName: 'Automated Refund Evaluation Console', role: UserRole.FINANCE },
-  { screenId: 'SCR_FINANCE_LEDGER_PROCESSING', displayName: 'Idempotent Ledger Disbursement Processor', role: UserRole.FINANCE },
-  { screenId: 'SCR_RIDER_REFUND_SUCCESS', displayName: 'Refund & Delay Credit Deposited Screen', role: UserRole.RIDER },
-  { screenId: 'SCR_REFUND_INELIGIBLE', displayName: 'Refund Ineligibility Notice', role: UserRole.RIDER, recoveryScreenId: 'SCR_RIDER_SEARCH' },
-  { screenId: 'SCR_REFUND_FRAUD_REJECTED', displayName: 'Duplicate Claim Rejection Modal', role: UserRole.FINANCE, recoveryScreenId: 'SCR_FINANCE_REFUND_DESK' },
-  { screenId: 'SCR_REFUND_BANK_RETRY', displayName: 'Banking Gateway Retry Console', role: UserRole.FINANCE, recoveryScreenId: 'SCR_FINANCE_LEDGER_PROCESSING' },
+  {
+    screenId: 'SCR_RIDER_TRIP_DELAY_ALERT',
+    displayName: 'Trip Delay Notification & SLA Claim',
+    role: UserRole.RIDER,
+  },
+  {
+    screenId: 'SCR_FINANCE_REFUND_DESK',
+    displayName: 'Automated Refund Evaluation Console',
+    role: UserRole.FINANCE,
+  },
+  {
+    screenId: 'SCR_FINANCE_LEDGER_PROCESSING',
+    displayName: 'Idempotent Ledger Disbursement Processor',
+    role: UserRole.FINANCE,
+  },
+  {
+    screenId: 'SCR_RIDER_REFUND_SUCCESS',
+    displayName: 'Refund & Delay Credit Deposited Screen',
+    role: UserRole.RIDER,
+  },
+  {
+    screenId: 'SCR_REFUND_INELIGIBLE',
+    displayName: 'Refund Ineligibility Notice',
+    role: UserRole.RIDER,
+    recoveryScreenId: 'SCR_RIDER_SEARCH',
+  },
+  {
+    screenId: 'SCR_REFUND_FRAUD_REJECTED',
+    displayName: 'Duplicate Claim Rejection Modal',
+    role: UserRole.FINANCE,
+    recoveryScreenId: 'SCR_FINANCE_REFUND_DESK',
+  },
+  {
+    screenId: 'SCR_REFUND_BANK_RETRY',
+    displayName: 'Banking Gateway Retry Console',
+    role: UserRole.FINANCE,
+    recoveryScreenId: 'SCR_FINANCE_LEDGER_PROCESSING',
+  },
 
   // Emergency SOS Screens
-  { screenId: 'SCR_SAFETY_CONSOLE_INCIDENT', displayName: '24/7 Safety Desk Live Incident Console', role: UserRole.SAFETY },
-  { screenId: 'SCR_SAFETY_DISPATCH_ESCALATION', displayName: 'AP Police 112 Dispatch Escalation Bridge', role: UserRole.SAFETY },
-  { screenId: 'SCR_SAFETY_INCIDENT_REPORT', displayName: 'Comprehensive Incident Resolution Report', role: UserRole.SAFETY },
-  { screenId: 'SCR_SAFETY_OFFLINE_PROBE_POLICE', displayName: 'Offline Telemetry Emergency Protocol', role: UserRole.SAFETY, recoveryScreenId: 'SCR_SAFETY_DISPATCH_ESCALATION' },
+  {
+    screenId: 'SCR_SAFETY_CONSOLE_INCIDENT',
+    displayName: '24/7 Safety Desk Live Incident Console',
+    role: UserRole.SAFETY,
+  },
+  {
+    screenId: 'SCR_SAFETY_DISPATCH_ESCALATION',
+    displayName: 'AP Police 112 Dispatch Escalation Bridge',
+    role: UserRole.SAFETY,
+  },
+  {
+    screenId: 'SCR_SAFETY_INCIDENT_REPORT',
+    displayName: 'Comprehensive Incident Resolution Report',
+    role: UserRole.SAFETY,
+  },
+  {
+    screenId: 'SCR_SAFETY_OFFLINE_PROBE_POLICE',
+    displayName: 'Offline Telemetry Emergency Protocol',
+    role: UserRole.SAFETY,
+    recoveryScreenId: 'SCR_SAFETY_DISPATCH_ESCALATION',
+  },
 ];

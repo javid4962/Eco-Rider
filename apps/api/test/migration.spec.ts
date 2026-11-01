@@ -60,9 +60,15 @@ describe('Database Migrations', () => {
       expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "audit_logs"');
 
       // Verify constraints
-      expect(allQueries).toContain('CONSTRAINT "chk_vehicles_electric_only" CHECK ("propulsion_type" = \'BATTERY_ELECTRIC\')');
-      expect(allQueries).toContain('CONSTRAINT "chk_ledger_entry_type" CHECK ("entry_type" IN (\'DEBIT\', \'CREDIT\'))');
-      expect(allQueries).toContain('CONSTRAINT "chk_ledger_amount_positive" CHECK ("amount_paise" > 0)');
+      expect(allQueries).toContain(
+        'CONSTRAINT "chk_vehicles_electric_only" CHECK ("propulsion_type" = \'BATTERY_ELECTRIC\')',
+      );
+      expect(allQueries).toContain(
+        'CONSTRAINT "chk_ledger_entry_type" CHECK ("entry_type" IN (\'DEBIT\', \'CREDIT\'))',
+      );
+      expect(allQueries).toContain(
+        'CONSTRAINT "chk_ledger_amount_positive" CHECK ("amount_paise" > 0)',
+      );
 
       // Verify spatial GIST indexes
       expect(allQueries).toContain('USING GIST ("boundary")');

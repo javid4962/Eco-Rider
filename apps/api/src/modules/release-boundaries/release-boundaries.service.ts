@@ -50,14 +50,14 @@ export class ReleaseBoundariesService {
 
     const releaseScope = this.findReleaseScope(serviceCategory);
     const pendingGates = releaseScope.launchGates.filter(
-      (gate: LaunchGate) => gate.mandatoryForLaunch && !gate.isSatisfied
+      (gate: LaunchGate) => gate.mandatoryForLaunch && !gate.isSatisfied,
     );
 
     if (!serviceConfig.enabled) {
       this.logger.warn(
         `Access denied: Service '${serviceCategory}' is disabled for city '${city}'. Reason: ${
           serviceConfig.blocker || 'Launch gate pending.'
-        }`
+        }`,
       );
 
       return {
@@ -74,7 +74,7 @@ export class ReleaseBoundariesService {
     // Even if configured as enabled, verify that all mandatory launch gates are satisfied
     if (pendingGates.length > 0) {
       this.logger.error(
-        `Safety block: Service '${serviceCategory}' marked enabled but has unsatisfied mandatory launch gates.`
+        `Safety block: Service '${serviceCategory}' marked enabled but has unsatisfied mandatory launch gates.`,
       );
       return {
         allowed: false,
@@ -105,7 +105,7 @@ export class ReleaseBoundariesService {
     const validCities = Object.values(AndhraPradeshCity) as string[];
     if (!validCities.includes(normalized)) {
       throw new BadRequestException(
-        `Invalid city '${cityRaw}'. Authorized Andhra Pradesh cities: ${validCities.join(', ')}.`
+        `Invalid city '${cityRaw}'. Authorized Andhra Pradesh cities: ${validCities.join(', ')}.`,
       );
     }
     return normalized as AndhraPradeshCity;
@@ -119,7 +119,7 @@ export class ReleaseBoundariesService {
     const validServices = Object.values(ServiceCategory) as string[];
     if (!validServices.includes(normalized)) {
       throw new BadRequestException(
-        `Invalid service '${serviceRaw}'. Authorized service categories: ${validServices.join(', ')}.`
+        `Invalid service '${serviceRaw}'. Authorized service categories: ${validServices.join(', ')}.`,
       );
     }
     return normalized as ServiceCategory;

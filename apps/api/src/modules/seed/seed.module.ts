@@ -8,4 +8,3 @@ import { SeedController } from './seed.controller';
   exports: [SeedService],
 })
 export class SeedModule {}
-

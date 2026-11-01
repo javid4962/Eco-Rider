@@ -58,7 +58,15 @@ export class SeedService {
                "battery_capacity_kwh" = EXCLUDED."battery_capacity_kwh",
                "current_soc_percent" = EXCLUDED."current_soc_percent",
                "vehicle_category" = EXCLUDED."vehicle_category"`,
-          [v.id, v.registrationNumber, v.propulsionType, v.batteryCapacityKwh, v.currentSocPercent, v.vehicleCategory, v.isActive],
+          [
+            v.id,
+            v.registrationNumber,
+            v.propulsionType,
+            v.batteryCapacityKwh,
+            v.currentSocPercent,
+            v.vehicleCategory,
+            v.isActive,
+          ],
         );
       }
 
@@ -82,7 +90,14 @@ export class SeedService {
            VALUES ($1, $2, $3, $4, $5, $6)
            ON CONFLICT ("city", "service_category") DO UPDATE
            SET "is_enabled" = EXCLUDED."is_enabled", "release_phase" = EXCLUDED."release_phase", "blocker_reason" = EXCLUDED."blocker_reason"`,
-          [sf.id, sf.city, sf.serviceCategory, sf.isEnabled, sf.releasePhase, sf.blockerReason || null],
+          [
+            sf.id,
+            sf.city,
+            sf.serviceCategory,
+            sf.isEnabled,
+            sf.releasePhase,
+            sf.blockerReason || null,
+          ],
         );
       }
 
@@ -102,9 +117,19 @@ export class SeedService {
            ON CONFLICT ("booking_code") DO UPDATE
            SET "status" = EXCLUDED."status", "fare_amount" = EXCLUDED."fare_amount", "start_otp" = EXCLUDED."start_otp"`,
           [
-            b.id, b.bookingCode, b.riderId, b.captainId, b.vehicleId,
-            b.serviceCategory, b.status, b.pickupLongitude, b.pickupLatitude, b.dropoffLongitude, b.dropoffLatitude,
-            b.startOtp || null, b.fareAmount,
+            b.id,
+            b.bookingCode,
+            b.riderId,
+            b.captainId,
+            b.vehicleId,
+            b.serviceCategory,
+            b.status,
+            b.pickupLongitude,
+            b.pickupLatitude,
+            b.dropoffLongitude,
+            b.dropoffLatitude,
+            b.startOtp || null,
+            b.fareAmount,
           ],
         );
       }
@@ -115,7 +140,16 @@ export class SeedService {
           `INSERT INTO "ledger_entries" ("id", "idempotency_key", "booking_id", "account_id", "entry_type", "amount_paise", "currency", "description")
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
            ON CONFLICT ("idempotency_key") DO NOTHING`,
-          [l.id, l.idempotencyKey, l.bookingId, l.accountId, l.entryType, l.amountPaise, l.currency, l.description],
+          [
+            l.id,
+            l.idempotencyKey,
+            l.bookingId,
+            l.accountId,
+            l.entryType,
+            l.amountPaise,
+            l.currency,
+            l.description,
+          ],
         );
       }
 
@@ -123,7 +157,10 @@ export class SeedService {
       await queryRunner.query(
         `INSERT INTO "audit_logs" ("id", "entity_type", "entity_id", "actor_id", "action", "new_state")
          VALUES (uuid_generate_v4(), 'PLATFORM_SEED', $1, $1, 'INITIALIZE_SYNTHETIC_DATA', $2)`,
-        [SEED_USERS[6].id, JSON.stringify({ seededAt: new Date().toISOString(), env: 'development' })],
+        [
+          SEED_USERS[6].id,
+          JSON.stringify({ seededAt: new Date().toISOString(), env: 'development' }),
+        ],
       );
 
       await queryRunner.commitTransaction();
@@ -157,7 +194,9 @@ export class SeedService {
       const seedZoneIds = SEED_ZONES.map((z) => `'${z.id}'`).join(',');
       const seedFlagIds = SEED_SERVICE_FLAGS.map((f) => `'${f.id}'`).join(',');
 
-      await queryRunner.query(`DELETE FROM "ledger_entries" WHERE "booking_id" IN (${seedBookingIds})`);
+      await queryRunner.query(
+        `DELETE FROM "ledger_entries" WHERE "booking_id" IN (${seedBookingIds})`,
+      );
       await queryRunner.query(`DELETE FROM "bookings" WHERE "id" IN (${seedBookingIds})`);
       await queryRunner.query(`DELETE FROM "service_flags" WHERE "id" IN (${seedFlagIds})`);
       await queryRunner.query(`DELETE FROM "zones" WHERE "id" IN (${seedZoneIds})`);
@@ -185,9 +224,13 @@ export class SeedService {
     const [users] = await this.dataSource.query(`SELECT COUNT(*)::int as count FROM "users"`);
     const [vehicles] = await this.dataSource.query(`SELECT COUNT(*)::int as count FROM "vehicles"`);
     const [zones] = await this.dataSource.query(`SELECT COUNT(*)::int as count FROM "zones"`);
-    const [serviceFlags] = await this.dataSource.query(`SELECT COUNT(*)::int as count FROM "service_flags"`);
+    const [serviceFlags] = await this.dataSource.query(
+      `SELECT COUNT(*)::int as count FROM "service_flags"`,
+    );
     const [bookings] = await this.dataSource.query(`SELECT COUNT(*)::int as count FROM "bookings"`);
-    const [ledgerEntries] = await this.dataSource.query(`SELECT COUNT(*)::int as count FROM "ledger_entries"`);
+    const [ledgerEntries] = await this.dataSource.query(
+      `SELECT COUNT(*)::int as count FROM "ledger_entries"`,
+    );
 
     const usersCount = users?.count || 0;
     const vehiclesCount = vehicles?.count || 0;
@@ -214,4 +257,3 @@ export class SeedService {
     };
   }
 }
-

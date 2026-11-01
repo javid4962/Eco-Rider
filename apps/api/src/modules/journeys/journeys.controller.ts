@@ -1,12 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Query,
-  Param,
-  Body,
-  BadRequestException,
-} from '@nestjs/common';
+import { Controller, Get, Post, Query, Param, Body, BadRequestException } from '@nestjs/common';
 import { JourneysService } from './journeys.service';
 import {
   UserStory,
@@ -27,9 +19,7 @@ export class JourneysController {
   constructor(private readonly journeysService: JourneysService) {}
 
   @Get('stories')
-  getUserStories(
-    @Query('role') role?: string
-  ): { stories: readonly UserStory[] | UserStory[] } {
+  getUserStories(@Query('role') role?: string): { stories: readonly UserStory[] | UserStory[] } {
     if (role) {
       return {
         stories: this.journeysService.getUserStoriesByRole(role),
@@ -67,20 +57,12 @@ export class JourneysController {
   }
 
   @Post('validate-transition')
-  validateTransition(
-    @Body() dto: TransitionValidationDto
-  ): { valid: boolean; reason?: string } {
+  validateTransition(@Body() dto: TransitionValidationDto): { valid: boolean; reason?: string } {
     if (!dto || !dto.type || !dto.fromState || !dto.toState || !dto.actor) {
       throw new BadRequestException(
-        'type, fromState, toState, and actor are required in request body.'
+        'type, fromState, toState, and actor are required in request body.',
       );
     }
-    return this.journeysService.validateTransition(
-      dto.type,
-      dto.fromState,
-      dto.toState,
-      dto.actor
-    );
+    return this.journeysService.validateTransition(dto.type, dto.fromState, dto.toState, dto.actor);
   }
 }
-

@@ -67,4 +67,3 @@ describe('Release Boundaries Integration (e2e)', () => {
     expect(() => controller.checkServiceAccess('london', 'private_ev')).toThrow();
   });
 });
-

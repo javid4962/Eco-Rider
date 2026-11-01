@@ -5,6 +5,7 @@ import { Logger, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppConfig } from './config/configuration';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import { LoggingInterceptor } from './common/logging/logging.interceptor';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -14,9 +15,9 @@ async function bootstrap() {
 
   app.enableShutdownHooks();
 
-  // 1. Global /v1 URI Prefix (health probe excluded for infrastructure compatibility)
+  // 1. Global /v1 URI Prefix (health probes and metrics excluded for infrastructure compatibility)
   app.setGlobalPrefix('v1', {
-    exclude: ['health'],
+    exclude: ['health', 'health/(.*)', 'metrics'],
   });
 
   // 2. Strict Typed DTO Validation Pipe
@@ -29,13 +30,16 @@ async function bootstrap() {
     }),
   );
 
-  // 3. Stable Global Error Envelope Filter
+  // 3. Stable Global Error Envelope Filter & Structured Logging Interceptor
   app.useGlobalFilters(new HttpExceptionFilter());
+  app.useGlobalInterceptors(new LoggingInterceptor());
 
   // 4. OpenAPI / Swagger Documentation
   const swaggerConfig = new DocumentBuilder()
     .setTitle('EcoRide EV Mobility API')
-    .setDescription('Authoritative REST API for EcoRide EV-Only Mobility Platform in Andhra Pradesh')
+    .setDescription(
+      'Authoritative REST API for EcoRide EV-Only Mobility Platform in Andhra Pradesh',
+    )
     .setVersion('1.0.0')
     .addTag('Health', 'Platform health check and dependency connectivity probes')
     .addTag('Release Boundaries', 'Gated release scopes, feature flags, and pilot zone permissions')
@@ -53,7 +57,9 @@ async function bootstrap() {
   const serviceName = configService.get('serviceName', { infer: true }) || 'ecoride-api';
 
   await app.listen(port);
-  logger.log(`${serviceName} is running on port ${port} (OpenAPI: http://localhost:${port}/v1/docs)`);
+  logger.log(
+    `${serviceName} is running on port ${port} (OpenAPI: http://localhost:${port}/v1/docs)`,
+  );
 }
 
 bootstrap().catch((err: unknown) => {

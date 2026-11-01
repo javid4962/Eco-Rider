@@ -7,11 +7,13 @@ import * as path from 'path';
 async function exportOpenApi() {
   const app = await NestFactory.create(AppModule, { logger: false });
 
-  app.setGlobalPrefix('v1', { exclude: ['health'] });
+  app.setGlobalPrefix('v1', { exclude: ['health', 'health/(.*)', 'metrics'] });
 
   const config = new DocumentBuilder()
     .setTitle('EcoRide EV Mobility API')
-    .setDescription('Authoritative OpenAPI 3.0 specification for EcoRide original EV-only mobility platform in Andhra Pradesh')
+    .setDescription(
+      'Authoritative OpenAPI 3.0 specification for EcoRide original EV-only mobility platform in Andhra Pradesh',
+    )
     .setVersion('1.0.0')
     .addTag('Health', 'Platform health check and synthetic dependency probes')
     .addTag('Release Boundaries', 'Gated release scopes, feature flags, and pilot zone permissions')
@@ -37,4 +39,3 @@ exportOpenApi().catch((err) => {
   console.error('Failed to export OpenAPI document:', err);
   process.exit(1);
 });
-

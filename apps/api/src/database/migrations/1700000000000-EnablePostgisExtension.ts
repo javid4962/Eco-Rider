@@ -13,4 +13,3 @@ export class EnablePostgisExtension1700000000000 implements MigrationInterface {
     await queryRunner.query(`DROP EXTENSION IF EXISTS "uuid-ossp";`);
   }
 }
-

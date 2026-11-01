@@ -46,9 +46,7 @@ export class MockPushProvider implements IPushNotificationProvider {
       successCount++;
     }
 
-    this.logger.log(
-      `[MockPushProvider] Multicast sent to ${tokens.length} recipients: "${title}"`,
-    );
+    this.logger.log(`[MockPushProvider] Multicast sent to ${tokens.length} recipients: "${title}"`);
 
     return {
       successCount,
@@ -64,4 +62,3 @@ export class MockPushProvider implements IPushNotificationProvider {
     this.dispatchedNotifications.length = 0;
   }
 }
-

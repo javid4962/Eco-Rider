@@ -1,4 +1,4 @@
-name: CI Pipeline
+name: EcoRide CI Pipeline
 
 on:
   push:
@@ -6,8 +6,103 @@ on:
   pull_request:
     branches: [main, master, develop]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  build-and-test:
+  lint-format-and-secrets:
+    name: Code Quality, Format & Secret Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: 1. Secret Scan (Zero Leaked Credentials)
+        run: pnpm run scan:secrets
+
+      - name: 2. Prettier Formatting Verification
+        run: pnpm run format:check
+
+      - name: 3. ESLint Quality Check (API & Ops Portal)
+        run: pnpm run lint
+
+  typecheck:
+    name: TypeScript Strict Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Contracts Package
+        run: pnpm run build:contracts
+
+      - name: Strict Typecheck (All Workspaces)
+        run: pnpm run typecheck
+
+  flutter-quality:
+    name: Flutter Mobile Quality & Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: 1. Rider App - Dependencies & Analysis
+        working-directory: apps/rider_app
+        run: |
+          flutter pub get
+          dart analyze
+
+      - name: 2. Rider App - Widget & Smoke Tests
+        working-directory: apps/rider_app
+        run: flutter test
+
+      - name: 3. Captain App - Dependencies & Analysis
+        working-directory: apps/captain_app
+        run: |
+          flutter pub get
+          dart analyze
+
+      - name: 4. Captain App - Widget & Smoke Tests
+        working-directory: apps/captain_app
+        run: flutter test
+
+  backend-test:
+    name: Backend Unit & E2E Tests (PostGIS + Redis)
     runs-on: ubuntu-latest
 
     services:
@@ -53,10 +148,25 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Code Quality & Lint Check
-        run: pnpm run lint
+      - name: Run Database Migrations
+        env:
+          DATABASE_HOST: localhost
+          DATABASE_PORT: 5432
+          DATABASE_USER: ecoride_dev
+          DATABASE_PASSWORD: ecoride_dev_secret
+          DATABASE_NAME: ecoride_db
+        run: pnpm run migration:run
 
-      - name: Run Tests (Unit & Integration)
+      - name: Verify Synthetic Seed Provisioning
+        env:
+          DATABASE_HOST: localhost
+          DATABASE_PORT: 5432
+          DATABASE_USER: ecoride_dev
+          DATABASE_PASSWORD: ecoride_dev_secret
+          DATABASE_NAME: ecoride_db
+        run: pnpm run seed
+
+      - name: Run Unit Tests
         env:
           DATABASE_HOST: localhost
           DATABASE_PORT: 5432
@@ -65,8 +175,42 @@ jobs:
           DATABASE_NAME: ecoride_db
           REDIS_HOST: localhost
           REDIS_PORT: 6379
-        run: pnpm run test
+        run: pnpm run test:unit
 
-      - name: Build Application
+      - name: Run E2E Integration Tests
+        env:
+          DATABASE_HOST: localhost
+          DATABASE_PORT: 5432
+          DATABASE_USER: ecoride_dev
+          DATABASE_PASSWORD: ecoride_dev_secret
+          DATABASE_NAME: ecoride_db
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+        run: pnpm run test:e2e
+
+  build-and-audit:
+    name: Production Builds & Dependency Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Compile Production Builds
         run: pnpm run build
 
+      - name: Dependency Vulnerability Audit
+        run: pnpm audit --audit-level=critical

@@ -61,4 +61,3 @@ describe('Design System Integration (e2e)', () => {
     expect(() => controller.getScreenById('INVALID_SCREEN')).toThrow();
   });
 });
-

@@ -22,4 +22,3 @@ export interface IPushNotificationProvider {
     data?: Record<string, string>,
   ): Promise<{ successCount: number; failureCount: number }>;
 }
-

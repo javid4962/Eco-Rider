@@ -231,4 +231,3 @@ describe('Scratch Database Migration Up/Down Test', () => {
     });
   });
 });
-

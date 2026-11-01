@@ -9,7 +9,10 @@ import {
 import { Response } from 'express';
 import { randomUUID } from 'crypto';
 import { ApiErrorCode, ApiErrorEnvelope, ApiErrorDetail } from '@ecoride/contracts';
-import { RequestWithCorrelation, CORRELATION_ID_HEADER } from '../middleware/correlation-id.middleware';
+import {
+  RequestWithCorrelation,
+  CORRELATION_ID_HEADER,
+} from '../middleware/correlation-id.middleware';
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
@@ -21,9 +24,12 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const request = ctx.getRequest<RequestWithCorrelation>();
 
     // 1. Resolve Correlation ID
-    const correlationId = request.correlationId
-      || (typeof request.headers?.[CORRELATION_ID_HEADER] === 'string' ? request.headers[CORRELATION_ID_HEADER] : null)
-      || randomUUID();
+    const correlationId =
+      request.correlationId ||
+      (typeof request.headers?.[CORRELATION_ID_HEADER] === 'string'
+        ? request.headers[CORRELATION_ID_HEADER]
+        : null) ||
+      randomUUID();
 
     // 2. Resolve Status Code
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
@@ -55,7 +61,10 @@ export class HttpExceptionFilter implements ExceptionFilter {
           details = resObj.message as string[];
         }
 
-        if (resObj.details && (Array.isArray(resObj.details) || typeof resObj.details === 'object')) {
+        if (
+          resObj.details &&
+          (Array.isArray(resObj.details) || typeof resObj.details === 'object')
+        ) {
           details = resObj.details as ApiErrorDetail[];
         }
       }
@@ -105,4 +114,3 @@ export class HttpExceptionFilter implements ExceptionFilter {
     }
   }
 }
-

@@ -8,4 +8,3 @@ import { QuotesService } from './quotes.service';
   exports: [QuotesService],
 })
 export class QuotesModule {}
-

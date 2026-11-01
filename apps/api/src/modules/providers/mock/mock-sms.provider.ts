@@ -1,10 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { randomUUID } from 'crypto';
-import {
-  ISmsProvider,
-  SmsSendRequest,
-  SmsSendResult,
-} from '../interfaces/sms-provider.interface';
+import { ISmsProvider, SmsSendRequest, SmsSendResult } from '../interfaces/sms-provider.interface';
 
 @Injectable()
 export class MockSmsProvider implements ISmsProvider {
@@ -40,4 +36,3 @@ export class MockSmsProvider implements ISmsProvider {
     this.sentMessages.length = 0;
   }
 }
-

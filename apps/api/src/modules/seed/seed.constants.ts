@@ -1,7 +1,14 @@
 export interface SyntheticUserSeed {
   id: string;
   phone: string;
-  role: 'RIDER' | 'CAPTAIN' | 'DISPATCHER' | 'FLEET_OWNER' | 'FINANCE_ADMIN' | 'SAFETY_OFFICER' | 'INSTITUTION_REP';
+  role:
+    | 'RIDER'
+    | 'CAPTAIN'
+    | 'DISPATCHER'
+    | 'FLEET_OWNER'
+    | 'FINANCE_ADMIN'
+    | 'SAFETY_OFFICER'
+    | 'INSTITUTION_REP';
   name: string;
   isActive: boolean;
 }
@@ -204,11 +211,11 @@ export const SEED_ZONES: SyntheticZoneSeed[] = [
     city: 'visakhapatnam',
     name: 'MVP Colony & Beach Corridor',
     coordinates: [
-      [83.3100, 17.7000],
-      [83.3500, 17.7000],
-      [83.3600, 17.7600],
-      [83.3200, 17.7600],
-      [83.3100, 17.7000],
+      [83.31, 17.7],
+      [83.35, 17.7],
+      [83.36, 17.76],
+      [83.32, 17.76],
+      [83.31, 17.7],
     ],
     isActive: true,
   },
@@ -218,11 +225,11 @@ export const SEED_ZONES: SyntheticZoneSeed[] = [
     city: 'visakhapatnam',
     name: 'Dwaraka Nagar & RTC Complex Central Zone',
     coordinates: [
-      [83.2800, 17.7100],
-      [83.3150, 17.7100],
-      [83.3150, 17.7400],
-      [83.2800, 17.7400],
-      [83.2800, 17.7100],
+      [83.28, 17.71],
+      [83.315, 17.71],
+      [83.315, 17.74],
+      [83.28, 17.74],
+      [83.28, 17.71],
     ],
     isActive: true,
   },
@@ -232,11 +239,11 @@ export const SEED_ZONES: SyntheticZoneSeed[] = [
     city: 'visakhapatnam',
     name: 'Rushikonda IT SEZ Zone',
     coordinates: [
-      [83.3600, 17.7650],
-      [83.4000, 17.7650],
-      [83.4000, 17.8100],
-      [83.3600, 17.8100],
-      [83.3600, 17.7650],
+      [83.36, 17.765],
+      [83.4, 17.765],
+      [83.4, 17.81],
+      [83.36, 17.81],
+      [83.36, 17.765],
     ],
     isActive: true,
   },
@@ -246,11 +253,11 @@ export const SEED_ZONES: SyntheticZoneSeed[] = [
     city: 'vijayawada',
     name: 'Benz Circle & MG Road Corridor',
     coordinates: [
-      [80.6200, 16.4800],
-      [80.6800, 16.4800],
-      [80.6800, 16.5300],
-      [80.6200, 16.5300],
-      [80.6200, 16.4800],
+      [80.62, 16.48],
+      [80.68, 16.48],
+      [80.68, 16.53],
+      [80.62, 16.53],
+      [80.62, 16.48],
     ],
     isActive: false,
   },

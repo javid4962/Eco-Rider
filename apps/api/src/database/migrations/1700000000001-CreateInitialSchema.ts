@@ -35,8 +35,12 @@ export class CreateInitialSchema1700000000001 implements MigrationInterface {
         CONSTRAINT "chk_vehicles_soc_range" CHECK ("current_soc_percent" >= 0.00 AND "current_soc_percent" <= 100.00)
       );
     `);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "idx_vehicles_registration" ON "vehicles" ("registration_number");`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "idx_vehicles_category" ON "vehicles" ("vehicle_category");`);
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "idx_vehicles_registration" ON "vehicles" ("registration_number");`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "idx_vehicles_category" ON "vehicles" ("vehicle_category");`,
+    );
 
     // 3. Zones table with PostGIS geometry Polygon
     await queryRunner.query(`
@@ -51,7 +55,9 @@ export class CreateInitialSchema1700000000001 implements MigrationInterface {
       );
     `);
     await queryRunner.query(`CREATE INDEX IF NOT EXISTS "idx_zones_city" ON "zones" ("city");`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "idx_zones_boundary_gist" ON "zones" USING GIST ("boundary");`);
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "idx_zones_boundary_gist" ON "zones" USING GIST ("boundary");`,
+    );
 
     // 4. Bookings table with PostGIS Point geometries
     await queryRunner.query(`
@@ -71,10 +77,18 @@ export class CreateInitialSchema1700000000001 implements MigrationInterface {
         "updated_at" TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
     `);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "idx_bookings_rider_status" ON "bookings" ("rider_id", "status");`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "idx_bookings_captain_status" ON "bookings" ("captain_id", "status");`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "idx_bookings_pickup_gist" ON "bookings" USING GIST ("pickup_location");`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "idx_bookings_dropoff_gist" ON "bookings" USING GIST ("dropoff_location");`);
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "idx_bookings_rider_status" ON "bookings" ("rider_id", "status");`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "idx_bookings_captain_status" ON "bookings" ("captain_id", "status");`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "idx_bookings_pickup_gist" ON "bookings" USING GIST ("pickup_location");`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "idx_bookings_dropoff_gist" ON "bookings" USING GIST ("dropoff_location");`,
+    );
 
     // 5. Ledger entries table (double-entry immutable ledger)
     await queryRunner.query(`
@@ -92,8 +106,12 @@ export class CreateInitialSchema1700000000001 implements MigrationInterface {
         CONSTRAINT "chk_ledger_amount_positive" CHECK ("amount_paise" > 0)
       );
     `);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "idx_ledger_booking_account" ON "ledger_entries" ("booking_id", "account_id");`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "idx_ledger_idempotency" ON "ledger_entries" ("idempotency_key");`);
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "idx_ledger_booking_account" ON "ledger_entries" ("booking_id", "account_id");`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "idx_ledger_idempotency" ON "ledger_entries" ("idempotency_key");`,
+    );
 
     // 6. Audit logs table
     await queryRunner.query(`
@@ -108,8 +126,12 @@ export class CreateInitialSchema1700000000001 implements MigrationInterface {
         "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
     `);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "idx_audit_logs_entity" ON "audit_logs" ("entity_type", "entity_id");`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "idx_audit_logs_created" ON "audit_logs" ("created_at" DESC);`);
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "idx_audit_logs_entity" ON "audit_logs" ("entity_type", "entity_id");`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "idx_audit_logs_created" ON "audit_logs" ("created_at" DESC);`,
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
@@ -121,4 +143,3 @@ export class CreateInitialSchema1700000000001 implements MigrationInterface {
     await queryRunner.query(`DROP TABLE IF EXISTS "users" CASCADE;`);
   }
 }
-
