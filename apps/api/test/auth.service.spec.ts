@@ -14,7 +14,17 @@ describe('AuthService & Mock OTP Verification (EV-016)', () => {
   let otpProvider: MockOtpProvider;
   let userRepository: jest.Mocked<Partial<Repository<User>>>;
   let identityService: jest.Mocked<Partial<IdentityService>>;
-  let mockQueryRunner: any;
+  let mockQueryRunner: {
+    connect: jest.Mock;
+    startTransaction: jest.Mock;
+    commitTransaction: jest.Mock;
+    rollbackTransaction: jest.Mock;
+    release: jest.Mock;
+    manager: {
+      create: jest.Mock;
+      save: jest.Mock;
+    };
+  };
 
   const validPhone = '+919876543210';
   const captainPhone = '+919123400011';
@@ -33,7 +43,9 @@ describe('AuthService & Mock OTP Verification (EV-016)', () => {
     };
 
     identityService = {
-      recordAuditEvent: jest.fn().mockResolvedValue({ id: 'mock-audit-uuid' } as any),
+      recordAuditEvent: jest
+        .fn()
+        .mockResolvedValue({ id: 'mock-audit-uuid' } as unknown as User as never),
       createSession: jest.fn().mockResolvedValue({
         rawToken: 'mock-bearer-token-1234567890abcdef',
         session: {
@@ -41,7 +53,7 @@ describe('AuthService & Mock OTP Verification (EV-016)', () => {
           userId: 'mock-user-uuid',
           expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
         },
-      } as any),
+      } as unknown as { session: never; rawToken: string }),
     };
 
     mockQueryRunner = {
@@ -142,7 +154,7 @@ describe('AuthService & Mock OTP Verification (EV-016)', () => {
         expect(err).toBeInstanceOf(HttpException);
         const httpErr = err as HttpException;
         expect(httpErr.getStatus()).toBe(HttpStatus.TOO_MANY_REQUESTS);
-        const response = httpErr.getResponse() as any;
+        const response = httpErr.getResponse() as Record<string, unknown>;
         expect(response.code).toBe(ApiErrorCode.RATE_LIMITED);
         expect(response.message).toContain('Resend cooldown active');
       }
@@ -196,7 +208,7 @@ describe('AuthService & Mock OTP Verification (EV-016)', () => {
         expect(err).toBeInstanceOf(HttpException);
         const httpErr = err as HttpException;
         expect(httpErr.getStatus()).toBe(HttpStatus.TOO_MANY_REQUESTS);
-        const response = httpErr.getResponse() as any;
+        const response = httpErr.getResponse() as Record<string, unknown>;
         expect(response.code).toBe(ApiErrorCode.RATE_LIMITED);
         expect(response.message).toContain('Maximum OTP verification attempts exceeded');
       }

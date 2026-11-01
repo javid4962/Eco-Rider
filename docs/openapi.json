@@ -433,6 +433,343 @@
           "Development & Seed"
         ]
       }
+    },
+    "/v1/identity/roles": {
+      "get": {
+        "operationId": "IdentityController_getRoles",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/v1/identity/users/{userId}/profile": {
+      "get": {
+        "operationId": "IdentityController_getUserProfile",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/v1/identity/users/{userId}/rider-profile": {
+      "patch": {
+        "operationId": "IdentityController_updateRiderProfile",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRiderProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/v1/identity/users/{userId}/driver-profile": {
+      "patch": {
+        "operationId": "IdentityController_updateDriverProfile",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDriverProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/v1/identity/users/{userId}/role": {
+      "post": {
+        "operationId": "IdentityController_changeUserRole",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeUserRoleDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/v1/identity/users/{userId}/sessions": {
+      "get": {
+        "operationId": "IdentityController_getUserSessions",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/v1/identity/users/{userId}/sessions/{sessionId}": {
+      "delete": {
+        "operationId": "IdentityController_revokeSession",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/v1/identity/users/{userId}/consents": {
+      "get": {
+        "operationId": "IdentityController_getUserConsents",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      },
+      "post": {
+        "operationId": "IdentityController_recordConsent",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecordConsentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/v1/identity/audit-events": {
+      "get": {
+        "operationId": "IdentityController_getAuditEvents",
+        "parameters": [
+          {
+            "name": "targetUserId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "action",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/v1/auth/send-otp": {
+      "post": {
+        "operationId": "AuthController_sendOtp",
+        "summary": "Request synthetic OTP for India mobile authentication or ride start",
+        "description": "Dispatches an OTP with 5-minute expiry and 60-second resend cooldown. Validates Indian phone number format.",
+        "parameters": [
+          {
+            "name": "x-correlation-id",
+            "in": "header",
+            "description": "Optional tracing correlation ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendOtpDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OTP dispatched successfully via synthetic adapter with reference ID"
+          },
+          "400": {
+            "description": "Invalid phone format (must match +91 followed by 10 digits starting with 6-9)"
+          },
+          "429": {
+            "description": "Resend cooldown active. Please wait before requesting another OTP."
+          }
+        },
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/v1/auth/verify-otp": {
+      "post": {
+        "operationId": "AuthController_verifyOtp",
+        "summary": "Verify synthetic OTP and issue authenticated session token",
+        "description": "Verifies OTP against attempt limit (max 3), enforces single-use replay prevention, and auto-provisions rider accounts.",
+        "parameters": [
+          {
+            "name": "x-correlation-id",
+            "in": "header",
+            "description": "Optional tracing correlation ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyOtpDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OTP verified successfully; session token and user profile returned"
+          },
+          "400": {
+            "description": "Invalid OTP code, expired OTP, or already used (replay attempt)"
+          },
+          "429": {
+            "description": "Maximum verification attempts exceeded (brute-force lockout)"
+          }
+        },
+        "tags": [
+          "Authentication"
+        ]
+      }
     }
   },
   "info": {
@@ -532,6 +869,88 @@
           "pickupLongitude",
           "dropoffLatitude",
           "dropoffLongitude"
+        ]
+      },
+      "UpdateRiderProfileDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "UpdateDriverProfileDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "ChangeUserRoleDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "RecordConsentDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "SendOtpDto": {
+        "type": "object",
+        "properties": {
+          "phone": {
+            "type": "string",
+            "example": "+919876543210",
+            "description": "Indian mobile phone number in E.164 format (+91 followed by 10 digits starting with 6-9)"
+          },
+          "purpose": {
+            "type": "string",
+            "enum": [
+              "LOGIN",
+              "RIDE_START",
+              "EMERGENCY"
+            ],
+            "default": "LOGIN",
+            "description": "Purpose of the OTP request"
+          }
+        },
+        "required": [
+          "phone"
+        ]
+      },
+      "VerifyOtpDto": {
+        "type": "object",
+        "properties": {
+          "phone": {
+            "type": "string",
+            "example": "+919876543210",
+            "description": "Indian mobile phone number in E.164 format (+91 followed by 10 digits starting with 6-9)"
+          },
+          "code": {
+            "type": "string",
+            "example": "123456",
+            "description": "4-digit (ride start) or 6-digit (login) numeric OTP verification code"
+          },
+          "purpose": {
+            "type": "string",
+            "enum": [
+              "LOGIN",
+              "RIDE_START",
+              "EMERGENCY"
+            ],
+            "default": "LOGIN",
+            "description": "Purpose of the OTP verification"
+          },
+          "referenceId": {
+            "type": "string",
+            "description": "Reference ID returned during send-otp request"
+          },
+          "platform": {
+            "type": "string",
+            "example": "RIDER_APP",
+            "description": "Client application requesting session creation (e.g. RIDER_APP, CAPTAIN_APP, OPS_WEB)"
+          },
+          "deviceId": {
+            "type": "string",
+            "example": "pixel-7-device-uuid",
+            "description": "Optional unique device identifier for session binding"
+          }
+        },
+        "required": [
+          "phone",
+          "code"
         ]
       }
     }
