@@ -1,0 +1,27 @@
+{
+  "name": "eco_ride",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Original EV-Only Mobility Platform for Andhra Pradesh",
+  "scripts": {
+    "build": "pnpm --filter api build",
+    "start": "pnpm --filter api start",
+    "start:dev": "pnpm --filter api start:dev",
+    "start:prod": "pnpm --filter api start:prod",
+    "lint": "pnpm --filter api lint",
+    "test": "pnpm --filter api test",
+    "test:watch": "pnpm --filter api test:watch",
+    "test:cov": "pnpm --filter api test:cov",
+    "test:e2e": "pnpm --filter api test:e2e",
+    "migration:run": "pnpm --filter api migration:run",
+    "migration:revert": "pnpm --filter api migration:revert"
+  },
+  "devDependencies": {
+    "prettier": "^3.4.2"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  }
+}
+
