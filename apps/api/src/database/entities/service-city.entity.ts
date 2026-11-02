@@ -74,3 +74,4 @@ export class ServiceCity {
   @UpdateDateColumn({ type: 'timestamptz', name: 'updated_at' })
   updatedAt!: Date;
 }
+

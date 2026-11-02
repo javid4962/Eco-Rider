@@ -77,7 +77,7 @@ export interface ServiceZoneDto {
 }
 
 export interface VerifyLocationRequest {
-  city?: string;
+  city: string;
   latitude: number;
   longitude: number;
   serviceCategory: string;
@@ -152,3 +152,4 @@ export interface ToggleCategorySwitchRequest {
   isEnabled: boolean;
   evidenceReference?: string;
 }
+

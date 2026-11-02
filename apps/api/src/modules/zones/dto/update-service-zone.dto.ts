@@ -86,3 +86,4 @@ export class UpdateServiceZoneDto implements UpdateServiceZoneRequest {
   @IsBoolean()
   isActive?: boolean;
 }
+

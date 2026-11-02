@@ -3,14 +3,13 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { VerifyLocationRequest } from '@ecoride/contracts';
 
 export class VerifyLocationDto implements VerifyLocationRequest {
-  @ApiPropertyOptional({
+  @ApiProperty({
     description: 'Operating hub city code in Andhra Pradesh (e.g. visakhapatnam, vijayawada)',
     example: 'visakhapatnam',
-    default: 'visakhapatnam',
   })
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
-  city?: string;
+  city!: string;
 
   @ApiProperty({
     description: 'Candidate GPS latitude within Andhra Pradesh region',
@@ -35,8 +34,7 @@ export class VerifyLocationDto implements VerifyLocationRequest {
   longitude!: number;
 
   @ApiProperty({
-    description:
-      'Requested mobility service category or vehicle class (e.g. CITY_COMMUTE_2W, private_ev)',
+    description: 'Requested mobility service category or vehicle class (e.g. CITY_COMMUTE_2W, private_ev)',
     example: 'CITY_COMMUTE_2W',
   })
   @IsNotEmpty()
@@ -52,3 +50,4 @@ export class VerifyLocationDto implements VerifyLocationRequest {
   @IsBoolean()
   clientForgedAvailability?: boolean;
 }
+
