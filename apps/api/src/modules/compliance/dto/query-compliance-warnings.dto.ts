@@ -44,3 +44,4 @@ export class QueryComplianceWarningsDto implements ComplianceWarningsQuery {
   @IsBoolean()
   isResolved?: boolean;
 }
+

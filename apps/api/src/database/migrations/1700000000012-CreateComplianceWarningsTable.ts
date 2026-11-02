@@ -55,3 +55,4 @@ export class CreateComplianceWarningsTable1700000000012 implements MigrationInte
     `);
   }
 }
+

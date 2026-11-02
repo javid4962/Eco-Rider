@@ -11,3 +11,4 @@ export class RunExpiryScanDto {
   @IsISO8601()
   referenceDate?: string;
 }
+
