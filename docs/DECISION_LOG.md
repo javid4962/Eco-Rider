@@ -638,3 +638,37 @@
      - Financial ledgers are queried strictly using the organization's unique `payoutAccountId`.
      - Cross-tenant earnings requests return HTTP 403 Forbidden.
      - Calculates gross earnings, 15% platform commission, net payout, and chronological ledger transaction items.
+
+
+## 2026-11-02 — ADR-0032: Service Cities, Polygonal PostGIS Geofence Zones, Permit Expiry Boundaries, and Backend-Authoritative Category Switches
+
+- **Status**: Accepted
+- **Context**:
+  Municipal mobility services across Andhra Pradesh (e.g. Visakhapatnam, Vijayawada) operate within legally gazetted municipal territories and specific polygonal operational zones (e.g., beach corridors, IT SEZs, industrial areas).
+  Per AGENTS.md:
+  1. Rule 2: Propulsion must be ELECTRIC and category availability must be enforced server-side by city, zone, service permission, driver and vehicle status.
+  2. Rule 3: Never invent operational permit approvals, tariffs, contracts or live keys. Keep uncertain service types disabled by default.
+  3. Rule 4: Use database as single source of truth for bookings, seat allocation, entitlements, payment, and audit history.
+  4. EV-031 Scope: Model city, polygonal service zones, operational status, evidence reference, permit expiry and individual service-category switches. Default all real categories disabled.
+  Acceptance / Demonstrate: Requests outside approved zones or with disabled/expired category flags fail even when a client forges availability.
+
+- **Decisions**:
+  1. **Spatial & Relational Schema (`CreateServiceCitiesAndExpandServiceZones1700000000014`)**:
+     - Created `service_cities` table storing municipal territory metadata, unique city code (e.g. `visakhapatnam`), state (`Andhra Pradesh`), operational status (`ACTIVE`, `PILOT`, `INACTIVE`, `SUSPENDED`, `DISABLED`), statutory evidence reference, permit expiry date, centroid coordinates, and category switch flags.
+     - Expanded existing `zones` table with unique code, operational status check constraint, statutory evidence reference, permit expiry date (`permit_expires_at`), centroid coordinates, and individual `category_switches` JSONB object.
+  2. **Default-Disabled Category Switches (`DEFAULT_DISABLED_CATEGORY_SWITCHES`)**:
+     - In `@ecoride/contracts`, defined `DEFAULT_DISABLED_CATEGORY_SWITCHES` where all real commercial mobility categories (`CITY_COMMUTE_2W`, `AUTO_COMMUTE_3W`, `CAB_PRIVATE_4W`, `VAN_COMMUTE_4W`, `private_ev`, `scheduled_sharing`, etc.) are explicitly initialized to `false`.
+     - Whenever a new city or polygonal zone is registered without explicit category overrides, the database defaults every real category to disabled (`false`).
+  3. **Server-Side Authoritative Point-in-Polygon & Category Verification (`ZonesService.verifyLocation`)**:
+     - Validates GPS coordinates against active polygonal boundaries using PostGIS `ST_Contains(z.boundary, ST_SetSRID(ST_MakePoint(longitude, latitude), 4326))` with in-memory ray-casting algorithm fallback for unit test environments.
+     - Operational status enforcement: requests inside zones with status `SUSPENDED`, `DISABLED`, or `INACTIVE` are denied.
+     - Statutory permit boundary enforcement: requests inside zones where `permit_expires_at <= now()` are denied with explicit expiry reason.
+     - Category switch enforcement: queries the zone's database record to verify `category_switches[category] === true`.
+     - Client forgery resistance: even if a client sends `{ clientForgedAvailability: true }`, the backend enforces the database source of truth and rejects unauthorized requests.
+  4. **Audited Category Switch Toggling (`toggleCategorySwitch`)**:
+     - Restricted to authorized Platform Operators via `JwtAuthGuard` and `CurrentActor`.
+     - Requires an audited statutory evidence reference (`evidenceReference`) citing government permits or regulatory approvals before a category can be toggled.
+     - Persists an immutable audit log entry into `audit_events` with `action = 'ZONE_CATEGORY_SWITCH_TOGGLED'`, recording actor ID, previous switch state, and updated switch state.
+  5. **Authoritative Quotes Integration (`POST /v1/quotes/authoritative`)**:
+     - Invokes `ZonesService.verifyLocation` server-side before computing spherical distance and integer paise fare.
+     - Rejects out-of-zone or disabled-category requests with HTTP 400 Bad Request and error code `ApiErrorCode.ZONE_RESTRICTED`.

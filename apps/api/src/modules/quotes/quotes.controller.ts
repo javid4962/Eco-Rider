@@ -33,4 +33,19 @@ export class QuotesController {
   calculateQuote(@Body() dto: QuoteRequestDto): QuoteResult {
     return this.quotesService.calculateQuote(dto);
   }
+
+  @Post('authoritative')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Calculate electric ride quote with backend-authoritative PostGIS geofence checks',
+    description:
+      'Validates pickup coordinates against active polygonal service zones and category switches before computing fares.',
+  })
+  @ApiResponse({ status: 200, description: 'Quote calculated successfully' })
+  @ApiResponse({ status: 400, description: 'Outside geofence or category disabled' })
+  async calculateAuthoritativeQuote(
+    @Body() dto: QuoteRequestDto & { clientForgedAvailability?: boolean },
+  ): Promise<QuoteResult> {
+    return this.quotesService.calculateAuthoritativeQuote(dto);
+  }
 }

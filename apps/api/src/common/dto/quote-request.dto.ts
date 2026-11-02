@@ -1,5 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, IsIn, IsNumber, Min, Max } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsIn,
+  IsNumber,
+  Min,
+  Max,
+  IsOptional,
+  IsBoolean,
+} from 'class-validator';
 
 export class QuoteRequestDto {
   @ApiProperty({
@@ -63,4 +72,13 @@ export class QuoteRequestDto {
   @Min(76.0)
   @Max(85.0)
   dropoffLongitude!: number;
+
+  @ApiProperty({
+    description: 'Optional simulated client-forged flag to test backend enforcement rejection',
+    example: false,
+    required: false,
+  })
+  @IsOptional()
+  @IsBoolean()
+  clientForgedAvailability?: boolean;
 }

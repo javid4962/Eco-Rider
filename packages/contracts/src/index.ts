@@ -12,3 +12,4 @@ export * from './vehicles';
 export * from './captain-applications';
 export * from './compliance';
 export * from './fleet';
+export * from './zones';

@@ -1,6 +1,7 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, Optional } from '@nestjs/common';
 import { ApiErrorCode, paiseToRupees } from '@ecoride/contracts';
 import { QuoteRequestDto } from '../../common/dto/quote-request.dto';
+import { ZonesService } from '../zones/zones.service';
 import { randomUUID } from 'crypto';
 
 export interface QuoteResult {
@@ -20,6 +21,40 @@ export interface QuoteResult {
 
 @Injectable()
 export class QuotesService {
+  constructor(
+    @Optional()
+    private readonly zonesService?: ZonesService,
+  ) {}
+
+  /**
+   * Authoritatively evaluates PostGIS polygonal geofence and service category switches
+   * before computing ride distance and fare estimate.
+   */
+  async calculateAuthoritativeQuote(
+    dto: QuoteRequestDto & { clientForgedAvailability?: boolean },
+  ): Promise<QuoteResult> {
+    if (this.zonesService) {
+      const verification = await this.zonesService.verifyLocation({
+        city: dto.city,
+        latitude: dto.pickupLatitude,
+        longitude: dto.pickupLongitude,
+        serviceCategory: dto.serviceCategory,
+        clientForgedAvailability: dto.clientForgedAvailability,
+      });
+
+      if (!verification.isAuthorized) {
+        throw new BadRequestException({
+          code: ApiErrorCode.ZONE_RESTRICTED,
+          message:
+            verification.rejectionReason ||
+            `Location is not authorized in service zones for '${dto.city}'.`,
+        });
+      }
+    }
+
+    return this.calculateQuote(dto);
+  }
+
   calculateQuote(dto: QuoteRequestDto): QuoteResult {
     // 1. Enforce Andhra Pradesh pilot zone bounds
     if (dto.city.toLowerCase() !== 'visakhapatnam') {

@@ -12,6 +12,7 @@ import { AddDriverComplianceAndDutyStatus1700000000010 } from '../src/database/m
 import { AddVehicleSeatingConfigurationAndClassificationControls1700000000011 } from '../src/database/migrations/1700000000011-AddVehicleSeatingConfigurationAndClassificationControls';
 import { CreateComplianceWarningsTable1700000000012 } from '../src/database/migrations/1700000000012-CreateComplianceWarningsTable';
 import { CreateFleetOrganizationsAndAssignments1700000000013 } from '../src/database/migrations/1700000000013-CreateFleetOrganizationsAndAssignments';
+import { CreateServiceCitiesAndExpandServiceZones1700000000014 } from '../src/database/migrations/1700000000014-CreateServiceCitiesAndExpandServiceZones';
 
 describe('Scratch Database Migration Up/Down Test', () => {
   let dataSource: DataSource | null = null;
@@ -331,6 +332,49 @@ describe('Scratch Database Migration Up/Down Test', () => {
 
       // Re-apply up
       await migration13.up(queryRunner);
+    });
+
+    it('should provision service_cities table and expand zones table reliably (EV-031)', async () => {
+      const migration14 = new CreateServiceCitiesAndExpandServiceZones1700000000014();
+      if (!isLiveDbAvailable || !queryRunner) {
+        const executedQueries: string[] = [];
+        const mockRunner: Partial<QueryRunner> = {
+          query: jest.fn().mockImplementation(async (sql: string) => {
+            executedQueries.push(sql);
+            return [];
+          }),
+        };
+        await migration14.up(mockRunner as QueryRunner);
+        await migration14.down(mockRunner as QueryRunner);
+        expect(executedQueries.length).toBeGreaterThan(0);
+        return;
+      }
+
+      // Ensure up
+      await migration14.up(queryRunner);
+
+      const tableCheck = await queryRunner.query(`
+        SELECT table_name FROM information_schema.tables
+        WHERE table_schema = 'public' AND table_name = 'service_cities';
+      `);
+      expect(tableCheck).toHaveLength(1);
+
+      const columnCheck = await queryRunner.query(`
+        SELECT column_name FROM information_schema.columns
+        WHERE table_schema = 'public' AND table_name = 'zones' AND column_name IN ('code', 'operational_status', 'evidence_reference', 'permit_expires_at', 'category_switches');
+      `);
+      expect(columnCheck).toHaveLength(5);
+
+      // Verify down
+      await migration14.down(queryRunner);
+      const tableCheckDown = await queryRunner.query(`
+        SELECT table_name FROM information_schema.tables
+        WHERE table_schema = 'public' AND table_name = 'service_cities';
+      `);
+      expect(tableCheckDown).toHaveLength(0);
+
+      // Re-apply up
+      await migration14.up(queryRunner);
     });
   });
 });

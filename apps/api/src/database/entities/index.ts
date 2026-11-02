@@ -20,3 +20,4 @@ export * from './compliance-warning.entity';
 export * from './fleet-organization.entity';
 export * from './fleet-vehicle-assignment.entity';
 export * from './fleet-shift.entity';
+export * from './service-city.entity';
