@@ -25,3 +25,4 @@ export class ReverseGeocodeDto implements ReverseGeocodeRequest {
   @Max(180)
   longitude!: number;
 }
+

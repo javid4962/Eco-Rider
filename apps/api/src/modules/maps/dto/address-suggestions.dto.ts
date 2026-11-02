@@ -31,3 +31,4 @@ export class AddressSuggestionsQueryDto {
   @Max(50)
   limit?: number;
 }
+
