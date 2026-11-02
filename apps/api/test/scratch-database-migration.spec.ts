@@ -11,6 +11,7 @@ import { CreateCaptainApplicationsAndReviewHistory1700000000009 } from '../src/d
 import { AddDriverComplianceAndDutyStatus1700000000010 } from '../src/database/migrations/1700000000010-AddDriverComplianceAndDutyStatus';
 import { AddVehicleSeatingConfigurationAndClassificationControls1700000000011 } from '../src/database/migrations/1700000000011-AddVehicleSeatingConfigurationAndClassificationControls';
 import { CreateComplianceWarningsTable1700000000012 } from '../src/database/migrations/1700000000012-CreateComplianceWarningsTable';
+import { CreateFleetOrganizationsAndAssignments1700000000013 } from '../src/database/migrations/1700000000013-CreateFleetOrganizationsAndAssignments';
 
 describe('Scratch Database Migration Up/Down Test', () => {
   let dataSource: DataSource | null = null;
@@ -291,6 +292,45 @@ describe('Scratch Database Migration Up/Down Test', () => {
 
       // Re-apply up
       await migration12.up(queryRunner);
+    });
+  });
+
+  describe('Migration 13 (EV-030) - Fleet Organizations & Assignments Up/Down', () => {
+    it('should provision fleet_organizations, fleet_vehicle_assignments, and fleet_shifts tables and verify rollback', async () => {
+      const migration13 = new CreateFleetOrganizationsAndAssignments1700000000013();
+      if (!isLiveDbAvailable || !queryRunner) {
+        const executedQueries: string[] = [];
+        const mockRunner: Partial<QueryRunner> = {
+          query: jest.fn().mockImplementation(async (sql: string) => {
+            executedQueries.push(sql);
+            return [];
+          }),
+        };
+        await migration13.up(mockRunner as QueryRunner);
+        await migration13.down(mockRunner as QueryRunner);
+        expect(executedQueries.length).toBeGreaterThan(0);
+        return;
+      }
+
+      // Ensure up
+      await migration13.up(queryRunner);
+
+      const tableCheck = await queryRunner.query(`
+        SELECT table_name FROM information_schema.tables
+        WHERE table_schema = 'public' AND table_name IN ('fleet_organizations', 'fleet_vehicle_assignments', 'fleet_shifts');
+      `);
+      expect(tableCheck).toHaveLength(3);
+
+      // Verify down
+      await migration13.down(queryRunner);
+      const tableCheckDown = await queryRunner.query(`
+        SELECT table_name FROM information_schema.tables
+        WHERE table_schema = 'public' AND table_name IN ('fleet_organizations', 'fleet_vehicle_assignments', 'fleet_shifts');
+      `);
+      expect(tableCheckDown).toHaveLength(0);
+
+      // Re-apply up
+      await migration13.up(queryRunner);
     });
   });
 });

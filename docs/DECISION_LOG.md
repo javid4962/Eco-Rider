@@ -593,3 +593,48 @@
      - Marks outstanding active warnings for that target as resolved (`isResolved = true`, `resolvedAt = now`, `resolutionType = 'REVERIFIED'`), preserving historical evidence.
      - Records `CAPTAIN_COMPLIANCE_REVERIFIED` audit event.
      - Immediately restores assignment eligibility, enabling the captain to resume duty `ONLINE`.
+
+
+## 2026-11-02 — ADR-0031: Fleet Organizations, Vehicle Membership, Reassignment Auditing, Shift Telemetry, and Cross-Fleet Tenant Restrictions
+
+- **Status**: Accepted
+- **Context**:
+  Commercial EV fleets (fleet aggregators, EV corporate shuttle partners, and regional transit operators) manage multiple 100% BEV electric vehicles and rosters of certified commercial drivers in Andhra Pradesh.
+  Per AGENTS.md:
+  1. Rule 2: Propulsion must be ELECTRIC and category availability must be enforced server-side.
+  2. Rule 4: Use database as single source of truth for bookings, seat allocation, entitlements, payment, and audit history.
+  3. Rule 5: Strict privacy and tenant isolation: Do not expose other users' or organizations' trips, vehicles, locations, or financial data.
+  4. Ticket EV-030 Scope: Add fleet organizations, vehicle membership, driver assignment, shift records, and scoped fleet-owner APIs. Prevent cross-fleet visibility and track assignment history.
+  Acceptance / Demonstrate: Fleet owner can access only vehicles and earnings in their organization; reassignment is audited.
+
+- **Decisions**:
+  1. **Relational Schema & Migration 13 (`CreateFleetOrganizationsAndAssignments1700000000013`)**:
+     - Created `fleet_organizations` table storing corporate profile, unique business registration number (GSTIN / CIN), operating city, contact details, unique payout account identifier, and status (`ACTIVE`, `SUSPENDED`, `INACTIVE`).
+     - Added nullable foreign key `fleet_organization_id` to `vehicles` table referencing `fleet_organizations(id)` on delete set null.
+     - Created `fleet_vehicle_assignments` table with audit columns (`assigned_at`, `unassigned_at`, `status`, `assignment_reason`, `notes`), linking organization, vehicle, driver, and assigner.
+     - Created `fleet_shifts` table tracking shift lifecycle (`SCHEDULED`, `ACTIVE`, `COMPLETED`, `CANCELLED`), shift types (`MORNING`, `EVENING`, `NIGHT`, `CUSTOM`), start/end odometer readings, and battery SoC gauge telemetry (`start_soc_percent`, `end_soc_percent`).
+  2. **Strict Cross-Fleet Tenant Isolation & Access Control (`resolveFleetOrganization`)**:
+     - All fleet operations (`/v1/fleet/*`) resolve the caller's organization context.
+     - If a non-operator / non-admin user attempts to query or manipulate vehicles, shifts, or earnings of another fleet organization, the request is immediately rejected with HTTP 403 Forbidden.
+     - Security audit event `CROSS_FLEET_ACCESS_DENIED` is logged into `audit_events` with actor ID, target organization ID, and IP address.
+     - Platform Operators (`OPERATOR`, `ADMIN`) retain authorized elevated supervision across organizations without violating tenant boundary enforcement.
+  3. **100% BEV Vehicle Membership Validation (`addVehicleToFleet`)**:
+     - Validates that vehicle propulsion is strictly 100% Battery Electric (`BATTERY_ELECTRIC`). Hybrid and ICE vehicles are rejected.
+     - Prevents vehicle double-membership: a vehicle already attached to another fleet cannot be claimed without formal release (HTTP 409 Conflict).
+     - Logs `FLEET_VEHICLE_MEMBERSHIP_ATTACHED` audit event.
+  4. **Driver Assignment, Reassignment & Audit Trail (`assignDriverToVehicle`)**:
+     - Requires driver to be verified (`DriverComplianceStatus.VERIFIED`). Unverified or suspended drivers are rejected with HTTP 422 Unprocessable Entity.
+     - When reassigning a vehicle to a new driver:
+       - The active assignment row is marked `COMPLETED` and stamped with `unassignedAt = now`.
+       - A new assignment row is inserted with `status = ACTIVE`.
+       - Historical assignment rows are NEVER overwritten or deleted, ensuring full regulatory and insurance audit traceability.
+       - The driver's active vehicle profile is updated.
+       - Emits `FLEET_VEHICLE_REASSIGNED` audit event into `audit_events`.
+  5. **Operational Shift Lifecycle & Battery SoC Thresholds (`startShift`, `endShift`)**:
+     - Validates that vehicle battery state of charge meets the operational safety floor of >= 15% SoC.
+     - Starts shift with `ACTIVE` status and initial odometer/SoC readings.
+     - On handover/completion, records final odometer, return SoC, completed trips, and revenue, transitioning shift status to `COMPLETED`.
+  6. **Scoped Financial Ledger & Earnings Segregation (`getFleetEarnings`)**:
+     - Financial ledgers are queried strictly using the organization's unique `payoutAccountId`.
+     - Cross-tenant earnings requests return HTTP 403 Forbidden.
+     - Calculates gross earnings, 15% platform commission, net payout, and chronological ledger transaction items.

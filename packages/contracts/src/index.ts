@@ -11,3 +11,4 @@ export * from './documents';
 export * from './vehicles';
 export * from './captain-applications';
 export * from './compliance';
+export * from './fleet';

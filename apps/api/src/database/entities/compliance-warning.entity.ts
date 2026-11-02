@@ -87,4 +87,3 @@ export class ComplianceWarning {
   @UpdateDateColumn({ type: 'timestamptz', name: 'updated_at' })
   updatedAt!: Date;
 }
-

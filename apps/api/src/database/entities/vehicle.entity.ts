@@ -10,6 +10,7 @@ import {
   Check,
 } from 'typeorm';
 import { User } from './user.entity';
+import { FleetOrganization } from './fleet-organization.entity';
 import {
   PropulsionType,
   VehicleCategory,
@@ -122,6 +123,17 @@ export class Vehicle {
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'owner_id' })
   owner?: User | null;
+
+  @Index('idx_vehicles_fleet_org_id')
+  @Column({ type: 'uuid', nullable: true, name: 'fleet_organization_id' })
+  fleetOrganizationId?: string | null;
+
+  @ManyToOne(() => FleetOrganization, (org) => org.vehicles, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
+  @JoinColumn({ name: 'fleet_organization_id' })
+  fleetOrganization?: FleetOrganization | null;
 
   @Column({ type: 'varchar', length: 100, nullable: true, name: 'insurance_policy_number' })
   insurancePolicyNumber?: string | null;
