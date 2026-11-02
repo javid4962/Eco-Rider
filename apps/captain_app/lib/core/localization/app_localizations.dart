@@ -77,6 +77,64 @@ class AppLocalizations {
     'switch_language': 'Language / భాష',
     'language_english': 'English',
     'language_telugu': 'తెలుగు',
+
+    // Onboarding & Registration (EV-026)
+    'captain_onboarding_title': 'EV Captain Onboarding',
+    'step_phone_login': 'Login',
+    'step_personal': 'Personal Details',
+    'step_vehicle': 'EV Details',
+    'step_documents': 'Documents',
+    'step_preview': 'Preview & Submit',
+    'phone_number_label': 'Mobile Number (+91)',
+    'phone_hint': '+91 9876543210',
+    'send_otp': 'Send Verification Code',
+    'otp_label': 'Enter 6-Digit OTP',
+    'verify_otp': 'Verify & Proceed',
+    'resend_otp': 'Resend OTP',
+    'resend_in_seconds': 'Resend code in {seconds}s',
+    'full_name': 'Full Legal Name',
+    'dob': 'Date of Birth (YYYY-MM-DD)',
+    'driving_license_number': 'Driving License Number',
+    'driving_license_expiry': 'Driving License Expiry Date',
+    'badge_number': 'Commercial Badge Number (Optional)',
+    'emergency_contact_name': 'Emergency Contact Person Name',
+    'emergency_contact_phone': 'Emergency Contact Phone (+91)',
+    'select_city': 'Select AP Operating City',
+    'vehicle_ownership': 'Vehicle Ownership',
+    'vehicle_ownership_owned': 'Owned EV',
+    'vehicle_ownership_fleet': 'Fleet Partner EV',
+    'vehicle_ownership_leased': 'Leased EV',
+    'vehicle_category': 'Vehicle Category',
+    'category_2w': '2W Commercial EV',
+    'category_3w': '3W Electric Auto',
+    'category_4w': '4W Electric Cab',
+    'ev_only_assurance': '100% Battery Electric Vehicle (BEV) Only',
+    'non_ev_warning': 'Petroleum / CNG vehicles are strictly rejected server-side.',
+    'vehicle_make': 'Vehicle Make / Manufacturer',
+    'vehicle_model': 'Vehicle Model',
+    'vehicle_year': 'Manufacturing Year',
+    'registration_number': 'AP Green-Plate Registration (e.g. AP31EV1234)',
+    'battery_capacity': 'Battery Pack Capacity (kWh)',
+    'upload_document': 'Upload File / Take Photo',
+    'upload_in_progress': 'Uploading...',
+    'upload_interrupted': 'Upload interrupted. Tap to resume/retry.',
+    'retry_upload': 'Retry Upload',
+    'camera_denied_title': 'Camera Access Denied',
+    'camera_denied_desc': 'Camera access was denied. Please allow camera in settings or pick a file.',
+    'pick_from_gallery': 'Pick File from Storage',
+    'slow_network_banner': 'Uploading over slow connection... please wait.',
+    'uploaded_verified': 'Document Uploaded',
+    'statutory_declaration': 'I certify that this vehicle is 100% Battery Electric and all uploaded details are genuine under AP transport regulations.',
+    'submit_application': 'Submit for Review',
+    'submitting_application': 'Submitting to fleet operations...',
+    'edit_section': 'Edit',
+    'save_and_continue': 'Save & Continue',
+    'application_status_title': 'Application Status',
+    'application_submitted_msg': 'Your EV captain application is under review by AP Fleet Ops.',
+    'application_rejected_msg': 'Application needs correction. Edit draft and resubmit.',
+    'edit_draft_resubmit': 'Edit Draft & Resubmit',
+    'prev_step': 'Back',
+    'next_step': 'Next',
   };
 
   static const Map<String, String> _teStrings = {
@@ -130,6 +188,64 @@ class AppLocalizations {
     'switch_language': 'భాష / Language',
     'language_english': 'English',
     'language_telugu': 'తెలుగు',
+
+    // Onboarding & Registration (EV-026)
+    'captain_onboarding_title': 'ఈవీ కెప్టెన్ నమోదు',
+    'step_phone_login': 'లాగిన్',
+    'step_personal': 'వ్యక్తిగత వివరాలు',
+    'step_vehicle': 'ఈవీ వివరాలు',
+    'step_documents': 'పత్రాలు',
+    'step_preview': 'సమీక్ష & సమర్పణ',
+    'phone_number_label': 'మొబైల్ సంఖ్య (+91)',
+    'phone_hint': '+91 9876543210',
+    'send_otp': 'ధృవీకరణ కోడ్ పంపండి',
+    'otp_label': '6 అంకెల ఓటీపీని నమోదు చేయండి',
+    'verify_otp': 'ధృవీకరించి కొనసాగించండి',
+    'resend_otp': 'మళ్ళీ పంపండి',
+    'resend_in_seconds': '{seconds} సెకన్లలో మళ్ళీ పంపండి',
+    'full_name': 'పూర్తి పేరు (లైసెన్స్ ప్రకారం)',
+    'dob': 'పుట్టిన తేదీ (YYYY-MM-DD)',
+    'driving_license_number': 'డ్రైవింగ్ లైసెన్స్ సంఖ్య',
+    'driving_license_expiry': 'లైసెన్స్ గడువు తేదీ',
+    'badge_number': 'రవాణా బ్యాడ్జ్ సంఖ్య (ఐచ్ఛికం)',
+    'emergency_contact_name': 'అత్యవసర సంప్రదింపు వ్యక్తి పేరు',
+    'emergency_contact_phone': 'అత్యవసర సంప్రదింపు ఫోన్ (+91)',
+    'select_city': 'ఆపరేటింగ్ నగరం ఎంచుకోండి',
+    'vehicle_ownership': 'వాహన యాజమాన్యం',
+    'vehicle_ownership_owned': 'స్వంత ఈవీ',
+    'vehicle_ownership_fleet': 'ఫ్లీట్ భాగస్వామి ఈవీ',
+    'vehicle_ownership_leased': 'లీజుకు తీసుకున్న ఈవీ',
+    'vehicle_category': 'వాహన వర్గం',
+    'category_2w': '2W వాణిజ్య ఈవీ',
+    'category_3w': '3W ఎలక్ట్రిక్ ఆటో',
+    'category_4w': '4W ఎలక్ట్రిక్ క్యాబ్',
+    'ev_only_assurance': '100% బ్యాటరీ ఎలక్ట్రిక్ వాహనం (ఈవీ) మాత్రమే',
+    'non_ev_warning': 'పెట్రోల్/డీజిల్ వాహనాలు ఖచ్చితంగా అనుమతించబడవు.',
+    'vehicle_make': 'తయారీదారు / బ్రాండ్',
+    'vehicle_model': 'వాహనం మోడల్',
+    'vehicle_year': 'తయారీ సంవత్సరం',
+    'registration_number': 'ఏపీ గ్రీన్ ప్లేట్ సంఖ్య (ఉదా: AP31EV1234)',
+    'battery_capacity': 'బ్యాటరీ సామర్థ్యం (kWh)',
+    'upload_document': 'పత్రం అప్‌లోడ్ / ఫోటో తీయండి',
+    'upload_in_progress': 'అప్‌లోడ్ అవుతోంది...',
+    'upload_interrupted': 'అప్‌లోడ్ నిలిచిపోయింది. మళ్ళీ ప్రయత్నించండి.',
+    'retry_upload': 'మళ్ళీ అప్‌లోడ్ చేయండి',
+    'camera_denied_title': 'కెమెరా అనుమతి నిరాకరించబడింది',
+    'camera_denied_desc': 'పత్రాల కోసం కెమెరా అనుమతి అవసరం. దయచేసి సెట్టింగ్స్‌లో అనుమతించండి.',
+    'pick_from_gallery': 'స్టోరేజ్ నుండి ఎంచుకోండి',
+    'slow_network_banner': 'నెట్‌వర్క్ నెమ్మదిగా ఉంది... దయచేసి వేచి ఉండండి.',
+    'uploaded_verified': 'పత్రం అప్‌లోడ్ చేయబడింది',
+    'statutory_declaration': 'ఈ వాహనం 100% ఎలక్ట్రిక్ అని మరియు సమర్పించిన వివరాలు నిజమని ధృవీకరిస్తున్నాను.',
+    'submit_application': 'సమీక్ష కోసం సమర్పించండి',
+    'submitting_application': 'దరఖాస్తు సమర్పించబడుతోంది...',
+    'edit_section': 'సవరించండి',
+    'save_and_continue': 'సేవ్ చేసి కొనసాగించండి',
+    'application_status_title': 'దరఖాస్తు స్థితి',
+    'application_submitted_msg': 'మీ ఈవీ కెప్టెన్ దరఖాస్తు సమీక్షలో ఉంది.',
+    'application_rejected_msg': 'సవరణలు అవసరం. డ్రాఫ్ట్ సరిచేసి మళ్ళీ సమర్పించండి.',
+    'edit_draft_resubmit': 'డ్రాఫ్ట్ సవరించి మళ్ళీ సమర్పించండి',
+    'prev_step': 'వెనుకకు',
+    'next_step': 'తరువాత',
   };
 
   /// Translate a string key into active language with automatic fallback to English.
@@ -211,6 +327,64 @@ class AppLocalizations {
   String get switchLanguage => translate('switch_language');
   String get languageEnglish => translate('language_english');
   String get languageTelugu => translate('language_telugu');
+
+  // Onboarding Getters (EV-026)
+  String get captainOnboardingTitle => translate('captain_onboarding_title');
+  String get stepPhoneLogin => translate('step_phone_login');
+  String get stepPersonal => translate('step_personal');
+  String get stepVehicle => translate('step_vehicle');
+  String get stepDocuments => translate('step_documents');
+  String get stepPreview => translate('step_preview');
+  String get phoneNumberLabel => translate('phone_number_label');
+  String get phoneHint => translate('phone_hint');
+  String get sendOtp => translate('send_otp');
+  String get otpLabel => translate('otp_label');
+  String get verifyOtp => translate('verify_otp');
+  String get resendOtp => translate('resend_otp');
+  String resendInSeconds(int seconds) => translate('resend_in_seconds', {'seconds': seconds.toString()});
+  String get fullName => translate('full_name');
+  String get dob => translate('dob');
+  String get drivingLicenseNumber => translate('driving_license_number');
+  String get drivingLicenseExpiry => translate('driving_license_expiry');
+  String get badgeNumber => translate('badge_number');
+  String get emergencyContactName => translate('emergency_contact_name');
+  String get emergencyContactPhone => translate('emergency_contact_phone');
+  String get selectCity => translate('select_city');
+  String get vehicleOwnership => translate('vehicle_ownership');
+  String get vehicleOwnershipOwned => translate('vehicle_ownership_owned');
+  String get vehicleOwnershipFleet => translate('vehicle_ownership_fleet');
+  String get vehicleOwnershipLeased => translate('vehicle_ownership_leased');
+  String get vehicleCategory => translate('vehicle_category');
+  String get category2w => translate('category_2w');
+  String get category3w => translate('category_3w');
+  String get category4w => translate('category_4w');
+  String get evOnlyAssurance => translate('ev_only_assurance');
+  String get nonEvWarning => translate('non_ev_warning');
+  String get vehicleMake => translate('vehicle_make');
+  String get vehicleModel => translate('vehicle_model');
+  String get vehicleYear => translate('vehicle_year');
+  String get registrationNumber => translate('registration_number');
+  String get batteryCapacity => translate('battery_capacity');
+  String get uploadDocument => translate('upload_document');
+  String get uploadInProgress => translate('upload_in_progress');
+  String get uploadInterrupted => translate('upload_interrupted');
+  String get retryUpload => translate('retry_upload');
+  String get cameraDeniedTitle => translate('camera_denied_title');
+  String get cameraDeniedDesc => translate('camera_denied_desc');
+  String get pickFromGallery => translate('pick_from_gallery');
+  String get slowNetworkBanner => translate('slow_network_banner');
+  String get uploadedVerified => translate('uploaded_verified');
+  String get statutoryDeclaration => translate('statutory_declaration');
+  String get submitApplication => translate('submit_application');
+  String get submittingApplication => translate('submitting_application');
+  String get editSection => translate('edit_section');
+  String get saveAndContinue => translate('save_and_continue');
+  String get applicationStatusTitle => translate('application_status_title');
+  String get applicationSubmittedMsg => translate('application_submitted_msg');
+  String get applicationRejectedMsg => translate('application_rejected_msg');
+  String get editDraftResubmit => translate('edit_draft_resubmit');
+  String get prevStep => translate('prev_step');
+  String get nextStep => translate('next_step');
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

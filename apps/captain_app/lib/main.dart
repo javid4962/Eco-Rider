@@ -3,6 +3,7 @@ import 'core/localization/app_localizations.dart';
 import 'core/localization/language_switcher.dart';
 import 'core/localization/locale_controller.dart';
 import 'features/onboarding/captain_application_status_card.dart';
+import 'features/onboarding/captain_onboarding_flow.dart';
 
 void main() {
   runApp(const EcoRideCaptainApp());
@@ -10,8 +11,9 @@ void main() {
 
 class EcoRideCaptainApp extends StatefulWidget {
   final LocaleController? controller;
+  final Widget? home;
 
-  const EcoRideCaptainApp({super.key, this.controller});
+  const EcoRideCaptainApp({super.key, this.controller, this.home});
 
   static const Color primaryElectric = Color(0xFF059669);
   static const Color voltageNavy = Color(0xFF0B132B);
@@ -55,7 +57,7 @@ class _EcoRideCaptainAppState extends State<EcoRideCaptainApp> {
               surface: EcoRideCaptainApp.surfaceNavy,
             ),
           ),
-          home: CaptainHomeScreen(controller: _controller),
+          home: widget.home ?? CaptainHomeScreen(controller: _controller),
         );
       },
     );
@@ -84,6 +86,20 @@ class _CaptainHomeScreenState extends State<CaptainHomeScreen> {
         backgroundColor: const Color(0xFF0B132B),
         elevation: 0,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.assignment_outlined, color: Colors.white),
+            tooltip: l10n.captainOnboardingTitle,
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (ctx) => CaptainOnboardingFlow(
+                    localeController: widget.controller,
+                    onFinished: () => Navigator.of(ctx).pop(),
+                  ),
+                ),
+              );
+            },
+          ),
           LanguageSwitcherButton(controller: widget.controller),
         ],
       ),

@@ -447,3 +447,34 @@
   6. **Security & RBAC Enforcement**:
      - Captains can query their own eligibility (`GET /v1/captains/me/compliance`) and toggle their duty (`POST /v1/captains/me/duty`).
      - Updating compliance status (`POST /v1/captains/:userId/compliance/status`) and querying arbitrary captain compliance (`GET /v1/captains/:userId/compliance`) require `OPERATOR` or `SUPER_ADMIN` roles (`'driver:read'`, `'driver:write'`). Cross-account unauthorized access returns HTTP 403 Forbidden.
+
+
+## 2026-11-02 — ADR-0027: Flutter Captain Onboarding Flow, Document Upload Resiliency, and Application Lifecycle State Presentation
+
+- **Status**: Accepted
+- **Context**:
+  Captain onboarding is the gateway for enrolling verified EV drivers and vehicles into the Andhra Pradesh zero-emission transit network. The onboarding user experience must handle intermittent 4G/5G mobile connectivity, device camera permission restrictions, complex regulatory document uploads (DL, Aadhaar, EV RC, Commercial Green-Plate Permit), statutory EV compliance declarations, and administrative review states (`DRAFT`, `SUBMITTED`, `UNDER_REVIEW`, `APPROVED`, `REJECTED`). Crucially, if an application is rejected by operators for blurry images or missing details, the captain must be able to resume and edit their rejected application without re-entering existing personal or vehicle data.
+- **Decisions**:
+  1. **Step-by-Step Onboarding Architecture (`CaptainOnboardingController`)**:
+     - Modeled a 6-step state machine: `phoneLogin` -> `personalDetails` -> `vehicleDetails` -> `documents` -> `previewSubmit` -> `applicationStatus`.
+     - Step progression is governed by strict form and field-level validation before advancing (`canProceedToNextStep`), preventing premature submission of incomplete profiles.
+     - Implemented `ListenableBuilder` reactive bindings across all sub-screens ensuring real-time UI updates when inputs change or upload states transition.
+  2. **Strict Client-Side EV-Only Assurance**:
+     - Vehicle details screen enforces 100% Battery Electric Propulsion (`BATTERY_ELECTRIC`).
+     - Hard-coded UI banner and disabled non-EV selectors reinforce that internal combustion engines (ICE), CNG, and hybrid vehicles are prohibited on the platform.
+     - Captures vehicle battery capacity in kWh, ensuring compatibility with telemetry and range calculations.
+  3. **Document Upload Resiliency & Permission Fallback**:
+     - Modeled document item state machine: `idle` -> `uploading` -> `uploaded` / `interrupted` / `failed`.
+     - Added simulated latency and network drop detection with a dedicated "Slow Connection Detected" warning banner.
+     - Handled interrupted uploads with in-place "Retry" actions that resume failed documents without clearing previously uploaded files.
+     - Handled camera permission denial (`setCameraDenied(true)`) by displaying an explanatory dialog with an automatic fallback action to select files from device storage.
+  4. **Non-Destructive Review, Edit & Resubmission**:
+     - `CaptainPreviewSubmitScreen` provides high-level summary cards for Personal, Vehicle, and Document data with direct "Edit" jump links to respective steps without data loss.
+     - Requires an explicit statutory EV driver declaration checkbox before enabling the submission action.
+     - `CaptainApplicationStatusScreen` displays real-time status banners with reviewer feedback notes for `REJECTED` applications.
+     - Tapping "Edit Draft & Resubmit" preserves all previously saved fields in `CaptainDraftData`, navigates the user back to editable steps, and allows re-submission with an updated payload.
+  5. **Bilingual Localization (Telugu & English)**:
+     - All onboarding screen titles, form labels, helper captions, permission alerts, and error messages are localized in `AppLocalizations` with English and Telugu translations and type-safe getters.
+  6. **Deterministic Asynchronous Widget Test Suite**:
+     - Decoupled periodic countdown timers (OTP resend cooldown) via configurable `enableCooldownTimer: false` flag to prevent non-settling timers in `WidgetTester.pumpAndSettle()`.
+     - Built comprehensive widget tests covering phone OTP authentication, personal details validation, EV vehicle details, document upload interruptions and camera fallbacks, preview editing, and full end-to-end onboarding lifecycle.
