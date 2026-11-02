@@ -52,3 +52,4 @@ export class CreateFleetOrganizationDto implements CreateFleetOrganizationReques
   @IsString()
   payoutAccountId!: string;
 }
+

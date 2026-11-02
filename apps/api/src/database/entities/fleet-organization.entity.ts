@@ -66,3 +66,4 @@ export class FleetOrganization {
   @UpdateDateColumn({ type: 'timestamptz', name: 'updated_at' })
   updatedAt!: Date;
 }
+

@@ -28,3 +28,4 @@ export class AssignFleetDriverDto implements AssignFleetDriverRequest {
   @IsString()
   notes?: string;
 }
+

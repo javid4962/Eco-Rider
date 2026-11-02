@@ -166,3 +166,4 @@ export interface FleetEarningsSummaryDto {
   activeVehiclesCount: number;
   recentTransactions: FleetEarningsLedgerItem[];
 }
+
