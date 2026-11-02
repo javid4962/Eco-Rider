@@ -87,3 +87,4 @@ class CameraPermissionDialog extends StatelessWidget {
     );
   }
 }
+
