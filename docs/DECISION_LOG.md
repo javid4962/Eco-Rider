@@ -672,3 +672,36 @@
   5. **Authoritative Quotes Integration (`POST /v1/quotes/authoritative`)**:
      - Invokes `ZonesService.verifyLocation` server-side before computing spherical distance and integer paise fare.
      - Rejects out-of-zone or disabled-category requests with HTTP 400 Bad Request and error code `ApiErrorCode.ZONE_RESTRICTED`.
+
+
+## 2026-11-02 — ADR-0033: Maps, Geocoding & Route Provider Abstraction with Fault Injection, Bounded Retries, and Local Geometric Fallback
+
+- **Status**: Accepted
+- **Context**:
+  Rider and Captain mobile apps and operations web require address autocompletion suggestions, reverse geocoding, route distance, ETA, and coordinate validation across Andhra Pradesh.
+  Per AGENTS.md:
+  1. Rule 3: Zero chargeable live keys, external contracts, or live third-party gateway dependencies in tests and local development.
+  2. Ticket EV-032 Scope: Build maps interfaces for address suggestions, reverse geocoding, route distance, ETA and coordinate validation, plus mocked local provider and retry/cache limits.
+  3. Acceptance / Demonstrate: Tests simulate timeouts, invalid coordinates and provider downtime without trapping the user in loading state.
+
+- **Decisions**:
+  1. **Provider Abstraction (`IMapsProvider`) & Contracts (`@ecoride/contracts/maps`)**:
+     - Defined shared contracts for `GeoPoint`, `CoordinateValidationResult`, `AddressSuggestion`, `ReverseGeocodeResponse`, `RouteCalculationResponse`, and `ProviderSimulationMode`.
+     - Expanded `IMapsProvider` with `suggestAddresses`, `reverseGeocodeDetails`, `validateCoordinates`, and simulation controls while preserving backward compatibility for existing distance matrix and routing methods.
+  2. **Local Andhra Pradesh Mock Engine (`MockMapsProvider`)**:
+     - Embedded curated landmark dataset spanning Visakhapatnam (RK Beach, MVP Colony, RTC Complex, Rushikonda IT SEZ, Gajuwaka), Vijayawada (Benz Circle, PNBS Bus Station, Kanaka Durga Temple), Guntur, Tirupati, and Amaravati.
+     - Supports runtime fault injection modes: `NORMAL`, `TIMEOUT`, `DOWNTIME` (500 error), `DEGRADED` (latency), and `RATE_LIMITED` (429).
+  3. **Resilience, Timeout Protection & Zero Loading Trap (`MapsService.executeWithResilience`)**:
+     - Enforces strict 2500ms timeout limit on provider calls using `Promise.race`.
+     - Applies bounded exponential retry backoff (maximum 2 retries on transient upstream failures).
+     - When timeouts or provider downtime occur, automatically activates deterministic offline geometric fallback:
+       - Reverse geocoding resolves to nearest known AP landmark proximity or formatted AP municipal coordinates (`isFallback: true`).
+       - Routing computes road winding Haversine distance (1.25x factor), realistic urban transit duration at 28 km/h, and EV battery consumption (`isFallback: true`).
+     - Guarantees requests complete within bounded time and never trap the user or mobile client in an indefinite loading state.
+  4. **Strict Coordinate Validation & Territorial Bounds (`validateCoordinates`)**:
+     - Rejects non-numeric, NaN, Infinite, and out-of-world coordinates (latitude outside [-90, 90], longitude outside [-180, 180]) with immediate HTTP 400 Bad Request.
+     - Validates geographic inclusion within Andhra Pradesh bounding envelope (`[12.5, 19.9]°N`, `[76.5, 84.8]°E`).
+  5. **Bounded LRU/FIFO Cache & Performance Protection**:
+     - Implements in-memory cache with strict capacity limit of 500 entries and 10-minute TTL.
+     - Evicts oldest entries on overflow (FIFO/LRU) to prevent unbounded memory growth.
+     - Tracks hit/miss telemetry accessible via `GET /v1/maps/status`.

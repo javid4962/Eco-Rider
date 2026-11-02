@@ -13,3 +13,4 @@ export * from './captain-applications';
 export * from './compliance';
 export * from './fleet';
 export * from './zones';
+export * from './maps';

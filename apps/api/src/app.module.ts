@@ -21,6 +21,7 @@ import { CaptainApplicationsModule } from './modules/captain-applications/captai
 import { ComplianceModule } from './modules/compliance/compliance.module';
 import { FleetModule } from './modules/fleet/fleet.module';
 import { ZonesModule } from './modules/zones/zones.module';
+import { MapsModule } from './modules/maps/maps.module';
 import { CorrelationIdMiddleware } from './common/middleware/correlation-id.middleware';
 import { AuthMiddleware } from './modules/auth/middleware/auth.middleware';
 
@@ -50,6 +51,7 @@ import { AuthMiddleware } from './modules/auth/middleware/auth.middleware';
     ComplianceModule,
     FleetModule,
     ZonesModule,
+    MapsModule,
   ],
 })
 export class AppModule implements NestModule {
