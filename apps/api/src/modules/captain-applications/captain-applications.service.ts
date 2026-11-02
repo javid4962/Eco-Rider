@@ -31,6 +31,8 @@ import {
   CaptainApplicationReviewDto,
   PaginatedCaptainApplicationsDto,
   PlatformRole,
+  DriverComplianceStatus,
+  DutyStatus,
 } from '@ecoride/contracts';
 import { CurrentActorPayload } from '../identity/current-actor.decorator';
 
@@ -410,6 +412,13 @@ export class CaptainApplicationsService {
     if (query.userId) {
       qb.andWhere('app.userId = :userId', { userId: query.userId });
     }
+    if (query.search && query.search.trim().length > 0) {
+      const term = `%${query.search.trim().toLowerCase()}%`;
+      qb.andWhere(
+        '(LOWER(app.fullName) LIKE :term OR LOWER(app.drivingLicenseNumber) LIKE :term OR LOWER(app.vehicleRegistrationNumber) LIKE :term OR LOWER(app.city) LIKE :term OR user.phone LIKE :term)',
+        { term },
+      );
+    }
 
     qb.orderBy('app.updatedAt', 'DESC').skip(skip).take(limit);
 
@@ -520,6 +529,20 @@ export class CaptainApplicationsService {
     // On approval: promote role and activate verified driver profile & vehicle
     if (dto.overallStatus === CaptainApplicationStatus.APPROVED) {
       await this.activateCaptainProfileAndVehicle(app);
+    } else if (dto.overallStatus === CaptainApplicationStatus.REJECTED) {
+      // Reviewer rejection immediately affects driver duty availability and compliance state
+      const driverProfile = await this.driverProfileRepository.findOne({
+        where: { userId: app.userId },
+      });
+      if (driverProfile) {
+        driverProfile.verificationStatus = DriverComplianceStatus.REJECTED;
+        driverProfile.complianceNotes = app.overallRejectionReason;
+        if (driverProfile.dutyStatus === DutyStatus.ONLINE) {
+          driverProfile.dutyStatus = DutyStatus.OFFLINE;
+          driverProfile.dutyLastToggledAt = new Date();
+        }
+        await this.driverProfileRepository.save(driverProfile);
+      }
     }
 
     const saved = await this.applicationRepository.save(app);
@@ -569,16 +592,18 @@ export class CaptainApplicationsService {
         userId: app.userId,
         licenseNumber: app.drivingLicenseNumber || 'AP31-TEMP-001',
         badgeNumber: app.badgeNumber ?? undefined,
-        verificationStatus: 'VERIFIED',
+        licenseExpiryDate: app.drivingLicenseExpiry ?? null,
+        verificationStatus: DriverComplianceStatus.VERIFIED,
         greenPlatePermitVerified: true,
         safetyTrainingCompleted: true,
         city: app.city,
       });
     } else {
-      driverProfile.verificationStatus = 'VERIFIED';
+      driverProfile.verificationStatus = DriverComplianceStatus.VERIFIED;
       driverProfile.greenPlatePermitVerified = true;
       if (app.drivingLicenseNumber) driverProfile.licenseNumber = app.drivingLicenseNumber;
       if (app.badgeNumber) driverProfile.badgeNumber = app.badgeNumber;
+      if (app.drivingLicenseExpiry) driverProfile.licenseExpiryDate = app.drivingLicenseExpiry;
       driverProfile.city = app.city;
     }
 
@@ -603,6 +628,8 @@ export class CaptainApplicationsService {
           ownerId: app.userId,
           greenPlateVerified: true,
           verificationStatus: 'VERIFIED',
+          insuranceExpiryDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+          commercialPermitExpiry: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
           city: app.city,
           isActive: true,
         });

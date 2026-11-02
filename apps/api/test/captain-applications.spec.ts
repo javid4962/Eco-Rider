@@ -14,6 +14,8 @@ import {
   VehicleCategory,
   PropulsionType,
   PlatformRole,
+  DriverComplianceStatus,
+  DutyStatus,
 } from '@ecoride/contracts';
 import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { CurrentActorPayload } from '../src/modules/identity/current-actor.decorator';
@@ -124,16 +126,47 @@ describe('Captain Application & Document Verification (EV-024 Unit Tests)', () =
         }
         return null;
       }),
-      createQueryBuilder: jest.fn().mockReturnValue({
-        leftJoinAndSelect: jest.fn().mockReturnThis(),
-        andWhere: jest.fn().mockReturnThis(),
-        orderBy: jest.fn().mockReturnThis(),
-        skip: jest.fn().mockReturnThis(),
-        take: jest.fn().mockReturnThis(),
-        getManyAndCount: jest.fn().mockImplementation(async () => {
-          const all = Array.from(appsStore.values());
-          return [all, all.length];
-        }),
+      createQueryBuilder: jest.fn().mockImplementation(() => {
+        let statusFilter: string | undefined;
+        let cityFilter: string | undefined;
+        let searchFilter: string | undefined;
+
+        const qb = {
+          leftJoinAndSelect: jest.fn().mockReturnThis(),
+          andWhere: jest
+            .fn()
+            .mockImplementation((_clause: string, params?: Record<string, string>) => {
+              if (params?.status) statusFilter = params.status;
+              if (params?.city) cityFilter = params.city.toLowerCase();
+              if (params?.term) searchFilter = params.term.toLowerCase().replace(/%/g, '');
+              return qb;
+            }),
+          orderBy: jest.fn().mockReturnThis(),
+          skip: jest.fn().mockReturnThis(),
+          take: jest.fn().mockReturnThis(),
+          getManyAndCount: jest.fn().mockImplementation(async () => {
+            let all = Array.from(appsStore.values());
+            if (statusFilter) {
+              all = all.filter((a) => a.status === statusFilter);
+            }
+            if (cityFilter) {
+              all = all.filter((a) => a.city && a.city.toLowerCase() === cityFilter);
+            }
+            if (searchFilter) {
+              all = all.filter(
+                (a) =>
+                  (a.fullName && a.fullName.toLowerCase().includes(searchFilter!)) ||
+                  (a.drivingLicenseNumber &&
+                    a.drivingLicenseNumber.toLowerCase().includes(searchFilter!)) ||
+                  (a.vehicleRegistrationNumber &&
+                    a.vehicleRegistrationNumber.toLowerCase().includes(searchFilter!)) ||
+                  (a.city && a.city.toLowerCase().includes(searchFilter!)),
+              );
+            }
+            return [all, all.length];
+          }),
+        };
+        return qb;
       }),
     };
 
@@ -539,6 +572,106 @@ describe('Captain Application & Document Verification (EV-024 Unit Tests)', () =
           vehicleRequirementsStatus: RequirementStatus.APPROVED,
         }),
       ).rejects.toThrow(ForbiddenException);
+    });
+  });
+
+  describe('7. Searchable Reviewer Queue & Immediate Availability Impact (EV-027)', () => {
+    let testAppId: string;
+
+    beforeEach(async () => {
+      await service.getOrCreateDraft(captainA);
+      await service.updateDraft(captainA, {
+        fullName: 'Venkata Ramana',
+        drivingLicenseNumber: 'AP31 20240008899',
+        drivingLicenseExpiry: '2029-05-14T00:00:00.000Z',
+        drivingLicenseDocId: 'doc-license-1111',
+        aadhaarDocId: 'doc-aadhaar-2222',
+        emergencyContactName: 'Lakshmi',
+        emergencyContactPhone: '+919876249999',
+        vehicleOwnershipType: VehicleOwnershipType.OWNED,
+        vehicleCategory: VehicleCategory.CITY_COMMUTE_2W,
+        vehicleRegistrationNumber: 'AP31EV2424',
+        vehicleMake: 'Ather Energy',
+        vehicleModel: '450X Gen 3',
+        vehicleRcDocId: 'doc-rc-3333',
+        greenPlatePermitDocId: 'doc-permit-4444',
+      });
+      const submitted = await service.submitApplication(captainA);
+      testAppId = submitted.id;
+    });
+
+    it('should filter applications by search query matching applicant name or plate', async () => {
+      // Search by candidate name
+      const nameSearchResult = await service.listApplications(operatorActor, {
+        search: 'Venkata',
+      });
+      expect(nameSearchResult.items.length).toBe(1);
+      expect(nameSearchResult.items[0].id).toBe(testAppId);
+
+      // Search by vehicle plate
+      const plateSearchResult = await service.listApplications(operatorActor, {
+        search: 'AP31EV2424',
+      });
+      expect(plateSearchResult.items.length).toBe(1);
+      expect(plateSearchResult.items[0].id).toBe(testAppId);
+
+      // Search with non-matching term
+      const emptyResult = await service.listApplications(operatorActor, {
+        search: 'NonexistentDriverXYZ',
+      });
+      expect(emptyResult.items.length).toBe(0);
+    });
+
+    it('should immediately update driver compliance status and license expiry upon approval', async () => {
+      const reviewResult = await service.reviewApplication(operatorActor, testAppId, {
+        overallStatus: CaptainApplicationStatus.APPROVED,
+        driverRequirementsStatus: RequirementStatus.APPROVED,
+        vehicleRequirementsStatus: RequirementStatus.APPROVED,
+        notes: 'Driver KYC and AP Green Plate verified',
+      });
+
+      expect(reviewResult.status).toBe(CaptainApplicationStatus.APPROVED);
+
+      // Verify driver profile is VERIFIED with license expiry date preserved
+      const driverProfile = driverProfilesStore.get(captainA.id);
+      expect(driverProfile).toBeDefined();
+      expect(driverProfile!.verificationStatus).toBe(DriverComplianceStatus.VERIFIED);
+      expect(driverProfile!.licenseExpiryDate).toBeDefined();
+      expect(driverProfile!.greenPlatePermitVerified).toBe(true);
+
+      // Verify user promoted to CAPTAIN role
+      const user = usersStore.get(captainA.id);
+      expect(user!.role).toBe(PlatformRole.CAPTAIN);
+    });
+
+    it('should immediately force duty OFFLINE and set status to REJECTED upon reviewer rejection', async () => {
+      // First seed an active driver profile with duty ONLINE
+      const existingProfile = new DriverProfile();
+      existingProfile.id = 'dp-existing-001';
+      existingProfile.userId = captainA.id;
+      existingProfile.verificationStatus = DriverComplianceStatus.VERIFIED;
+      existingProfile.dutyStatus = DutyStatus.ONLINE;
+      existingProfile.city = 'visakhapatnam';
+      driverProfilesStore.set(captainA.id, existingProfile);
+
+      // Reviewer rejects application due to blurry document
+      const rejectionResult = await service.reviewApplication(operatorActor, testAppId, {
+        overallStatus: CaptainApplicationStatus.REJECTED,
+        driverRequirementsStatus: RequirementStatus.APPROVED,
+        vehicleRequirementsStatus: RequirementStatus.REJECTED,
+        vehicleRejectionReason: 'Vehicle RC document photo was blurry. Please re-upload.',
+        notes: 'Vehicle RC rejected; captain must resubmit clearer scan.',
+      });
+
+      expect(rejectionResult.status).toBe(CaptainApplicationStatus.REJECTED);
+      expect(rejectionResult.vehicleRequirementsStatus).toBe(RequirementStatus.REJECTED);
+
+      // Availability check: Driver profile must immediately be REJECTED and duty forced OFFLINE
+      const updatedProfile = driverProfilesStore.get(captainA.id);
+      expect(updatedProfile).toBeDefined();
+      expect(updatedProfile!.verificationStatus).toBe(DriverComplianceStatus.REJECTED);
+      expect(updatedProfile!.dutyStatus).toBe(DutyStatus.OFFLINE);
+      expect(updatedProfile!.complianceNotes).toContain('Vehicle RC rejected');
     });
   });
 });

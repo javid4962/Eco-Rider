@@ -478,3 +478,27 @@
   6. **Deterministic Asynchronous Widget Test Suite**:
      - Decoupled periodic countdown timers (OTP resend cooldown) via configurable `enableCooldownTimer: false` flag to prevent non-settling timers in `WidgetTester.pumpAndSettle()`.
      - Built comprehensive widget tests covering phone OTP authentication, personal details validation, EV vehicle details, document upload interruptions and camera fallbacks, preview editing, and full end-to-end onboarding lifecycle.
+
+
+## 2026-11-02 — ADR-0028: One-Review Verification Queue, Discrepancy Reason Taxonomy, and Immediate Duty Availability Synchronization
+
+- **Status**: Accepted
+- **Context**:
+  To onboard verified EV captains into the Andhra Pradesh mobility network without operational friction, platform operators require a centralized, searchable single-pane reviewer UI. Reviewers must inspect the exact candidate data submitted during mobile onboarding (personal identity, AP commercial driving license, 100% BEV specs, AP green-plate registration, and uploaded KYC certificates) without manual duplicate field re-entry. Furthermore, reviewer verification decisions must immediately synchronize with the driver duty availability engine: approval must activate captain compliance and duty eligibility (`ONLINE`), while rejection must record granular discrepancy reasons, unlock candidate drafts without duplicate records, and immediately force active duty `OFFLINE`. Access to private KYC documents must be strictly restricted to authenticated reviewers with audit logging.
+- **Decisions**:
+  1. **Searchable Verification Queue Architecture (`packages/contracts`, `apps/api`, `apps/ops-web`)**:
+     - Extended `CaptainApplicationsQuery` and query DTO with `search?: string` to support server-side and client-side multi-field matching across candidate name, phone number, driving license number, vehicle registration number, and operating corridor.
+     - Implemented real-time searchable reviewer UI in Next.js Ops Portal (`apps/ops-web/src/app/captain-applications/page.tsx`) with queue metrics, filter chips (status and city), and instant fuzzy matching.
+  2. **Single-Pane Inspection Without Manual Duplicate Field Entry**:
+     - The verification desk renders candidate information pre-populated directly from submitted onboarding data across Driver KYC and Vehicle Requirements panels.
+     - Eliminates duplicate data re-entry: reviewers only review candidate credentials, verify certificates, and record decision verdicts.
+  3. **Standardized Discrepancy Reason Taxonomy**:
+     - Categorized discrepancy reasons for Driver KYC (blurry license photo, expired license, name mismatch, unverified transport badge, cropped ID proof) and Vehicle KYC (blurry RC scan, missing AP commercial green-plate permit, plate mismatch, sub-standard battery capacity, non-electric vehicle rejection).
+     - Provides pre-defined discrepancy selectors alongside custom remarks, ensuring precise, actionable feedback for captain draft resumption.
+  4. **Immediate Duty Availability Synchronization**:
+     - Approval: Updates application status to `APPROVED`, promotes user role to `CAPTAIN`, activates `DriverProfile` with `verificationStatus = VERIFIED`, sets `licenseExpiryDate`, links verified EV vehicle, and immediately authorizes duty toggle to `ONLINE`.
+     - Rejection: Updates application status to `REJECTED`, updates `DriverProfile` with `verificationStatus = REJECTED`, records discrepancy notes, forces active duty to `OFFLINE` (`duty_last_toggled_at` updated), and immediately rejects any attempt to toggle duty to `ONLINE` with HTTP 422 Unprocessable Entity.
+  5. **Authorized Reviewer Document Security & Access Control**:
+     - KYC document viewing is strictly enforced via `assertCanAccessDocument` in `DocumentsService`.
+     - Only authorized reviewers (`OPERATOR`, `SUPER_ADMIN`, `SUPPORT`, `SAFETY_OFFICER`, or `kyc:read` scope) and document owners can generate temporary HMAC-SHA256 signed access URLs or download files.
+     - Unauthorized cross-account access attempts by regular riders or other captains are rejected with HTTP 403 Forbidden and logged as `CROSS_ACCOUNT_DOCUMENT_ACCESS_DENIED` security audit events.

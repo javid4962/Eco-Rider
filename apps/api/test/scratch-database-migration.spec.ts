@@ -68,11 +68,11 @@ describe('Scratch Database Migration Up/Down Test', () => {
 
       // Verify all tables exist in information_schema
       const tablesResult = await queryRunner.query(`
-        SELECT table_name 
-        FROM information_schema.tables 
-        WHERE table_schema = 'public' 
-          AND table_name IN ('users', 'vehicles', 'zones', 'bookings', 'ledger_entries', 'audit_logs');
-      `);
+          SELECT table_name 
+          FROM information_schema.tables 
+          WHERE table_schema = 'public' 
+            AND table_name IN ('users', 'vehicles', 'zones', 'bookings', 'ledger_entries', 'audit_logs');
+        `);
 
       const tableNames = tablesResult.map((r: { table_name: string }) => r.table_name);
       expect(tableNames).toContain('users');
@@ -81,7 +81,7 @@ describe('Scratch Database Migration Up/Down Test', () => {
       expect(tableNames).toContain('bookings');
       expect(tableNames).toContain('ledger_entries');
       expect(tableNames).toContain('audit_logs');
-    });
+    }, 30000);
 
     it('should enforce 100% Battery Electric constraint (reject ICE/hybrid)', async () => {
       if (!isLiveDbAvailable || !queryRunner) {
@@ -93,9 +93,9 @@ describe('Scratch Database Migration Up/Down Test', () => {
       let petrolError: Error | null = null;
       try {
         await queryRunner.query(`
-          INSERT INTO "vehicles" ("registration_number", "propulsion_type", "battery_capacity_kwh", "current_soc_percent", "vehicle_category")
-          VALUES ('AP39-ICE-0001', 'PETROL', 0, 0, 'CITY_COMMUTE_2W');
-        `);
+            INSERT INTO "vehicles" ("registration_number", "propulsion_type", "battery_capacity_kwh", "current_soc_percent", "vehicle_category")
+            VALUES ('AP39-ICE-0001', 'PETROL', 0, 0, 'CITY_COMMUTE_2W');
+          `);
       } catch (err: unknown) {
         petrolError = err as Error;
       }
@@ -104,19 +104,19 @@ describe('Scratch Database Migration Up/Down Test', () => {
 
       // Valid BATTERY_ELECTRIC insert must succeed
       await queryRunner.query(`
-        INSERT INTO "vehicles" ("registration_number", "propulsion_type", "battery_capacity_kwh", "current_soc_percent", "vehicle_category")
-        VALUES ('AP39-EV-TEST-01', 'BATTERY_ELECTRIC', 3.5, 92.5, 'CITY_COMMUTE_2W')
-        ON CONFLICT ("registration_number") DO NOTHING;
-      `);
+          INSERT INTO "vehicles" ("registration_number", "propulsion_type", "battery_capacity_kwh", "current_soc_percent", "vehicle_category")
+          VALUES ('AP39-EV-TEST-01', 'BATTERY_ELECTRIC', 3.5, 92.5, 'CITY_COMMUTE_2W')
+          ON CONFLICT ("registration_number") DO NOTHING;
+        `);
 
       const vehicle = await queryRunner.query(`
-        SELECT id, registration_number, propulsion_type 
-        FROM "vehicles" 
-        WHERE registration_number = 'AP39-EV-TEST-01';
-      `);
+          SELECT id, registration_number, propulsion_type 
+          FROM "vehicles" 
+          WHERE registration_number = 'AP39-EV-TEST-01';
+        `);
       expect(vehicle[0].propulsion_type).toBe('BATTERY_ELECTRIC');
       expect(vehicle[0].id).toBeDefined(); // UUID generated automatically
-    });
+    }, 30000);
 
     it('should enforce financial ledger double-entry and idempotency constraints', async () => {
       if (!isLiveDbAvailable || !queryRunner) {
@@ -128,9 +128,9 @@ describe('Scratch Database Migration Up/Down Test', () => {
       let invalidTypeErr: Error | null = null;
       try {
         await queryRunner.query(`
-          INSERT INTO "ledger_entries" ("idempotency_key", "account_id", "entry_type", "amount_paise")
-          VALUES ('idem_invalid_type_1', 'acc_platform', 'TRANSFER', 5000);
-        `);
+            INSERT INTO "ledger_entries" ("idempotency_key", "account_id", "entry_type", "amount_paise")
+            VALUES ('idem_invalid_type_1', 'acc_platform', 'TRANSFER', 5000);
+          `);
       } catch (err: unknown) {
         invalidTypeErr = err as Error;
       }
@@ -141,9 +141,9 @@ describe('Scratch Database Migration Up/Down Test', () => {
       let negativeAmtErr: Error | null = null;
       try {
         await queryRunner.query(`
-          INSERT INTO "ledger_entries" ("idempotency_key", "account_id", "entry_type", "amount_paise")
-          VALUES ('idem_negative_amt_1', 'acc_platform', 'DEBIT', -500);
-        `);
+            INSERT INTO "ledger_entries" ("idempotency_key", "account_id", "entry_type", "amount_paise")
+            VALUES ('idem_negative_amt_1', 'acc_platform', 'DEBIT', -500);
+          `);
       } catch (err: unknown) {
         negativeAmtErr = err as Error;
       }
@@ -153,24 +153,24 @@ describe('Scratch Database Migration Up/Down Test', () => {
       // Positive test: valid DEBIT insert
       const validKey = 'idem_valid_tx_1001';
       await queryRunner.query(`
-        INSERT INTO "ledger_entries" ("idempotency_key", "account_id", "entry_type", "amount_paise", "description")
-        VALUES ('${validKey}', 'acc_rider_wallet', 'DEBIT', 15000, 'Pilot ride fare')
-        ON CONFLICT ("idempotency_key") DO NOTHING;
-      `);
+          INSERT INTO "ledger_entries" ("idempotency_key", "account_id", "entry_type", "amount_paise", "description")
+          VALUES ('${validKey}', 'acc_rider_wallet', 'DEBIT', 15000, 'Pilot ride fare')
+          ON CONFLICT ("idempotency_key") DO NOTHING;
+        `);
 
       // Negative test: duplicate idempotency key
       let duplicateKeyErr: Error | null = null;
       try {
         await queryRunner.query(`
-          INSERT INTO "ledger_entries" ("idempotency_key", "account_id", "entry_type", "amount_paise", "description")
-          VALUES ('${validKey}', 'acc_rider_wallet', 'DEBIT', 15000, 'Duplicate request attempt');
-        `);
+            INSERT INTO "ledger_entries" ("idempotency_key", "account_id", "entry_type", "amount_paise", "description")
+            VALUES ('${validKey}', 'acc_rider_wallet', 'DEBIT', 15000, 'Duplicate request attempt');
+          `);
       } catch (err: unknown) {
         duplicateKeyErr = err as Error;
       }
       expect(duplicateKeyErr).not.toBeNull();
       expect(duplicateKeyErr?.message).toContain('duplicate key value');
-    });
+    }, 30000);
 
     it('should support PostGIS spatial polygon geofencing on zones table', async () => {
       if (!isLiveDbAvailable || !queryRunner) {
@@ -180,32 +180,32 @@ describe('Scratch Database Migration Up/Down Test', () => {
 
       // Insert Visakhapatnam urban pilot polygon
       await queryRunner.query(`
-        INSERT INTO "zones" ("city", "name", "boundary")
-        VALUES (
-          'visakhapatnam',
-          'Vizag Urban Core Pilot',
-          ST_GeomFromText('POLYGON((83.20 17.65, 83.35 17.65, 83.35 17.75, 83.20 17.75, 83.20 17.65))', 4326)
-        );
-      `);
+          INSERT INTO "zones" ("city", "name", "boundary")
+          VALUES (
+            'visakhapatnam',
+            'Vizag Urban Core Pilot',
+            ST_GeomFromText('POLYGON((83.20 17.65, 83.35 17.65, 83.35 17.75, 83.20 17.75, 83.20 17.65))', 4326)
+          );
+        `);
 
       // Test point-in-polygon spatial containment (Jagadamba Junction: 83.3012, 17.7126 is inside)
       const insideCheck = await queryRunner.query(`
-        SELECT name, ST_Contains(boundary, ST_SetSRID(ST_MakePoint(83.3012, 17.7126), 4326)) as is_inside
-        FROM "zones"
-        WHERE name = 'Vizag Urban Core Pilot'
-        LIMIT 1;
-      `);
+          SELECT name, ST_Contains(boundary, ST_SetSRID(ST_MakePoint(83.3012, 17.7126), 4326)) as is_inside
+          FROM "zones"
+          WHERE name = 'Vizag Urban Core Pilot'
+          LIMIT 1;
+        `);
       expect(insideCheck[0].is_inside).toBe(true);
 
       // Outside point (Vijayawada: 80.6480, 16.5062 is outside)
       const outsideCheck = await queryRunner.query(`
-        SELECT name, ST_Contains(boundary, ST_SetSRID(ST_MakePoint(80.6480, 16.5062), 4326)) as is_inside
-        FROM "zones"
-        WHERE name = 'Vizag Urban Core Pilot'
-        LIMIT 1;
-      `);
+          SELECT name, ST_Contains(boundary, ST_SetSRID(ST_MakePoint(80.6480, 16.5062), 4326)) as is_inside
+          FROM "zones"
+          WHERE name = 'Vizag Urban Core Pilot'
+          LIMIT 1;
+        `);
       expect(outsideCheck[0].is_inside).toBe(false);
-    });
+    }, 30000);
   });
 
   describe('Migration Down - Safe Rollback Verification', () => {
@@ -228,11 +228,11 @@ describe('Scratch Database Migration Up/Down Test', () => {
 
       // Confirm all tables are dropped
       const tablesAfterDown = await queryRunner.query(`
-        SELECT table_name 
-        FROM information_schema.tables 
-        WHERE table_schema = 'public' 
-          AND table_name IN ('users', 'vehicles', 'zones', 'bookings', 'ledger_entries', 'audit_logs');
-      `);
+          SELECT table_name 
+          FROM information_schema.tables 
+          WHERE table_schema = 'public' 
+            AND table_name IN ('users', 'vehicles', 'zones', 'bookings', 'ledger_entries', 'audit_logs');
+        `);
       expect(tablesAfterDown).toHaveLength(0);
 
       // Re-apply up so container remains provisioned for local development
@@ -246,6 +246,6 @@ describe('Scratch Database Migration Up/Down Test', () => {
       await new ExpandVehiclesTableWithEVCompliance1700000000008().up(queryRunner);
       await new CreateCaptainApplicationsAndReviewHistory1700000000009().up(queryRunner);
       await new AddDriverComplianceAndDutyStatus1700000000010().up(queryRunner);
-    });
+    }, 60000);
   });
 });

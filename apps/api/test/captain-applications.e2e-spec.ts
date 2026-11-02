@@ -11,6 +11,8 @@ import {
   VehicleOwnershipType,
   VehicleCategory,
   PropulsionType,
+  DutyStatus,
+  DriverComplianceStatus,
 } from '@ecoride/contracts';
 
 describe('Captain Application & Document Verification E2E Integration (EV-024)', () => {
@@ -389,6 +391,119 @@ describe('Captain Application & Document Verification E2E Integration (EV-024)',
           driverRequirementsStatus: RequirementStatus.APPROVED,
           vehicleRequirementsStatus: RequirementStatus.APPROVED,
         })
+        .expect(403);
+    });
+  });
+
+  describe('7. Verification Queue Search, Availability Impact & Authorized Document Access (EV-027)', () => {
+    it('should search verification queue by applicant name, phone, or green-plate registration', async () => {
+      // 1. Search by name
+      const nameRes = await request(app.getHttpServer())
+        .get('/v1/captain-applications?search=Venkata')
+        .set('x-actor-user-id', operatorUser.id)
+        .set('x-actor-role', operatorUser.role)
+        .expect(200);
+
+      expect(nameRes.body.items).toBeDefined();
+      expect(nameRes.body.items.some((i: { id: string }) => i.id === applicationId)).toBe(true);
+
+      // 2. Search by vehicle registration number
+      const plateRes = await request(app.getHttpServer())
+        .get('/v1/captain-applications?search=AP31EV7788')
+        .set('x-actor-user-id', operatorUser.id)
+        .set('x-actor-role', operatorUser.role)
+        .expect(200);
+
+      expect(plateRes.body.items.some((i: { id: string }) => i.id === applicationId)).toBe(true);
+
+      // 3. Search with non-matching term
+      const emptyRes = await request(app.getHttpServer())
+        .get('/v1/captain-applications?search=NonexistentCaptain999')
+        .set('x-actor-user-id', operatorUser.id)
+        .set('x-actor-role', operatorUser.role)
+        .expect(200);
+
+      expect(emptyRes.body.items).toHaveLength(0);
+    });
+
+    it('should demonstrate that reviewer approval immediately enables captain duty availability (ONLINE)', async () => {
+      // captainA was approved in previous describe block; should be eligible to go ONLINE
+      const dutyRes = await request(app.getHttpServer())
+        .post('/v1/captains/me/duty')
+        .set('x-actor-user-id', captainA.id)
+        .set('x-actor-role', PlatformRole.CAPTAIN)
+        .send({
+          status: DutyStatus.ONLINE,
+        })
+        .expect(200);
+
+      expect(dutyRes.body.dutyStatus).toBe(DutyStatus.ONLINE);
+      expect(dutyRes.body.eligible).toBe(true);
+    });
+
+    it('should demonstrate that reviewer rejection immediately forces duty OFFLINE and blocks going ONLINE', async () => {
+      // Operator reviews and rejects the application due to discrepancy
+      const rejectRes = await request(app.getHttpServer())
+        .post(`/v1/captain-applications/${applicationId}/review`)
+        .set('x-actor-user-id', operatorUser.id)
+        .set('x-actor-role', operatorUser.role)
+        .send({
+          overallStatus: CaptainApplicationStatus.REJECTED,
+          driverRequirementsStatus: RequirementStatus.APPROVED,
+          vehicleRequirementsStatus: RequirementStatus.REJECTED,
+          vehicleRejectionReason:
+            'Vehicle insurance document has expired. Renewed commercial policy required.',
+          notes: 'Rejected pending valid insurance policy.',
+        })
+        .expect(200);
+
+      expect(rejectRes.body.status).toBe(CaptainApplicationStatus.REJECTED);
+      expect(rejectRes.body.vehicleRequirementsStatus).toBe(RequirementStatus.REJECTED);
+
+      // Verify in DB that driver duty status was forced to OFFLINE and verification is REJECTED
+      const dbCheck = await dataSource.query(`
+        SELECT "verification_status", "duty_status" FROM "driver_profiles" WHERE "user_id" = '${captainA.id}';
+      `);
+      expect(dbCheck[0].verification_status).toBe(DriverComplianceStatus.REJECTED);
+      expect(dbCheck[0].duty_status).toBe(DutyStatus.OFFLINE);
+
+      // Captain now attempts to go ONLINE -> Must be strictly rejected with 422 Unprocessable Entity
+      const toggleBlockedRes = await request(app.getHttpServer())
+        .post('/v1/captains/me/duty')
+        .set('x-actor-user-id', captainA.id)
+        .set('x-actor-role', PlatformRole.CAPTAIN)
+        .send({
+          status: DutyStatus.ONLINE,
+        })
+        .expect(422);
+
+      expect(toggleBlockedRes.body.error.message).toContain('REJECTED');
+    });
+
+    it('should allow authorized operator to open private KYC documents and refuse unauthorized actors', async () => {
+      // 1. Operator requests signed URL for applicant's driving license -> 200 OK
+      const operatorDocRes = await request(app.getHttpServer())
+        .get(`/v1/documents/${licenseDocId}/signed-url`)
+        .set('x-actor-user-id', operatorUser.id)
+        .set('x-actor-role', operatorUser.role)
+        .expect(200);
+
+      expect(operatorDocRes.body.url).toBeDefined();
+      expect(operatorDocRes.body.url).toContain('token=');
+      expect(operatorDocRes.body.token).toBeDefined();
+
+      // 2. Unauthorized actor (captainB / rider) attempts to access applicant's private KYC document -> 403 Forbidden
+      await request(app.getHttpServer())
+        .get(`/v1/documents/${licenseDocId}/signed-url`)
+        .set('x-actor-user-id', captainB.id)
+        .set('x-actor-role', captainB.role)
+        .expect(403);
+
+      // 3. Unauthorized actor direct file download attempt -> 403 Forbidden
+      await request(app.getHttpServer())
+        .get(`/v1/documents/${licenseDocId}/file`)
+        .set('x-actor-user-id', captainB.id)
+        .set('x-actor-role', captainB.role)
         .expect(403);
     });
   });

@@ -36,4 +36,11 @@ export class CaptainApplicationsQueryDto implements CaptainApplicationsQuery {
   @IsOptional()
   @IsUUID()
   userId?: string;
+
+  @ApiPropertyOptional({
+    description: 'Search by applicant name, phone, driving license, registration plate, or city',
+  })
+  @IsOptional()
+  @IsString()
+  search?: string;
 }

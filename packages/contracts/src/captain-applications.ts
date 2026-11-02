@@ -143,6 +143,7 @@ export interface CaptainApplicationsQuery {
   status?: CaptainApplicationStatus | string;
   city?: string;
   userId?: string;
+  search?: string;
 }
 
 export interface PaginatedCaptainApplicationsDto {
