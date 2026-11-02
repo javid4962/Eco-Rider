@@ -16,3 +16,4 @@ export * from './data-deletion-request.entity';
 export * from './document.entity';
 export * from './captain-application.entity';
 export * from './captain-application-review.entity';
+export * from './compliance-warning.entity';

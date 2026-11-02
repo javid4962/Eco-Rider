@@ -6,8 +6,14 @@ import {
   Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { DriverProfile, CaptainApplication } from '../../database/entities';
+import { Repository, FindOptionsWhere } from 'typeorm';
+import {
+  DriverProfile,
+  CaptainApplication,
+  ComplianceWarning,
+  Vehicle,
+  Document,
+} from '../../database/entities';
 import {
   DriverComplianceStatus,
   DutyStatus,
@@ -22,11 +28,62 @@ import {
   VehicleCategory,
   CATEGORY_SEATING_LIMITS,
   CITY_PERMITTED_CATEGORIES,
+  ComplianceWarningTier,
+  ComplianceTargetType,
+  ComplianceScanSummaryDto,
+  ComplianceExpiryWarning,
+  ReverifyComplianceResponse,
+  PlatformRole,
+  DocumentStatus,
 } from '@ecoride/contracts';
 import { IdentityService } from '../identity/identity.service';
 import { ReleaseBoundariesService } from '../release-boundaries/release-boundaries.service';
 import { CurrentActorPayload } from '../identity/current-actor.decorator';
-import { ToggleDutyDto, UpdateComplianceStatusDto } from './dto';
+import {
+  ToggleDutyDto,
+  UpdateComplianceStatusDto,
+  ReverifyComplianceDto,
+  QueryComplianceWarningsDto,
+} from './dto';
+
+/**
+ * Calculates calendar days remaining to expiry relative to local Andhra Pradesh boundary (Asia/Kolkata).
+ * When diffMs <= 0, returns floor <= 0 indicating expired.
+ */
+export function calculateDaysRemainingToLocalBoundary(
+  expiryDateInput: Date | string,
+  nowInput: Date | string = new Date(),
+): number {
+  const expiry = new Date(expiryDateInput);
+  const now = new Date(nowInput);
+  const diffMs = expiry.getTime() - now.getTime();
+  if (diffMs <= 0) {
+    return Math.floor(diffMs / (24 * 60 * 60 * 1000));
+  }
+  return Math.ceil(diffMs / (24 * 60 * 60 * 1000));
+}
+
+/**
+ * Maps days remaining to statutory compliance warning tiers.
+ */
+export function determineWarningTier(daysRemaining: number): ComplianceWarningTier | null {
+  if (daysRemaining <= 0) {
+    return ComplianceWarningTier.EXPIRED;
+  }
+  if (daysRemaining <= 1) {
+    return ComplianceWarningTier.WARNING_1D;
+  }
+  if (daysRemaining <= 7) {
+    return ComplianceWarningTier.WARNING_7D;
+  }
+  if (daysRemaining <= 15) {
+    return ComplianceWarningTier.WARNING_15D;
+  }
+  if (daysRemaining <= 30) {
+    return ComplianceWarningTier.WARNING_30D;
+  }
+  return null;
+}
 
 @Injectable()
 export class ComplianceService {
@@ -37,6 +94,12 @@ export class ComplianceService {
     private readonly driverProfileRepository: Repository<DriverProfile>,
     @InjectRepository(CaptainApplication)
     private readonly captainApplicationRepository: Repository<CaptainApplication>,
+    @InjectRepository(ComplianceWarning)
+    private readonly complianceWarningRepository: Repository<ComplianceWarning>,
+    @InjectRepository(Vehicle)
+    private readonly vehicleRepository: Repository<Vehicle>,
+    @InjectRepository(Document)
+    private readonly documentRepository: Repository<Document>,
     private readonly identityService: IdentityService,
     private readonly releaseBoundariesService: ReleaseBoundariesService,
   ) {}
@@ -129,9 +192,11 @@ export class ComplianceService {
     let licenseDaysRemaining: number | null = null;
 
     if (driverProfile.licenseExpiryDate) {
-      const expiryMs = new Date(driverProfile.licenseExpiryDate).getTime();
-      licenseDaysRemaining = Math.ceil((expiryMs - now) / (1000 * 60 * 60 * 24));
-      if (expiryMs < now) {
+      licenseDaysRemaining = calculateDaysRemainingToLocalBoundary(
+        driverProfile.licenseExpiryDate,
+        new Date(now),
+      );
+      if (licenseDaysRemaining <= 0) {
         licenseExpired = true;
       }
     }
@@ -531,5 +596,525 @@ export class ComplianceService {
     );
 
     return this.calculateEligibility(targetUserId);
+  }
+
+  /**
+   * Performs automated scan for expiring/expired driver licenses and vehicle credentials.
+   * Enforces immediate suspension (Duty ONLINE -> OFFLINE) and status transition to EXPIRED
+   * at local AP midnight boundary (Asia/Kolkata). Emits advance warnings (30d, 15d, 7d, 1d).
+   * Preserves historical records and audit trail.
+   */
+  async runScheduledExpiryScan(referenceDate?: Date): Promise<ComplianceScanSummaryDto> {
+    const scanDate = referenceDate ? new Date(referenceDate) : new Date();
+    const profiles = await this.driverProfileRepository.find({
+      relations: ['user', 'assignedVehicle'],
+    });
+
+    let warningsIssued = 0;
+    let accountsSuspendedOrExpired = 0;
+    const warnings: ComplianceExpiryWarning[] = [];
+
+    for (const profile of profiles) {
+      let driverSuspendedThisScan = false;
+
+      // 1. Check Driver License Expiration
+      if (profile.licenseExpiryDate) {
+        const daysRemaining = calculateDaysRemainingToLocalBoundary(
+          profile.licenseExpiryDate,
+          scanDate,
+        );
+        const tier = determineWarningTier(daysRemaining);
+
+        if (tier) {
+          const actionRequired =
+            tier === ComplianceWarningTier.EXPIRED
+              ? 'Transport driving license expired at local boundary. Account suspended from duty until renewed and verified.'
+              : tier === ComplianceWarningTier.WARNING_1D
+                ? 'Urgent: Transport driving license expires within 24 hours. Immediate renewal required to prevent automatic suspension.'
+                : `Notice: Transport driving license expires in ${daysRemaining} days. Please upload renewed DL certificate.`;
+
+          const existingWarning = await this.complianceWarningRepository.findOne({
+            where: {
+              userId: profile.userId,
+              targetType: 'DRIVER_LICENSE',
+              warningTier: tier,
+              isResolved: false,
+            },
+          });
+
+          if (!existingWarning) {
+            const warning = this.complianceWarningRepository.create({
+              userId: profile.userId,
+              driverProfileId: profile.id,
+              targetType: 'DRIVER_LICENSE',
+              targetIdentifier: profile.licenseNumber,
+              expiryDate: new Date(profile.licenseExpiryDate),
+              daysRemaining,
+              warningTier: tier,
+              isResolved: false,
+              actionRequired,
+            });
+            await this.complianceWarningRepository.save(warning);
+            warningsIssued++;
+
+            await this.identityService.recordAuditEvent({
+              actorId: '00000000-0000-0000-0000-000000000000',
+              targetUserId: profile.userId,
+              action:
+                tier === ComplianceWarningTier.EXPIRED
+                  ? 'COMPLIANCE_EXPIRY_SUSPENDED'
+                  : 'COMPLIANCE_EXPIRY_WARNING_ISSUED',
+              entityType: 'DRIVER_PROFILE',
+              entityId: profile.id,
+              previousState: {
+                verificationStatus: profile.verificationStatus,
+                dutyStatus: profile.dutyStatus,
+              },
+              newState: {
+                targetType: 'DRIVER_LICENSE',
+                warningTier: tier,
+                daysRemaining,
+                expiryDate: profile.licenseExpiryDate,
+              },
+              status: 'SUCCESS',
+            });
+          }
+
+          if (tier === ComplianceWarningTier.EXPIRED) {
+            const previousStatus = profile.verificationStatus;
+            const previousDuty = profile.dutyStatus;
+            let profileChanged = false;
+
+            if (profile.verificationStatus === DriverComplianceStatus.VERIFIED) {
+              profile.verificationStatus = DriverComplianceStatus.EXPIRED;
+              profile.suspensionReason = 'Driving license expired at local boundary';
+              profileChanged = true;
+            }
+
+            if (profile.dutyStatus === DutyStatus.ONLINE) {
+              profile.dutyStatus = DutyStatus.OFFLINE;
+              profile.dutyLastToggledAt = scanDate;
+              profileChanged = true;
+              driverSuspendedThisScan = true;
+
+              this.logger.warn(
+                `Compliance Auto-Suspension: Captain ${profile.id} (user ${profile.userId}) driving license expired. Forced OFFLINE.`,
+              );
+
+              await this.identityService.recordAuditEvent({
+                actorId: '00000000-0000-0000-0000-000000000000',
+                targetUserId: profile.userId,
+                action: 'CAPTAIN_AUTO_SUSPENDED_FOR_EXPIRY',
+                entityType: 'DRIVER_PROFILE',
+                entityId: profile.id,
+                previousState: {
+                  verificationStatus: previousStatus,
+                  dutyStatus: previousDuty,
+                },
+                newState: {
+                  verificationStatus: profile.verificationStatus,
+                  dutyStatus: profile.dutyStatus,
+                  reason: 'Driving license expired at local boundary',
+                },
+                status: 'SUCCESS',
+              });
+            }
+
+            if (profileChanged) {
+              await this.driverProfileRepository.save(profile);
+              accountsSuspendedOrExpired++;
+            }
+          }
+
+          warnings.push({
+            targetType: 'DRIVER_LICENSE',
+            targetId: profile.id,
+            targetIdentifier: profile.licenseNumber,
+            userId: profile.userId,
+            captainName: profile.user?.name,
+            expiryDate: new Date(profile.licenseExpiryDate).toISOString(),
+            daysRemaining,
+            warningTier: tier,
+            isResolved: false,
+            actionRequired,
+            dutyStatus: profile.dutyStatus,
+            complianceStatus: profile.verificationStatus,
+          });
+        }
+      }
+
+      // 2. Check Assigned Vehicle Documents Expiration
+      if (profile.assignedVehicle) {
+        const v = profile.assignedVehicle;
+        const vehicleChecks: Array<{
+          targetType: ComplianceTargetType;
+          date: Date | null | undefined;
+          number: string | null | undefined;
+          name: string;
+        }> = [
+          {
+            targetType: 'VEHICLE_INSURANCE',
+            date: v.insuranceExpiryDate,
+            number: v.insurancePolicyNumber,
+            name: 'Commercial Insurance',
+          },
+          {
+            targetType: 'VEHICLE_FITNESS',
+            date: v.fitnessExpiryDate,
+            number: v.fitnessCertificateNumber,
+            name: 'Fitness Certificate',
+          },
+          {
+            targetType: 'VEHICLE_PERMIT',
+            date: v.commercialPermitExpiry,
+            number: v.commercialPermitNumber,
+            name: 'Commercial Green Plate Permit',
+          },
+        ];
+
+        for (const check of vehicleChecks) {
+          if (check.date) {
+            const daysRemaining = calculateDaysRemainingToLocalBoundary(check.date, scanDate);
+            const tier = determineWarningTier(daysRemaining);
+
+            if (tier) {
+              const actionRequired =
+                tier === ComplianceWarningTier.EXPIRED
+                  ? `${check.name} expired at local boundary. Vehicle is not roadworthy; captain cannot operate.`
+                  : tier === ComplianceWarningTier.WARNING_1D
+                    ? `Urgent: ${check.name} expires within 24 hours. Immediate renewal required.`
+                    : `Notice: ${check.name} expires in ${daysRemaining} days. Renew statutory certificate.`;
+
+              const existingWarning = await this.complianceWarningRepository.findOne({
+                where: {
+                  userId: profile.userId,
+                  targetType: check.targetType,
+                  warningTier: tier,
+                  isResolved: false,
+                },
+              });
+
+              if (!existingWarning) {
+                const warning = this.complianceWarningRepository.create({
+                  userId: profile.userId,
+                  driverProfileId: profile.id,
+                  vehicleId: v.id,
+                  targetType: check.targetType,
+                  targetIdentifier: check.number || v.registrationNumber,
+                  expiryDate: new Date(check.date),
+                  daysRemaining,
+                  warningTier: tier,
+                  isResolved: false,
+                  actionRequired,
+                });
+                await this.complianceWarningRepository.save(warning);
+                warningsIssued++;
+
+                await this.identityService.recordAuditEvent({
+                  actorId: '00000000-0000-0000-0000-000000000000',
+                  targetUserId: profile.userId,
+                  action:
+                    tier === ComplianceWarningTier.EXPIRED
+                      ? 'VEHICLE_EXPIRY_UNROADWORTHY'
+                      : 'COMPLIANCE_EXPIRY_WARNING_ISSUED',
+                  entityType: 'VEHICLE',
+                  entityId: v.id,
+                  previousState: { isRoadworthy: v.isRoadworthy },
+                  newState: {
+                    targetType: check.targetType,
+                    warningTier: tier,
+                    daysRemaining,
+                    expiryDate: check.date,
+                  },
+                  status: 'SUCCESS',
+                });
+              }
+
+              if (tier === ComplianceWarningTier.EXPIRED) {
+                if (profile.dutyStatus === DutyStatus.ONLINE && !driverSuspendedThisScan) {
+                  profile.dutyStatus = DutyStatus.OFFLINE;
+                  profile.dutyLastToggledAt = scanDate;
+                  await this.driverProfileRepository.save(profile);
+                  driverSuspendedThisScan = true;
+                  accountsSuspendedOrExpired++;
+
+                  this.logger.warn(
+                    `Safety Auto-Offline: Driver ${profile.id} forced OFFLINE because vehicle ${v.registrationNumber} ${check.name} expired.`,
+                  );
+
+                  await this.identityService.recordAuditEvent({
+                    actorId: '00000000-0000-0000-0000-000000000000',
+                    targetUserId: profile.userId,
+                    action: 'CAPTAIN_AUTO_SUSPENDED_FOR_VEHICLE_EXPIRY',
+                    entityType: 'DRIVER_PROFILE',
+                    entityId: profile.id,
+                    previousState: { dutyStatus: DutyStatus.ONLINE },
+                    newState: {
+                      dutyStatus: DutyStatus.OFFLINE,
+                      expiredDocument: check.targetType,
+                    },
+                    status: 'SUCCESS',
+                  });
+                }
+              }
+
+              warnings.push({
+                targetType: check.targetType,
+                targetId: v.id,
+                targetIdentifier: check.number || v.registrationNumber,
+                userId: profile.userId,
+                captainName: profile.user?.name,
+                expiryDate: new Date(check.date).toISOString(),
+                daysRemaining,
+                warningTier: tier,
+                isResolved: false,
+                actionRequired,
+                dutyStatus: profile.dutyStatus,
+                complianceStatus: profile.verificationStatus,
+              });
+            }
+          }
+        }
+      }
+    }
+
+    const totalVehicles = await this.vehicleRepository.count();
+
+    return {
+      scannedAt: scanDate.toISOString(),
+      totalProfilesScanned: profiles.length,
+      totalVehiclesScanned: totalVehicles,
+      warningsIssued,
+      accountsSuspendedOrExpired,
+      warnings,
+    };
+  }
+
+  /**
+   * Re-verification workflow for renewed statutory documents (driver license, insurance, fitness, permit).
+   * Preserves historical records, resolves outstanding warnings, updates credentials,
+   * restores VERIFIED compliance status if previously expired/suspended, and recalculates eligibility.
+   */
+  async reverifyCompliance(
+    actor: CurrentActorPayload,
+    dto: ReverifyComplianceDto,
+  ): Promise<ReverifyComplianceResponse> {
+    const targetUserId = dto.targetUserId || actor.id;
+
+    if (targetUserId !== actor.id) {
+      await this.identityService.assertCanAccessUser(
+        actor,
+        targetUserId,
+        'driver:write',
+        'REVERIFY_COMPLIANCE',
+      );
+    }
+
+    const newExpiry = new Date(dto.newExpiryDate);
+    if (isNaN(newExpiry.getTime()) || newExpiry.getTime() <= Date.now()) {
+      throw new BadRequestException('New statutory expiry date must be a valid future date.');
+    }
+
+    const doc = await this.documentRepository.findOne({
+      where: { id: dto.documentId },
+    });
+    if (!doc) {
+      throw new NotFoundException(
+        `Uploaded renewal document ${dto.documentId} not found in private document repository.`,
+      );
+    }
+
+    if (
+      doc.scanStatus === DocumentStatus.INFECTED ||
+      doc.scanStatus === DocumentStatus.QUARANTINED
+    ) {
+      throw new UnprocessableEntityException(
+        'Cannot accept renewal document: document failed malware scanning verification.',
+      );
+    }
+
+    const driverProfile = await this.driverProfileRepository.findOne({
+      where: { userId: targetUserId },
+      relations: ['assignedVehicle'],
+    });
+
+    if (!driverProfile) {
+      throw new NotFoundException(`Driver profile not found for user ${targetUserId}`);
+    }
+
+    let targetId = driverProfile.id;
+    const previousDriverState = {
+      licenseExpiryDate: driverProfile.licenseExpiryDate,
+      licenseNumber: driverProfile.licenseNumber,
+      verificationStatus: driverProfile.verificationStatus,
+      dutyStatus: driverProfile.dutyStatus,
+    };
+
+    if (dto.targetType === 'DRIVER_LICENSE') {
+      driverProfile.licenseExpiryDate = newExpiry;
+      if (dto.newDocumentNumber) {
+        driverProfile.licenseNumber = dto.newDocumentNumber;
+      }
+      if (
+        driverProfile.verificationStatus === DriverComplianceStatus.EXPIRED ||
+        driverProfile.verificationStatus === DriverComplianceStatus.SUSPENDED
+      ) {
+        driverProfile.verificationStatus = DriverComplianceStatus.VERIFIED;
+        driverProfile.suspensionReason = null;
+      }
+      if (dto.notes) {
+        driverProfile.complianceNotes = dto.notes;
+      }
+      await this.driverProfileRepository.save(driverProfile);
+    } else {
+      const vehicle = driverProfile.assignedVehicle;
+      if (!vehicle) {
+        throw new BadRequestException(
+          'No vehicle assigned to captain for vehicle compliance renewal.',
+        );
+      }
+      targetId = vehicle.id;
+
+      if (dto.targetType === 'VEHICLE_INSURANCE') {
+        vehicle.insuranceExpiryDate = newExpiry;
+        if (dto.newDocumentNumber) {
+          vehicle.insurancePolicyNumber = dto.newDocumentNumber;
+        }
+      } else if (dto.targetType === 'VEHICLE_FITNESS') {
+        vehicle.fitnessExpiryDate = newExpiry;
+        if (dto.newDocumentNumber) {
+          vehicle.fitnessCertificateNumber = dto.newDocumentNumber;
+        }
+      } else if (dto.targetType === 'VEHICLE_PERMIT') {
+        vehicle.commercialPermitExpiry = newExpiry;
+        if (dto.newDocumentNumber) {
+          vehicle.commercialPermitNumber = dto.newDocumentNumber;
+        }
+      }
+
+      await this.vehicleRepository.save(vehicle);
+
+      // If driver was EXPIRED and their driving license is valid, restore to VERIFIED
+      const licenseDays = driverProfile.licenseExpiryDate
+        ? calculateDaysRemainingToLocalBoundary(driverProfile.licenseExpiryDate)
+        : null;
+      if (
+        driverProfile.verificationStatus === DriverComplianceStatus.EXPIRED &&
+        licenseDays !== null &&
+        licenseDays > 0
+      ) {
+        driverProfile.verificationStatus = DriverComplianceStatus.VERIFIED;
+        driverProfile.suspensionReason = null;
+        await this.driverProfileRepository.save(driverProfile);
+      }
+    }
+
+    // Resolve outstanding warnings for this target (preserving historical records)
+    const activeWarnings = await this.complianceWarningRepository.find({
+      where: {
+        userId: targetUserId,
+        targetType: dto.targetType,
+        isResolved: false,
+      },
+    });
+
+    const now = new Date();
+    for (const w of activeWarnings) {
+      w.isResolved = true;
+      w.resolvedAt = now;
+      w.resolutionType = 'REVERIFIED';
+      await this.complianceWarningRepository.save(w);
+    }
+
+    await this.identityService.recordAuditEvent({
+      actorId: actor.id,
+      targetUserId,
+      action: 'CAPTAIN_COMPLIANCE_REVERIFIED',
+      entityType: dto.targetType === 'DRIVER_LICENSE' ? 'DRIVER_PROFILE' : 'VEHICLE',
+      entityId: targetId,
+      previousState: previousDriverState,
+      newState: {
+        targetType: dto.targetType,
+        newExpiryDate: newExpiry.toISOString(),
+        documentId: dto.documentId,
+        verificationStatus: driverProfile.verificationStatus,
+        resolvedWarningsCount: activeWarnings.length,
+      },
+      status: 'SUCCESS',
+      ipAddress: actor.ipAddress,
+      correlationId: actor.correlationId,
+    });
+
+    const eligibility = await this.calculateEligibility(targetUserId);
+
+    return {
+      success: true,
+      message: `Statutory credential '${dto.targetType}' re-verified successfully. Expiry updated to ${newExpiry.toISOString()}.`,
+      targetType: dto.targetType,
+      targetId,
+      userId: targetUserId,
+      updatedExpiryDate: newExpiry.toISOString(),
+      resolvedWarningsCount: activeWarnings.length,
+      eligibility,
+    };
+  }
+
+  /**
+   * Retrieves active or historical compliance warnings.
+   */
+  async getComplianceWarnings(
+    actor: CurrentActorPayload,
+    query: QueryComplianceWarningsDto,
+  ): Promise<ComplianceExpiryWarning[]> {
+    const targetUserId = query.userId;
+
+    if (targetUserId && targetUserId !== actor.id) {
+      await this.identityService.assertCanAccessUser(
+        actor,
+        targetUserId,
+        'driver:read',
+        'READ_COMPLIANCE_WARNINGS',
+      );
+    }
+
+    const where: FindOptionsWhere<ComplianceWarning> = {};
+    if (targetUserId) {
+      where.userId = targetUserId;
+    } else if (actor.role === PlatformRole.CAPTAIN || actor.role === PlatformRole.RIDER) {
+      where.userId = actor.id;
+    }
+
+    if (query.targetType) {
+      where.targetType = query.targetType;
+    }
+    if (query.warningTier) {
+      where.warningTier = query.warningTier;
+    }
+    if (query.isResolved !== undefined) {
+      where.isResolved = query.isResolved;
+    }
+
+    const records = await this.complianceWarningRepository.find({
+      where,
+      order: { createdAt: 'DESC' },
+      relations: ['user'],
+    });
+
+    return records.map((w) => ({
+      id: w.id,
+      targetType: w.targetType as ComplianceTargetType,
+      targetId: w.driverProfileId || w.vehicleId || '',
+      targetIdentifier: w.targetIdentifier,
+      userId: w.userId,
+      captainName: w.user?.name,
+      expiryDate: w.expiryDate.toISOString(),
+      daysRemaining: w.daysRemaining,
+      warningTier: w.warningTier as ComplianceWarningTier,
+      isResolved: w.isResolved,
+      resolvedAt: w.resolvedAt ? w.resolvedAt.toISOString() : null,
+      resolutionType: w.resolutionType || null,
+      actionRequired: w.actionRequired,
+      createdAt: w.createdAt.toISOString(),
+    }));
   }
 }

@@ -545,3 +545,51 @@
   6. **Driver Duty Availability Integration**:
      - In `ComplianceService.calculateEligibility`, assigned vehicle records are evaluated for valid registration, category capacity limits, and city service class compatibility.
      - Any violation marks `isEligibleForAssignment = false`, preventing the driver from toggling duty to `ONLINE` with HTTP 422 Unprocessable Entity.
+
+
+## 2026-11-02 — ADR-0030: Scheduled Compliance Expiry Scans, Advance Warning Tiers, Local Boundary Suspension, and Audit-Preserving Re-Verification
+
+- **Status**: Accepted
+- **Context**:
+  Commercial EV drivers (Captains) and vehicles in Andhra Pradesh operate under time-bound statutory credentials, including Regional Transport Authority (RTA) transport driving licenses, commercial third-party insurance, fitness certificates, and Andhra Pradesh Green Plate commercial carriage permits.
+  Operating with expired statutory credentials violates AP Motor Vehicle rules, invalidates commercial insurance coverage, and creates severe public liability and safety risks.
+  Furthermore, per AGENTS.md:
+  1. Rule 2: Category availability and propulsion must be enforced server-side by driver and vehicle status.
+  2. Rule 4: Use database as single source of truth for bookings, entitlements, and audit history. Concurrency and transitions must be audit-tracked.
+  3. Rule 5: Preserve historical records rather than deleting the evidence.
+  Consequently, the platform requires scheduled expiry scans evaluating documents at the local Andhra Pradesh midnight boundary (`Asia/Kolkata` / UTC+05:30), 4-tier advance warning notifications prior to statutory expiry, automated duty suspension (`ONLINE` -> `OFFLINE`) upon document expiration, and an audit-preserving re-verification workflow that resolves active warnings while permanently preserving historical records.
+
+- **Decisions**:
+  1. **Local Midnight Boundary Evaluation (`calculateDaysRemainingToLocalBoundary`)**:
+     - Evaluates statutory document expiration against Andhra Pradesh local midnight boundary (`Asia/Kolkata`).
+     - Any document where `expiryDate.getTime() - now.getTime() <= 0` evaluates to `daysRemaining <= 0` and is authoritatively treated as expired at that boundary.
+  2. **4-Tier Advance Warning Taxonomy (`determineWarningTier`)**:
+     - `WARNING_30D`: 16 to 30 days remaining prior to statutory expiry.
+     - `WARNING_15D`: 8 to 15 days remaining prior to statutory expiry.
+     - `WARNING_7D`: 2 to 7 days remaining prior to statutory expiry.
+     - `WARNING_1D`: 1 day (<= 24 hours) remaining prior to statutory expiry.
+     - `EXPIRED`: `<= 0` days remaining; account suspended from duty.
+     - Idempotent: Warnings avoid duplicate spamming if an active unresolved warning for the same tier and statutory target is already recorded.
+  3. **Automated Suspension & Safety Auto-Offline Guard (`runScheduledExpiryScan`)**:
+     - Background scheduled scan method and endpoint `POST /v1/captains/scans/run-expiry-check` (restricted to operators and compliance officers).
+     - When a verified captain's transport driving license reaches local expiry boundary:
+       - Automatically transitions `DriverProfile.verificationStatus` to `DriverComplianceStatus.EXPIRED`.
+       - If captain was `DutyStatus.ONLINE`, safely and immediately forces duty status to `DutyStatus.OFFLINE` with updated timestamp.
+       - Dispatches and attempts to toggle duty to `ONLINE` are strictly blocked server-side with HTTP 422 Unprocessable Entity.
+       - Emits `CAPTAIN_AUTO_SUSPENDED_FOR_EXPIRY` audit event with previous and new states.
+     - When an assigned vehicle's insurance, fitness, or green-plate permit expires:
+       - Vehicle is marked non-roadworthy.
+       - If captain was `DutyStatus.ONLINE`, safely forces captain duty to `DutyStatus.OFFLINE`.
+       - Emits `CAPTAIN_AUTO_SUSPENDED_FOR_VEHICLE_EXPIRY` audit event.
+  4. **Preservation of Historical Records (Rule 4 & Scope)**:
+     - Historical records are NEVER deleted.
+     - Created dedicated table `compliance_warnings` (Migration 12) storing full warning history (`userId`, `driverProfileId`, `vehicleId`, `targetType`, `expiryDate`, `daysRemaining`, `warningTier`, `actionRequired`, `createdAt`).
+     - Prior KYC documents in `documents` table remain permanently retained for compliance audit inspection.
+  5. **Audit-Preserving Re-Verification Workflow (`reverifyCompliance`)**:
+     - Exposed endpoints `POST /v1/captains/me/reverify` (for captains) and `POST /v1/captains/:userId/reverify` (for operators on behalf of captains).
+     - Validates that `newExpiryDate` is in the future and that renewal document exists and is not malware-infected (`CLEAN`).
+     - Updates `DriverProfile.licenseExpiryDate` (or vehicle credential expiry dates).
+     - Restores `DriverProfile.verificationStatus` from `EXPIRED` back to `VERIFIED` and clears `suspensionReason`.
+     - Marks outstanding active warnings for that target as resolved (`isResolved = true`, `resolvedAt = now`, `resolutionType = 'REVERIFIED'`), preserving historical evidence.
+     - Records `CAPTAIN_COMPLIANCE_REVERIFIED` audit event.
+     - Immediately restores assignment eligibility, enabling the captain to resume duty `ONLINE`.

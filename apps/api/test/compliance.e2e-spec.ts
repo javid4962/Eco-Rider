@@ -7,6 +7,7 @@ import { DataSource } from 'typeorm';
 import { ExpandVehiclesTableWithEVCompliance1700000000008 } from '../src/database/migrations/1700000000008-ExpandVehiclesTableWithEVCompliance';
 import { CreateCaptainApplicationsAndReviewHistory1700000000009 } from '../src/database/migrations/1700000000009-CreateCaptainApplicationsAndReviewHistory';
 import { AddDriverComplianceAndDutyStatus1700000000010 } from '../src/database/migrations/1700000000010-AddDriverComplianceAndDutyStatus';
+import { CreateComplianceWarningsTable1700000000012 } from '../src/database/migrations/1700000000012-CreateComplianceWarningsTable';
 import {
   PlatformRole,
   DriverComplianceStatus,
@@ -107,9 +108,15 @@ describe('Captain Compliance Eligibility State Machine E2E Integration (EV-025)'
       } catch {
         // Schema columns already present
       }
+      try {
+        await new CreateComplianceWarningsTable1700000000012().up(dataSource.createQueryRunner());
+      } catch {
+        // Schema table already present
+      }
 
       // 1. Cleanup previous test artifacts
       await dataSource.query(`
+        DELETE FROM "compliance_warnings" WHERE "user_id" IN ('${captainVerified.id}', '${captainSuspended.id}', '${captainExpired.id}');
         DELETE FROM "captain_application_reviews" WHERE "reviewer_id" = '${operatorUser.id}' OR "application_id" IN (
           SELECT "id" FROM "captain_applications" WHERE "user_id" IN ('${captainVerified.id}', '${captainSuspended.id}', '${captainExpired.id}')
         );
@@ -190,6 +197,7 @@ describe('Captain Compliance Eligibility State Machine E2E Integration (EV-025)'
   afterAll(async () => {
     if (dataSource && dataSource.isInitialized) {
       await dataSource.query(`
+        DELETE FROM "compliance_warnings" WHERE "user_id" IN ('${captainVerified.id}', '${captainSuspended.id}', '${captainExpired.id}');
         DELETE FROM "captain_application_reviews" WHERE "reviewer_id" = '${operatorUser.id}' OR "application_id" IN (
           SELECT "id" FROM "captain_applications" WHERE "user_id" IN ('${captainVerified.id}', '${captainSuspended.id}', '${captainExpired.id}')
         );
@@ -384,6 +392,126 @@ describe('Captain Compliance Eligibility State Machine E2E Integration (EV-025)'
         .set('x-actor-role', captainVerified.role)
         .send({ status: DriverComplianceStatus.VERIFIED })
         .expect(403);
+    });
+  });
+
+  describe('7. Scheduled Expiry Scans, Warnings & Re-Verification (EV-029)', () => {
+    it('should allow operator to trigger scheduled compliance expiry scan and update expired records', async () => {
+      const res = await request(app.getHttpServer())
+        .post('/v1/captains/scans/run-expiry-check')
+        .set('x-actor-user-id', operatorUser.id)
+        .set('x-actor-role', operatorUser.role)
+        .send({})
+        .expect(200);
+
+      expect(res.body.scannedAt).toBeDefined();
+      expect(res.body.totalProfilesScanned).toBeGreaterThanOrEqual(1);
+      expect(res.body.warnings).toBeInstanceOf(Array);
+
+      // Verify that captainExpired (license in the past) was transitioned to EXPIRED in database
+      const profileCheck = await dataSource.query(`
+        SELECT "verification_status", "duty_status"
+        FROM "driver_profiles"
+        WHERE "user_id" = '${captainExpired.id}';
+      `);
+      expect(profileCheck[0].verification_status).toBe(DriverComplianceStatus.EXPIRED);
+      expect(profileCheck[0].duty_status).toBe(DutyStatus.OFFLINE);
+
+      // Verify compliance warning was persisted in compliance_warnings table
+      const warningsInDb = await dataSource.query(`
+        SELECT "warning_tier", "target_type", "is_resolved"
+        FROM "compliance_warnings"
+        WHERE "user_id" = '${captainExpired.id}';
+      `);
+      expect(warningsInDb.length).toBeGreaterThanOrEqual(1);
+      expect(warningsInDb[0].warning_tier).toBe('EXPIRED');
+      expect(warningsInDb[0].is_resolved).toBe(false);
+    });
+
+    it('should allow captain to fetch active compliance warnings for their account', async () => {
+      const res = await request(app.getHttpServer())
+        .get('/v1/captains/me/warnings?isResolved=false')
+        .set('x-actor-user-id', captainExpired.id)
+        .set('x-actor-role', captainExpired.role)
+        .expect(200);
+
+      expect(res.body).toBeInstanceOf(Array);
+      expect(res.body.length).toBeGreaterThanOrEqual(1);
+      expect(res.body[0].userId).toBe(captainExpired.id);
+      expect(res.body[0].warningTier).toBe('EXPIRED');
+    });
+
+    it('should re-verify renewed driving license, restore VERIFIED status, and resolve warnings', async () => {
+      const futureExpiry = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+
+      const res = await request(app.getHttpServer())
+        .post('/v1/captains/me/reverify')
+        .set('x-actor-user-id', captainExpired.id)
+        .set('x-actor-role', captainExpired.role)
+        .send({
+          targetType: 'DRIVER_LICENSE',
+          newExpiryDate: futureExpiry,
+          documentId: docId1,
+          newDocumentNumber: 'AP31 20268888999',
+          notes: 'Renewed commercial DL verified with RTA receipt',
+        })
+        .expect(200);
+
+      expect(res.body.success).toBe(true);
+      expect(res.body.eligibility.complianceStatus).toBe(DriverComplianceStatus.VERIFIED);
+      expect(res.body.eligibility.isEligibleForAssignment).toBe(true);
+
+      // Verify DB: DriverProfile is now VERIFIED
+      const updatedProfile = await dataSource.query(`
+        SELECT "verification_status", "license_number"
+        FROM "driver_profiles"
+        WHERE "user_id" = '${captainExpired.id}';
+      `);
+      expect(updatedProfile[0].verification_status).toBe(DriverComplianceStatus.VERIFIED);
+      expect(updatedProfile[0].license_number).toBe('AP31 20268888999');
+
+      // Verify DB: Compliance warning record was preserved (not deleted) and marked resolved
+      const resolvedWarning = await dataSource.query(`
+        SELECT "is_resolved", "resolution_type", "resolved_at"
+        FROM "compliance_warnings"
+        WHERE "user_id" = '${captainExpired.id}';
+      `);
+      expect(resolvedWarning.length).toBeGreaterThanOrEqual(1);
+      expect(resolvedWarning[0].is_resolved).toBe(true);
+      expect(resolvedWarning[0].resolution_type).toBe('REVERIFIED');
+      expect(resolvedWarning[0].resolved_at).not.toBeNull();
+
+      // Now captain can go online!
+      const onlineRes = await request(app.getHttpServer())
+        .post('/v1/captains/me/duty')
+        .set('x-actor-user-id', captainExpired.id)
+        .set('x-actor-role', captainExpired.role)
+        .send({ status: DutyStatus.ONLINE })
+        .expect(200);
+
+      expect(onlineRes.body.dutyStatus).toBe(DutyStatus.ONLINE);
+    });
+
+    it('should reject non-operator from triggering scheduled expiry scan with 403 Forbidden', async () => {
+      await request(app.getHttpServer())
+        .post('/v1/captains/scans/run-expiry-check')
+        .set('x-actor-user-id', captainVerified.id)
+        .set('x-actor-role', captainVerified.role)
+        .send({})
+        .expect(403);
+    });
+
+    it('should reject re-verification if new expiry date is in the past with 400 Bad Request', async () => {
+      await request(app.getHttpServer())
+        .post('/v1/captains/me/reverify')
+        .set('x-actor-user-id', captainExpired.id)
+        .set('x-actor-role', captainExpired.role)
+        .send({
+          targetType: 'DRIVER_LICENSE',
+          newExpiryDate: pastMonth,
+          documentId: docId1,
+        })
+        .expect(400);
     });
   });
 });

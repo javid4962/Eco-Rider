@@ -10,6 +10,7 @@ import { ExpandVehiclesTableWithEVCompliance1700000000008 } from '../src/databas
 import { CreateCaptainApplicationsAndReviewHistory1700000000009 } from '../src/database/migrations/1700000000009-CreateCaptainApplicationsAndReviewHistory';
 import { AddDriverComplianceAndDutyStatus1700000000010 } from '../src/database/migrations/1700000000010-AddDriverComplianceAndDutyStatus';
 import { AddVehicleSeatingConfigurationAndClassificationControls1700000000011 } from '../src/database/migrations/1700000000011-AddVehicleSeatingConfigurationAndClassificationControls';
+import { CreateComplianceWarningsTable1700000000012 } from '../src/database/migrations/1700000000012-CreateComplianceWarningsTable';
 
 describe('Scratch Database Migration Up/Down Test', () => {
   let dataSource: DataSource | null = null;
@@ -250,6 +251,46 @@ describe('Scratch Database Migration Up/Down Test', () => {
       await new AddVehicleSeatingConfigurationAndClassificationControls1700000000011().up(
         queryRunner,
       );
+      await new CreateComplianceWarningsTable1700000000012().up(queryRunner);
     }, 60000);
+  });
+
+  describe('Migration 12 (EV-029) - Compliance Warnings Table Up/Down', () => {
+    it('should provision compliance_warnings table and verify rollback', async () => {
+      const migration12 = new CreateComplianceWarningsTable1700000000012();
+      if (!isLiveDbAvailable || !queryRunner) {
+        const executedQueries: string[] = [];
+        const mockRunner: Partial<QueryRunner> = {
+          query: jest.fn().mockImplementation(async (sql: string) => {
+            executedQueries.push(sql);
+            return [];
+          }),
+        };
+        await migration12.up(mockRunner as QueryRunner);
+        await migration12.down(mockRunner as QueryRunner);
+        expect(executedQueries.length).toBeGreaterThan(0);
+        return;
+      }
+
+      // Ensure up
+      await migration12.up(queryRunner);
+
+      const tableCheck = await queryRunner.query(`
+        SELECT table_name FROM information_schema.tables
+        WHERE table_schema = 'public' AND table_name = 'compliance_warnings';
+      `);
+      expect(tableCheck).toHaveLength(1);
+
+      // Verify down
+      await migration12.down(queryRunner);
+      const tableCheckDown = await queryRunner.query(`
+        SELECT table_name FROM information_schema.tables
+        WHERE table_schema = 'public' AND table_name = 'compliance_warnings';
+      `);
+      expect(tableCheckDown).toHaveLength(0);
+
+      // Re-apply up
+      await migration12.up(queryRunner);
+    });
   });
 });

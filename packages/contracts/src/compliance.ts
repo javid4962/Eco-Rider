@@ -92,3 +92,73 @@ export interface UpdateComplianceStatusRequest {
   suspensionReason?: string;
   notes?: string;
 }
+
+/**
+ * Compliance Expiry Warning Tiers (EV-029)
+ * Advance warning windows prior to statutory document expiration.
+ */
+export enum ComplianceWarningTier {
+  WARNING_30D = 'WARNING_30D',
+  WARNING_15D = 'WARNING_15D',
+  WARNING_7D = 'WARNING_7D',
+  WARNING_1D = 'WARNING_1D',
+  EXPIRED = 'EXPIRED',
+}
+
+export type ComplianceTargetType =
+  'DRIVER_LICENSE' | 'VEHICLE_INSURANCE' | 'VEHICLE_FITNESS' | 'VEHICLE_PERMIT';
+
+export interface ComplianceExpiryWarning {
+  id?: string;
+  targetType: ComplianceTargetType;
+  targetId: string;
+  targetIdentifier: string;
+  userId: string;
+  captainName?: string;
+  expiryDate: string;
+  daysRemaining: number;
+  warningTier: ComplianceWarningTier;
+  isResolved: boolean;
+  resolvedAt?: string | null;
+  resolutionType?: string | null;
+  actionRequired: string;
+  dutyStatus?: DutyStatus | string;
+  complianceStatus?: DriverComplianceStatus | string;
+  createdAt?: string;
+}
+
+export interface ComplianceScanSummaryDto {
+  scannedAt: string;
+  totalProfilesScanned: number;
+  totalVehiclesScanned: number;
+  warningsIssued: number;
+  accountsSuspendedOrExpired: number;
+  warnings: ComplianceExpiryWarning[];
+}
+
+export interface ReverifyComplianceRequest {
+  targetUserId?: string;
+  targetType: ComplianceTargetType;
+  newExpiryDate: string;
+  documentId: string;
+  newDocumentNumber?: string;
+  notes?: string;
+}
+
+export interface ReverifyComplianceResponse {
+  success: boolean;
+  message: string;
+  targetType: ComplianceTargetType;
+  targetId: string;
+  userId: string;
+  updatedExpiryDate: string;
+  resolvedWarningsCount: number;
+  eligibility: CaptainEligibilityDto;
+}
+
+export interface ComplianceWarningsQuery {
+  userId?: string;
+  targetType?: ComplianceTargetType;
+  warningTier?: ComplianceWarningTier;
+  isResolved?: boolean;
+}
