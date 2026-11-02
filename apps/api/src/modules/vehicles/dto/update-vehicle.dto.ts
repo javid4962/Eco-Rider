@@ -18,6 +18,7 @@ import {
   RangeTelemetrySource,
   UpdateVehicleRequest,
   VehicleCategory,
+  VehicleServiceClass,
 } from '@ecoride/contracts';
 
 export class UpdateVehicleDto implements UpdateVehicleRequest {
@@ -29,6 +30,36 @@ export class UpdateVehicleDto implements UpdateVehicleRequest {
   @IsOptional()
   @IsEnum(VehicleCategory)
   vehicleCategory?: VehicleCategory;
+
+  @ApiPropertyOptional({
+    enum: VehicleServiceClass,
+    example: VehicleServiceClass.ECO_BIKE,
+    description: 'Commercial service classification (e.g. ECO_BIKE, ECO_AUTO, ECO_CAB, ECO_VAN)',
+  })
+  @IsOptional()
+  @IsEnum(VehicleServiceClass)
+  serviceClass?: VehicleServiceClass;
+
+  @ApiPropertyOptional({
+    example: 'D+3',
+    description:
+      'Standard RTO seating configuration accounting for driver separately (e.g. D+3 derives 3 customer seats + 1 driver seat)',
+  })
+  @IsOptional()
+  @IsString()
+  seatingConfiguration?: string;
+
+  @ApiPropertyOptional({
+    example: 4,
+    description:
+      'Total vehicle seating capacity including driver (e.g. 4 for D+3: 1 driver + 3 customer seats)',
+  })
+  @IsOptional()
+  @IsInt()
+  @Min(2)
+  @Max(11)
+  @Type(() => Number)
+  totalSeatingCapacity?: number;
 
   @ApiPropertyOptional({
     example: 'Ather Energy',

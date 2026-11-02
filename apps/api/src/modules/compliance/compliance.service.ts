@@ -19,6 +19,9 @@ import {
   PropulsionType,
   VehicleVerificationStatus,
   CaptainApplicationStatus,
+  VehicleCategory,
+  CATEGORY_SEATING_LIMITS,
+  CITY_PERMITTED_CATEGORIES,
 } from '@ecoride/contracts';
 import { IdentityService } from '../identity/identity.service';
 import { ReleaseBoundariesService } from '../release-boundaries/release-boundaries.service';
@@ -217,6 +220,34 @@ export class ComplianceService {
     if (!vehicle) {
       ineligibilityReasons.push('No electric vehicle assigned to captain.');
     } else {
+      // 1. Missing registration check
+      if (!vehicle.registrationNumber || vehicle.registrationNumber.trim().length === 0) {
+        ineligibilityReasons.push('Assigned vehicle has missing or invalid registration number.');
+      }
+
+      // 2. Over-capacity check
+      const vehicleCat = (vehicle.vehicleCategory ||
+        VehicleCategory.CITY_COMMUTE_2W) as VehicleCategory;
+      const limits = CATEGORY_SEATING_LIMITS[vehicleCat];
+      if (
+        limits &&
+        vehicle.approvedPassengerSeating &&
+        vehicle.approvedPassengerSeating > limits.maxSeats
+      ) {
+        ineligibilityReasons.push(
+          `Assigned vehicle is over-capacity: ${vehicle.approvedPassengerSeating} customer seats exceeds legal limit of ${limits.maxSeats} for category '${vehicleCat}'.`,
+        );
+      }
+
+      // 3. Service class & city matching check
+      const opCity = (driverProfile.city || vehicle.city || 'visakhapatnam').toLowerCase().trim();
+      const permittedCats = CITY_PERMITTED_CATEGORIES[opCity] ?? [];
+      if (!permittedCats.includes(vehicleCat)) {
+        ineligibilityReasons.push(
+          `Assigned vehicle service class '${vehicleCat}' is incompatible or unauthorized in operating city '${opCity}'.`,
+        );
+      }
+
       if (!vehiclePropulsionValid) {
         ineligibilityReasons.push('Assigned vehicle is not 100% battery electric.');
       }

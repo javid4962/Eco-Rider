@@ -13,6 +13,7 @@ import { User } from './user.entity';
 import {
   PropulsionType,
   VehicleCategory,
+  VehicleServiceClass,
   RangeTelemetrySource,
   VehicleVerificationStatus,
 } from '@ecoride/contracts';
@@ -21,6 +22,7 @@ import {
 @Check(`"propulsion_type" = 'BATTERY_ELECTRIC'`)
 @Check(`"current_soc_percent" >= 0.00 AND "current_soc_percent" <= 100.00`)
 @Check(`"approved_passenger_seating" >= 1 AND "approved_passenger_seating" <= 10`)
+@Check(`"total_seating_capacity" = "approved_passenger_seating" + 1`)
 @Check(`"rated_range_km" > 0`)
 export class Vehicle {
   @PrimaryGeneratedColumn('uuid')
@@ -45,7 +47,32 @@ export class Vehicle {
     name: 'vehicle_category',
     default: VehicleCategory.CITY_COMMUTE_2W,
   })
-  vehicleCategory!: VehicleCategory | string;
+  vehicleCategory: VehicleCategory | string = VehicleCategory.CITY_COMMUTE_2W;
+
+  @Index('idx_vehicles_service_class')
+  @Column({
+    type: 'varchar',
+    length: 50,
+    name: 'service_class',
+    default: VehicleServiceClass.ECO_BIKE,
+  })
+  serviceClass: VehicleServiceClass | string = VehicleServiceClass.ECO_BIKE;
+
+  @Index('idx_vehicles_seating_config')
+  @Column({
+    type: 'varchar',
+    length: 20,
+    name: 'seating_configuration',
+    default: 'D+1',
+  })
+  seatingConfiguration: string = 'D+1';
+
+  @Column({
+    type: 'int',
+    name: 'total_seating_capacity',
+    default: 2,
+  })
+  totalSeatingCapacity: number = 2;
 
   @Column({ type: 'varchar', length: 100, default: 'Ather Energy' })
   make!: string;
@@ -175,5 +202,19 @@ export class Vehicle {
   get estimatedRangeKm(): number {
     const socFraction = Math.max(0, Math.min(100, Number(this.currentSocPercent))) / 100;
     return Math.round(Number(this.ratedRangeKm) * socFraction);
+  }
+
+  /**
+   * Strictly accounts for the driver separately (driver seat = 1).
+   */
+  get driverSeatCount(): number {
+    return 1;
+  }
+
+  /**
+   * Authoritative legal passenger capacity for customers, accounting for driver separately.
+   */
+  get legalPassengerCapacity(): number {
+    return Number(this.approvedPassengerSeating);
   }
 }

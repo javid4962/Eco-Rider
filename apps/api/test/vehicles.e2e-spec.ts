@@ -8,10 +8,12 @@ import {
   PlatformRole,
   PropulsionType,
   VehicleCategory,
+  VehicleServiceClass,
   VehicleVerificationStatus,
   RangeTelemetrySource,
 } from '@ecoride/contracts';
 import { ExpandVehiclesTableWithEVCompliance1700000000008 } from '../src/database/migrations/1700000000008-ExpandVehiclesTableWithEVCompliance';
+import { AddVehicleSeatingConfigurationAndClassificationControls1700000000011 } from '../src/database/migrations/1700000000011-AddVehicleSeatingConfigurationAndClassificationControls';
 
 describe('Verified EV Records & Electric-Only Enforcement E2E Integration (EV-023)', () => {
   let app: INestApplication;
@@ -62,10 +64,17 @@ describe('Verified EV Records & Electric-Only Enforcement E2E Integration (EV-02
     dataSource = app.get(DataSource);
 
     if (dataSource.isInitialized) {
-      // Apply migration 1700000000008 if not already applied
+      // Apply migrations if not already applied
       try {
-        const migration = new ExpandVehiclesTableWithEVCompliance1700000000008();
-        await migration.up(dataSource.createQueryRunner());
+        const migration8 = new ExpandVehiclesTableWithEVCompliance1700000000008();
+        await migration8.up(dataSource.createQueryRunner());
+      } catch {
+        // Migration columns already exist
+      }
+      try {
+        const migration11 =
+          new AddVehicleSeatingConfigurationAndClassificationControls1700000000011();
+        await migration11.up(dataSource.createQueryRunner());
       } catch {
         // Migration columns already exist
       }
@@ -389,6 +398,197 @@ describe('Verified EV Records & Electric-Only Enforcement E2E Integration (EV-02
       expect(Array.isArray(res.body.items)).toBe(true);
       expect(res.body.items.some((v: { id: string }) => v.id === registeredVehicleId)).toBe(true);
       expect(res.body.total).toBeGreaterThanOrEqual(1);
+    });
+  });
+
+  describe('7. Permitted Seating Capacity, Classification Controls & Operational Readiness (EV-028)', () => {
+    let autoVehicleId: string;
+
+    it('should register a 3W EV auto rickshaw with D+3 notation and derive 3 customer seats + 1 driver seat', async () => {
+      const res = await request(app.getHttpServer())
+        .post('/v1/vehicles')
+        .set('x-actor-user-id', captainUser.id)
+        .set('x-actor-role', captainUser.role)
+        .send({
+          registrationNumber: 'AP31EV5555',
+          vehicleCategory: VehicleCategory.AUTO_COMMUTE_3W,
+          make: 'Bajaj',
+          model: 'RE EV',
+          yearOfManufacture: 2024,
+          batteryCapacityKwh: 8.9,
+          ratedRangeKm: 140,
+          seatingConfiguration: 'D+3',
+          city: 'visakhapatnam',
+        })
+        .expect(201);
+
+      expect(res.body.id).toBeDefined();
+      autoVehicleId = res.body.id;
+      expect(res.body.seatingConfiguration).toBe('D+3');
+      expect(res.body.driverSeatCount).toBe(1);
+      expect(res.body.legalPassengerCapacity).toBe(3);
+      expect(res.body.totalSeatingCapacity).toBe(4);
+      expect(res.body.serviceClass).toBe(VehicleServiceClass.ECO_AUTO);
+    });
+
+    it('should reject registering an over-capacity vehicle for its category with 400 Bad Request', async () => {
+      const res = await request(app.getHttpServer())
+        .post('/v1/vehicles')
+        .set('x-actor-user-id', captainUser.id)
+        .set('x-actor-role', captainUser.role)
+        .send({
+          registrationNumber: 'AP31EV5556',
+          vehicleCategory: VehicleCategory.AUTO_COMMUTE_3W,
+          make: 'Bajaj',
+          model: 'RE EV',
+          yearOfManufacture: 2024,
+          batteryCapacityKwh: 8.9,
+          ratedRangeKm: 140,
+          seatingConfiguration: 'D+4', // 3W max is D+3
+          city: 'visakhapatnam',
+        })
+        .expect(400);
+
+      expect(res.body.error.message).toContain('Over-capacity');
+    });
+
+    it('should reject registration when registration plate is blank with 400 Bad Request', async () => {
+      await request(app.getHttpServer())
+        .post('/v1/vehicles')
+        .set('x-actor-user-id', captainUser.id)
+        .set('x-actor-role', captainUser.role)
+        .send({
+          registrationNumber: '   ',
+          vehicleCategory: VehicleCategory.AUTO_COMMUTE_3W,
+          make: 'Bajaj',
+          model: 'RE EV',
+          yearOfManufacture: 2024,
+          batteryCapacityKwh: 8.9,
+          ratedRangeKm: 140,
+          seatingConfiguration: 'D+3',
+          city: 'visakhapatnam',
+        })
+        .expect(400);
+    });
+
+    it('should reject registration in unauthorized cities with 400 Bad Request', async () => {
+      const res = await request(app.getHttpServer())
+        .post('/v1/vehicles')
+        .set('x-actor-user-id', captainUser.id)
+        .set('x-actor-role', captainUser.role)
+        .send({
+          registrationNumber: 'AP31EV5557',
+          vehicleCategory: VehicleCategory.AUTO_COMMUTE_3W,
+          make: 'Bajaj',
+          model: 'RE EV',
+          yearOfManufacture: 2024,
+          batteryCapacityKwh: 8.9,
+          ratedRangeKm: 140,
+          seatingConfiguration: 'D+3',
+          city: 'vijayawada',
+        })
+        .expect(400);
+
+      expect(res.body.error.message).toContain('Incompatible service class');
+    });
+
+    it('should block operation when requested seats exceed legal passenger capacity', async () => {
+      const res = await request(app.getHttpServer())
+        .post(`/v1/vehicles/${autoVehicleId}/validate-operation`)
+        .set('x-actor-user-id', captainUser.id)
+        .set('x-actor-role', captainUser.role)
+        .send({
+          requestedSeats: 4, // Exceeds D+3 capacity of 3
+          serviceClass: VehicleServiceClass.ECO_AUTO,
+          city: 'visakhapatnam',
+        })
+        .expect(200);
+
+      expect(res.body.canOperate).toBe(false);
+      expect(res.body.blockers.some((b: string) => b.includes('OVER_CAPACITY'))).toBe(true);
+    });
+
+    it('should block operation when requested service class is incompatible with vehicle classification', async () => {
+      const res = await request(app.getHttpServer())
+        .post(`/v1/vehicles/${autoVehicleId}/validate-operation`)
+        .set('x-actor-user-id', captainUser.id)
+        .set('x-actor-role', captainUser.role)
+        .send({
+          requestedSeats: 1,
+          serviceClass: VehicleServiceClass.ECO_CAB, // Incompatible with ECO_AUTO
+          city: 'visakhapatnam',
+        })
+        .expect(200);
+
+      expect(res.body.canOperate).toBe(false);
+      expect(res.body.blockers.some((b: string) => b.includes('INCOMPATIBLE_SERVICE_CLASS'))).toBe(
+        true,
+      );
+    });
+
+    it('should block operation when operating city is incompatible', async () => {
+      const res = await request(app.getHttpServer())
+        .post(`/v1/vehicles/${autoVehicleId}/validate-operation`)
+        .set('x-actor-user-id', captainUser.id)
+        .set('x-actor-role', captainUser.role)
+        .send({
+          requestedSeats: 1,
+          serviceClass: VehicleServiceClass.ECO_AUTO,
+          city: 'vijayawada',
+        })
+        .expect(200);
+
+      expect(res.body.canOperate).toBe(false);
+      expect(res.body.blockers.some((b: string) => b.includes('INCOMPATIBLE_CITY'))).toBe(true);
+    });
+
+    it('should block operation when green-plate commercial registration is unverified', async () => {
+      const res = await request(app.getHttpServer())
+        .post(`/v1/vehicles/${autoVehicleId}/validate-operation`)
+        .set('x-actor-user-id', captainUser.id)
+        .set('x-actor-role', captainUser.role)
+        .send({
+          requestedSeats: 3,
+          serviceClass: VehicleServiceClass.ECO_AUTO,
+          city: 'visakhapatnam',
+        })
+        .expect(200);
+
+      expect(res.body.canOperate).toBe(false);
+      expect(res.body.blockers.some((b: string) => b.includes('UNVERIFIED_REGISTRATION'))).toBe(
+        true,
+      );
+    });
+
+    it('should approve operation once verified and capacity, service class, and city match requirements', async () => {
+      // 1. Operator verifies the vehicle's AP green plates
+      await request(app.getHttpServer())
+        .post(`/v1/vehicles/${autoVehicleId}/verify`)
+        .set('x-actor-user-id', operatorUser.id)
+        .set('x-actor-role', operatorUser.role)
+        .send({
+          status: VehicleVerificationStatus.VERIFIED,
+          greenPlateVerified: true,
+        })
+        .expect(200);
+
+      // 2. Validate operational readiness
+      const res = await request(app.getHttpServer())
+        .post(`/v1/vehicles/${autoVehicleId}/validate-operation`)
+        .set('x-actor-user-id', captainUser.id)
+        .set('x-actor-role', captainUser.role)
+        .send({
+          requestedSeats: 3,
+          serviceClass: VehicleServiceClass.ECO_AUTO,
+          city: 'visakhapatnam',
+        })
+        .expect(200);
+
+      expect(res.body.canOperate).toBe(true);
+      expect(res.body.blockers).toHaveLength(0);
+      expect(res.body.driverSeatCount).toBe(1);
+      expect(res.body.legalPassengerCapacity).toBe(3);
+      expect(res.body.totalSeatingCapacity).toBe(4);
     });
   });
 });

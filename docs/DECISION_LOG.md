@@ -502,3 +502,46 @@
      - KYC document viewing is strictly enforced via `assertCanAccessDocument` in `DocumentsService`.
      - Only authorized reviewers (`OPERATOR`, `SUPER_ADMIN`, `SUPPORT`, `SAFETY_OFFICER`, or `kyc:read` scope) and document owners can generate temporary HMAC-SHA256 signed access URLs or download files.
      - Unauthorized cross-account access attempts by regular riders or other captains are rejected with HTTP 403 Forbidden and logged as `CROSS_ACCOUNT_DOCUMENT_ACCESS_DENIED` security audit events.
+
+
+## 2026-11-02 — ADR-0029: Permitted Seating Capacity Breakdown, D+3 Passenger Derivation, and Vehicle Classification Controls
+
+- **Status**: Accepted
+- **Context**:
+  Commercial passenger vehicles in Andhra Pradesh operate under strict Regional Transport Authority (RTA) stage and contract carriage regulations. Under standard commercial transport conventions, vehicle seating is specified in `D+X` notation, where `D` explicitly represents 1 driver seat and `X` represents the legal passenger/customer carrying capacity. For example, in an electric 3-wheeler auto rickshaw (`AUTO_COMMUTE_3W`), `D+3` denotes 1 captain/driver seat and strictly 3 legal passenger seats (a total seating capacity of 4). Misinterpreting `D+3` as 3 total seats or allowing over-capacity carriage violates statutory safety regulations, invalidates commercial insurance, and risks passenger safety.
+  Furthermore, per AGENTS.md Rule 2 and Rule 3:
+  1. Propulsion must be 100% ELECTRIC and category availability must be enforced server-side by city, zone, service permission, driver and vehicle status.
+  2. Never invent operational permit approvals, tariffs, contracts or live keys. Keep uncertain service types disabled by default.
+  Consequently, vehicle records must derive and store passenger capacity separately from the driver, enforce category seating ceilings, validate service class / city matching server-side, reject missing registrations, and block over-capacity and incompatible operations from dispatch and duty availability.
+
+- **Decisions**:
+  1. **Explicit Seating Capacity Breakdown Model (`packages/contracts`, `apps/api`)**:
+     - Extended vehicle data models with `seatingConfiguration` (string e.g. `'D+1'`, `'D+3'`, `'D+4'`, `'D+7'`), `driverSeatCount` (integer, fixed at 1), `legalPassengerCapacity` (integer, customer seats), and `totalSeatingCapacity` (integer, driver + customer seats).
+     - Defined check constraint in PostgreSQL `chk_vehicles_seating_driver_separate`: `total_seating_capacity = approved_passenger_seating + 1`.
+     - Defined regex format check `chk_vehicles_seating_config_format`: `seating_configuration ~ '^D\+[0-9]+$'`.
+     - Provided authoritative derivation method `VehiclesService.deriveSeatingCapacity()` that strictly treats `D+3` as 3 customer seats, 1 driver seat, and 4 total seats.
+  2. **Category Seating Ceilings and Classification Controls**:
+     - Enforced category limits in `CATEGORY_SEATING_LIMITS`:
+       - `CITY_COMMUTE_2W`: exactly 1 customer seat (`D+1`, total 2 seats).
+       - `AUTO_COMMUTE_3W`: up to 3 customer seats (`D+3`, total 4 seats).
+       - `CAB_PRIVATE_4W`: up to 4 customer seats (`D+4`, total 5 seats).
+       - `VAN_COMMUTE_4W`: 5 to 10 customer seats (e.g. `D+7`, total 8 seats).
+     - Mapped vehicle categories to service classes (`ECO_BIKE`, `ECO_AUTO`, `ECO_CAB`, `ECO_VAN`).
+  3. **Server-Side City and Service Class Compatibility Matching (Rules 2 & 3)**:
+     - Enforced `CITY_PERMITTED_CATEGORIES`: Visakhapatnam urban pilot permits `CITY_COMMUTE_2W`, `AUTO_COMMUTE_3W`, and `CAB_PRIVATE_4W`. `VAN_COMMUTE_4W` is disabled in the standard urban commute pilot.
+     - Future expansion cities (`vijayawada`, `guntur`, `tirupati`) remain strictly disabled by default until official municipal launch gates are satisfied.
+     - Rejected any registration, update, or dispatch request pairing incompatible service classes or unauthorized cities with HTTP 400 Bad Request.
+  4. **Audited Capacity Changes**:
+     - Updates to vehicle seating configuration or passenger capacity trigger explicit `VEHICLE_CAPACITY_CHANGED` audit events in `audit_events`, capturing previous and new capacity states, configuration strings, and acting reviewer/operator IDs.
+  5. **Authoritative Operational Readiness Validation Endpoint (`POST /v1/vehicles/:id/validate-operation`)**:
+     - Evaluates dispatch operational readiness against requested seats, requested service class, and operating city.
+     - Accumulates blocking reasons:
+       - `MISSING_REGISTRATION`: blank or absent registration plate.
+       - `UNVERIFIED_REGISTRATION`: commercial green plate unverified.
+       - `OVER_CAPACITY`: requested seats exceed vehicle `legalPassengerCapacity`.
+       - `INCOMPATIBLE_SERVICE_CLASS`: vehicle service class does not match requested service class.
+       - `INCOMPATIBLE_CITY`: vehicle registered city does not match operational city.
+       - `VEHICLE_NOT_ROADWORTHY`: vehicle insurance, fitness, or commercial permit is expired.
+  6. **Driver Duty Availability Integration**:
+     - In `ComplianceService.calculateEligibility`, assigned vehicle records are evaluated for valid registration, category capacity limits, and city service class compatibility.
+     - Any violation marks `isEligibleForAssignment = false`, preventing the driver from toggling duty to `ONLINE` with HTTP 422 Unprocessable Entity.

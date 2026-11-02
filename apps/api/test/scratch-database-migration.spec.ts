@@ -9,6 +9,7 @@ import { CreateDocumentsSchema1700000000007 } from '../src/database/migrations/1
 import { ExpandVehiclesTableWithEVCompliance1700000000008 } from '../src/database/migrations/1700000000008-ExpandVehiclesTableWithEVCompliance';
 import { CreateCaptainApplicationsAndReviewHistory1700000000009 } from '../src/database/migrations/1700000000009-CreateCaptainApplicationsAndReviewHistory';
 import { AddDriverComplianceAndDutyStatus1700000000010 } from '../src/database/migrations/1700000000010-AddDriverComplianceAndDutyStatus';
+import { AddVehicleSeatingConfigurationAndClassificationControls1700000000011 } from '../src/database/migrations/1700000000011-AddVehicleSeatingConfigurationAndClassificationControls';
 
 describe('Scratch Database Migration Up/Down Test', () => {
   let dataSource: DataSource | null = null;
@@ -246,6 +247,9 @@ describe('Scratch Database Migration Up/Down Test', () => {
       await new ExpandVehiclesTableWithEVCompliance1700000000008().up(queryRunner);
       await new CreateCaptainApplicationsAndReviewHistory1700000000009().up(queryRunner);
       await new AddDriverComplianceAndDutyStatus1700000000010().up(queryRunner);
+      await new AddVehicleSeatingConfigurationAndClassificationControls1700000000011().up(
+        queryRunner,
+      );
     }, 60000);
   });
 });

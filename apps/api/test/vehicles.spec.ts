@@ -6,6 +6,7 @@ import { Repository } from 'typeorm';
 import {
   PropulsionType,
   VehicleCategory,
+  VehicleServiceClass,
   VehicleVerificationStatus,
   RangeTelemetrySource,
   PlatformRole,
@@ -532,6 +533,350 @@ describe('Verified EV Vehicle Records & Electric-Only Enforcement (EV-023 Unit T
       expect(
         compliance.issues.some((issue) => issue.includes('Commercial insurance expired')),
       ).toBe(true);
+    });
+  });
+
+  describe('8. Permitted Seating Capacity, D+3 Derivation & Vehicle Classification Controls (EV-028)', () => {
+    describe('deriveSeatingCapacity', () => {
+      it('should define D+3 strictly as 3 customer seats, 1 driver seat, and 4 total seats', () => {
+        const result = VehiclesService.deriveSeatingCapacity({
+          seatingConfiguration: 'D+3',
+          vehicleCategory: VehicleCategory.AUTO_COMMUTE_3W,
+        });
+
+        expect(result.seatingConfiguration).toBe('D+3');
+        expect(result.driverSeatCount).toBe(1);
+        expect(result.legalPassengerCapacity).toBe(3);
+        expect(result.totalSeatingCapacity).toBe(4);
+      });
+
+      it('should derive D+1 for 2W (1 customer seat, 1 driver seat, total 2 seats)', () => {
+        const result = VehiclesService.deriveSeatingCapacity({
+          seatingConfiguration: 'D+1',
+          vehicleCategory: VehicleCategory.CITY_COMMUTE_2W,
+        });
+
+        expect(result.seatingConfiguration).toBe('D+1');
+        expect(result.driverSeatCount).toBe(1);
+        expect(result.legalPassengerCapacity).toBe(1);
+        expect(result.totalSeatingCapacity).toBe(2);
+      });
+
+      it('should derive D+4 for 4W Cab (4 customer seats, 1 driver seat, total 5 seats)', () => {
+        const result = VehiclesService.deriveSeatingCapacity({
+          seatingConfiguration: 'D+4',
+          vehicleCategory: VehicleCategory.CAB_PRIVATE_4W,
+        });
+
+        expect(result.seatingConfiguration).toBe('D+4');
+        expect(result.driverSeatCount).toBe(1);
+        expect(result.legalPassengerCapacity).toBe(4);
+        expect(result.totalSeatingCapacity).toBe(5);
+      });
+
+      it('should derive D+3 from totalSeatingCapacity = 4 (accounting for driver separately)', () => {
+        const result = VehiclesService.deriveSeatingCapacity({
+          totalSeatingCapacity: 4,
+          vehicleCategory: VehicleCategory.AUTO_COMMUTE_3W,
+        });
+
+        expect(result.seatingConfiguration).toBe('D+3');
+        expect(result.driverSeatCount).toBe(1);
+        expect(result.legalPassengerCapacity).toBe(3);
+        expect(result.totalSeatingCapacity).toBe(4);
+      });
+
+      it('should reject invalid notation not following D+X format', () => {
+        expect(() =>
+          VehiclesService.deriveSeatingCapacity({
+            seatingConfiguration: 'X+3',
+            vehicleCategory: VehicleCategory.AUTO_COMMUTE_3W,
+          }),
+        ).toThrow(BadRequestException);
+
+        expect(() =>
+          VehiclesService.deriveSeatingCapacity({
+            seatingConfiguration: 'D-3',
+            vehicleCategory: VehicleCategory.AUTO_COMMUTE_3W,
+          }),
+        ).toThrow(BadRequestException);
+
+        expect(() =>
+          VehiclesService.deriveSeatingCapacity({
+            seatingConfiguration: 'D+0',
+            vehicleCategory: VehicleCategory.AUTO_COMMUTE_3W,
+          }),
+        ).toThrow(BadRequestException);
+      });
+
+      it('should reject over-capacity configurations per vehicle category', () => {
+        // 2W max is 1 customer seat (D+1)
+        expect(() =>
+          VehiclesService.deriveSeatingCapacity({
+            seatingConfiguration: 'D+2',
+            vehicleCategory: VehicleCategory.CITY_COMMUTE_2W,
+          }),
+        ).toThrow(/Over-capacity/);
+
+        // 3W Auto max is 3 customer seats (D+3)
+        expect(() =>
+          VehiclesService.deriveSeatingCapacity({
+            seatingConfiguration: 'D+4',
+            vehicleCategory: VehicleCategory.AUTO_COMMUTE_3W,
+          }),
+        ).toThrow(/Over-capacity/);
+
+        // 4W Cab max is 4 customer seats (D+4)
+        expect(() =>
+          VehiclesService.deriveSeatingCapacity({
+            seatingConfiguration: 'D+5',
+            vehicleCategory: VehicleCategory.CAB_PRIVATE_4W,
+          }),
+        ).toThrow(/Over-capacity/);
+      });
+    });
+
+    describe('assertServiceClassCityCompatibility', () => {
+      it('should allow 2W, 3W, and 4W Cab in Visakhapatnam', () => {
+        expect(() =>
+          service.assertServiceClassCityCompatibility(
+            VehicleCategory.CITY_COMMUTE_2W,
+            'visakhapatnam',
+          ),
+        ).not.toThrow();
+
+        expect(() =>
+          service.assertServiceClassCityCompatibility(
+            VehicleCategory.AUTO_COMMUTE_3W,
+            'visakhapatnam',
+          ),
+        ).not.toThrow();
+
+        expect(() =>
+          service.assertServiceClassCityCompatibility(
+            VehicleCategory.CAB_PRIVATE_4W,
+            'visakhapatnam',
+          ),
+        ).not.toThrow();
+      });
+
+      it('should reject VAN_COMMUTE_4W in Visakhapatnam urban pilot', () => {
+        expect(() =>
+          service.assertServiceClassCityCompatibility(
+            VehicleCategory.VAN_COMMUTE_4W,
+            'visakhapatnam',
+          ),
+        ).toThrow(/Incompatible service class/);
+      });
+
+      it('should reject unapproved cities disabled by default (Rule 3)', () => {
+        expect(() =>
+          service.assertServiceClassCityCompatibility(
+            VehicleCategory.AUTO_COMMUTE_3W,
+            'vijayawada',
+          ),
+        ).toThrow(/Incompatible service class/);
+
+        expect(() =>
+          service.assertServiceClassCityCompatibility(VehicleCategory.CAB_PRIVATE_4W, 'guntur'),
+        ).toThrow(/Incompatible service class/);
+
+        expect(() =>
+          service.assertServiceClassCityCompatibility(VehicleCategory.CITY_COMMUTE_2W, 'tirupati'),
+        ).toThrow(/Incompatible service class/);
+      });
+    });
+
+    describe('createVehicle with EV-028 seating controls', () => {
+      it('should register an EV auto rickshaw with D+3 notation and ECO_AUTO service class', async () => {
+        const vehicle = await service.createVehicle(operatorActor, {
+          registrationNumber: 'AP31EV3001',
+          vehicleCategory: VehicleCategory.AUTO_COMMUTE_3W,
+          make: 'Piaggio',
+          model: 'Ape E-City',
+          yearOfManufacture: 2024,
+          batteryCapacityKwh: 8.0,
+          ratedRangeKm: 120,
+          seatingConfiguration: 'D+3',
+          city: 'visakhapatnam',
+        });
+
+        expect(vehicle.seatingConfiguration).toBe('D+3');
+        expect(vehicle.driverSeatCount).toBe(1);
+        expect(vehicle.legalPassengerCapacity).toBe(3);
+        expect(vehicle.totalSeatingCapacity).toBe(4);
+        expect(vehicle.serviceClass).toBe(VehicleServiceClass.ECO_AUTO);
+      });
+
+      it('should block registration when registration number is missing or empty', async () => {
+        await expect(
+          service.createVehicle(operatorActor, {
+            registrationNumber: '   ',
+            vehicleCategory: VehicleCategory.AUTO_COMMUTE_3W,
+            make: 'Piaggio',
+            model: 'Ape E-City',
+            yearOfManufacture: 2024,
+            batteryCapacityKwh: 8.0,
+            ratedRangeKm: 120,
+            seatingConfiguration: 'D+3',
+            city: 'visakhapatnam',
+          }),
+        ).rejects.toThrow(BadRequestException);
+      });
+
+      it('should block registration when seating exceeds category limits', async () => {
+        await expect(
+          service.createVehicle(operatorActor, {
+            registrationNumber: 'AP31EV3002',
+            vehicleCategory: VehicleCategory.AUTO_COMMUTE_3W,
+            make: 'Piaggio',
+            model: 'Ape E-City',
+            yearOfManufacture: 2024,
+            batteryCapacityKwh: 8.0,
+            ratedRangeKm: 120,
+            approvedPassengerSeating: 4, // 3W max is 3
+            city: 'visakhapatnam',
+          }),
+        ).rejects.toThrow(/Over-capacity/);
+      });
+
+      it('should block registration in unauthorized cities', async () => {
+        await expect(
+          service.createVehicle(operatorActor, {
+            registrationNumber: 'AP31EV3003',
+            vehicleCategory: VehicleCategory.AUTO_COMMUTE_3W,
+            make: 'Piaggio',
+            model: 'Ape E-City',
+            yearOfManufacture: 2024,
+            batteryCapacityKwh: 8.0,
+            ratedRangeKm: 120,
+            seatingConfiguration: 'D+3',
+            city: 'vijayawada',
+          }),
+        ).rejects.toThrow(/Incompatible service class/);
+      });
+    });
+
+    describe('updateVehicle capacity changes and audit logging', () => {
+      it('should record an audit event when vehicle capacity is updated', async () => {
+        const created = await service.createVehicle(operatorActor, {
+          registrationNumber: 'AP31EV3004',
+          vehicleCategory: VehicleCategory.AUTO_COMMUTE_3W,
+          make: 'Mahindra',
+          model: 'Treo',
+          yearOfManufacture: 2024,
+          batteryCapacityKwh: 8.0,
+          ratedRangeKm: 130,
+          seatingConfiguration: 'D+3',
+          city: 'visakhapatnam',
+        });
+
+        const updated = await service.updateVehicle(operatorActor, created.id, {
+          seatingConfiguration: 'D+2',
+        });
+
+        expect(updated.seatingConfiguration).toBe('D+2');
+        expect(updated.legalPassengerCapacity).toBe(2);
+        expect(updated.totalSeatingCapacity).toBe(3);
+
+        const audit = auditStore.find((e) => e.action === 'VEHICLE_CAPACITY_CHANGED');
+        expect(audit).toBeDefined();
+        expect(audit?.previousState).toMatchObject({
+          legalPassengerCapacity: 3,
+          seatingConfiguration: 'D+3',
+        });
+        expect(audit?.newState).toMatchObject({
+          legalPassengerCapacity: 2,
+          seatingConfiguration: 'D+2',
+        });
+      });
+
+      it('should reject capacity changes that exceed category limits', async () => {
+        const created = await service.createVehicle(operatorActor, {
+          registrationNumber: 'AP31EV3005',
+          vehicleCategory: VehicleCategory.AUTO_COMMUTE_3W,
+          make: 'Mahindra',
+          model: 'Treo',
+          yearOfManufacture: 2024,
+          batteryCapacityKwh: 8.0,
+          ratedRangeKm: 130,
+          seatingConfiguration: 'D+3',
+          city: 'visakhapatnam',
+        });
+
+        await expect(
+          service.updateVehicle(operatorActor, created.id, {
+            seatingConfiguration: 'D+5',
+          }),
+        ).rejects.toThrow(/Over-capacity/);
+      });
+    });
+
+    describe('validateVehicleOperation', () => {
+      let testVehicleId: string;
+
+      beforeEach(async () => {
+        const v = await service.createVehicle(operatorActor, {
+          registrationNumber: 'AP31EV3006',
+          vehicleCategory: VehicleCategory.AUTO_COMMUTE_3W,
+          make: 'Bajaj',
+          model: 'RE EV',
+          yearOfManufacture: 2024,
+          batteryCapacityKwh: 8.9,
+          ratedRangeKm: 140,
+          seatingConfiguration: 'D+3',
+          city: 'visakhapatnam',
+          greenPlateVerified: true,
+        });
+        testVehicleId = v.id;
+      });
+
+      it('should return canOperate: true for valid passenger and service class request', async () => {
+        const result = await service.validateVehicleOperation(testVehicleId, {
+          requestedSeats: 3,
+          serviceClass: VehicleServiceClass.ECO_AUTO,
+          city: 'visakhapatnam',
+        });
+
+        expect(result.canOperate).toBe(true);
+        expect(result.blockers).toHaveLength(0);
+        expect(result.driverSeatCount).toBe(1);
+        expect(result.legalPassengerCapacity).toBe(3);
+        expect(result.totalSeatingCapacity).toBe(4);
+      });
+
+      it('should block operation when requested seats exceed vehicle legal capacity (over-capacity)', async () => {
+        const result = await service.validateVehicleOperation(testVehicleId, {
+          requestedSeats: 4, // Exceeds D+3
+          serviceClass: VehicleServiceClass.ECO_AUTO,
+          city: 'visakhapatnam',
+        });
+
+        expect(result.canOperate).toBe(false);
+        expect(result.blockers.some((b) => b.includes('OVER_CAPACITY'))).toBe(true);
+      });
+
+      it('should block operation when requested service class does not match vehicle classification', async () => {
+        const result = await service.validateVehicleOperation(testVehicleId, {
+          requestedSeats: 1,
+          serviceClass: VehicleServiceClass.ECO_CAB, // Requested CAB for Auto
+          city: 'visakhapatnam',
+        });
+
+        expect(result.canOperate).toBe(false);
+        expect(result.blockers.some((b) => b.includes('INCOMPATIBLE_SERVICE_CLASS'))).toBe(true);
+      });
+
+      it('should block operation when operating in an incompatible city', async () => {
+        const result = await service.validateVehicleOperation(testVehicleId, {
+          requestedSeats: 1,
+          serviceClass: VehicleServiceClass.ECO_AUTO,
+          city: 'vijayawada', // Vehicle registered for Visakhapatnam
+        });
+
+        expect(result.canOperate).toBe(false);
+        expect(result.blockers.some((b) => b.includes('INCOMPATIBLE_CITY'))).toBe(true);
+      });
     });
   });
 });

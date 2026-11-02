@@ -21,6 +21,7 @@ import {
   VehicleTelemetryDto,
   VerifyVehicleDto,
   VehiclesPaginationDto,
+  ValidateVehicleOperationDto,
 } from './dto';
 
 @ApiTags('Electric Vehicles & Compliance')
@@ -151,5 +152,25 @@ export class VehiclesController {
   @ApiResponse({ status: 404, description: 'Vehicle not found' })
   async getCompliance(@Param('id', ParseUUIDPipe) id: string) {
     return this.vehiclesService.getCompliance(id);
+  }
+
+  @Post(':id/validate-operation')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Validate vehicle operational readiness for dispatch / booking (EV-028)',
+    description:
+      'Asserts that requested seats do not exceed legal passenger capacity (accounting for driver separately), verifies service class/city matching, and ensures green-plate registration is present.',
+  })
+  @ApiParam({ name: 'id', description: 'Vehicle UUID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Operational validation completed with capacity breakdown and blockers (if any)',
+  })
+  @ApiResponse({ status: 404, description: 'Vehicle not found' })
+  async validateOperation(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: ValidateVehicleOperationDto,
+  ) {
+    return this.vehiclesService.validateVehicleOperation(id, dto);
   }
 }

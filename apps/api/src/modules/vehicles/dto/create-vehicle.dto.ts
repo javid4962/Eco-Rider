@@ -18,6 +18,7 @@ import {
   PropulsionType,
   RangeTelemetrySource,
   VehicleCategory,
+  VehicleServiceClass,
 } from '@ecoride/contracts';
 
 export class CreateVehicleDto implements CreateVehicleRequest {
@@ -48,6 +49,36 @@ export class CreateVehicleDto implements CreateVehicleRequest {
   @IsNotEmpty()
   vehicleCategory!: VehicleCategory;
 
+  @ApiPropertyOptional({
+    enum: VehicleServiceClass,
+    example: VehicleServiceClass.ECO_BIKE,
+    description: 'Commercial service classification (e.g. ECO_BIKE, ECO_AUTO, ECO_CAB, ECO_VAN)',
+  })
+  @IsOptional()
+  @IsEnum(VehicleServiceClass)
+  serviceClass?: VehicleServiceClass;
+
+  @ApiPropertyOptional({
+    example: 'D+3',
+    description:
+      'Standard RTO seating configuration accounting for driver separately (e.g. D+3 derives 3 customer seats + 1 driver seat)',
+  })
+  @IsOptional()
+  @IsString()
+  seatingConfiguration?: string;
+
+  @ApiPropertyOptional({
+    example: 4,
+    description:
+      'Total vehicle seating capacity including driver (e.g. 4 for D+3: 1 driver + 3 customer seats)',
+  })
+  @IsOptional()
+  @IsInt()
+  @Min(2)
+  @Max(11)
+  @Type(() => Number)
+  totalSeatingCapacity?: number;
+
   @ApiProperty({ example: 'Ather Energy', description: 'Electric vehicle manufacturer/make' })
   @IsString()
   @IsNotEmpty()
@@ -67,16 +98,17 @@ export class CreateVehicleDto implements CreateVehicleRequest {
   @Type(() => Number)
   yearOfManufacture!: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: 1,
     description:
-      'Approved passenger seating capacity (excluding driver: 1 for 2W, 3 for 3W, 4 for 4W)',
+      'Approved passenger seating capacity (customer seats, excluding driver: 1 for 2W, 3 for 3W, 4 for 4W)',
   })
+  @IsOptional()
   @IsInt()
   @Min(1)
   @Max(10)
   @Type(() => Number)
-  approvedPassengerSeating!: number;
+  approvedPassengerSeating?: number;
 
   @ApiProperty({ example: 3.7, description: 'Battery pack capacity in kilowatt-hours (kWh)' })
   @IsNumber()
