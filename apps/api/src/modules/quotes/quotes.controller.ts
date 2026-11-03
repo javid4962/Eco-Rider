@@ -11,8 +11,10 @@ import {
 import { ApiTags, ApiOperation, ApiResponse, ApiHeader, ApiParam } from '@nestjs/swagger';
 import { QuotesService, QuoteResult } from './quotes.service';
 import { QuoteRequestDto } from '../../common/dto/quote-request.dto';
+import { QueryServiceAvailabilityDto } from './dto/query-service-availability.dto';
 import { CORRELATION_ID_HEADER } from '../../common/middleware/correlation-id.middleware';
 import { CurrentActor, CurrentActorPayload } from '../identity/current-actor.decorator';
+import { ServiceAvailabilityResponse } from '@ecoride/contracts';
 
 @ApiTags('Quotes')
 @Controller('quotes')
@@ -67,6 +69,20 @@ export class QuotesController {
     const actorUserId =
       actor?.id && actor.id !== '00000000-0000-0000-0000-000000000000' ? actor.id : dto.riderId;
     return this.quotesService.calculateAuthoritativeQuote(dto, actorUserId);
+  }
+
+  @Post('service-availability')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Query enabled EV service categories, estimated fares, ETAs, and operator policies',
+    description:
+      'Evaluates polygonal PostGIS service boundaries, dynamic category switches, online captain availability, and cancellation policies.',
+  })
+  @ApiResponse({ status: 200, description: 'Service availability evaluated successfully' })
+  async getServiceAvailability(
+    @Body() dto: QueryServiceAvailabilityDto,
+  ): Promise<ServiceAvailabilityResponse> {
+    return this.quotesService.getServiceAvailability(dto);
   }
 
   @Post(':id/verify-eligibility')

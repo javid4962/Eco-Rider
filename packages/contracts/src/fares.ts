@@ -199,3 +199,48 @@ export interface BookingDetailsResponse {
   dropoffLongitude: number;
   createdAt: string;
 }
+
+export interface ServiceCategoryAvailabilityItem {
+  serviceCategory: string;
+  vehicleClass: string;
+  displayName: string;
+  description: string;
+  seatingCapacity: number;
+  seatingConfiguration: string;
+  propulsion: 'BATTERY_ELECTRIC';
+  isEnabled: boolean;
+  isBookable: boolean;
+  availableCaptainsCount: number;
+  estimatedFarePaise?: number;
+  formattedFare?: string;
+  estimatedEtaMinutes?: number;
+  rejectionOrUnavailableReason?: string | null;
+}
+
+export interface CancellationTermsDto {
+  freeCancellationMinutes: number;
+  driverCompensationFeePaise: number;
+  formattedCancellationFee: string;
+  policySummary: string;
+}
+
+export interface ServiceAvailabilityResponse {
+  city: string;
+  zoneId?: string | null;
+  zoneName?: string | null;
+  zoneCode?: string | null;
+  isInsideGeofence: boolean;
+  categories: ServiceCategoryAvailabilityItem[];
+  operatorNotice: string;
+  cancellationTerms: CancellationTermsDto;
+  evaluatedAt: string;
+}
+
+export interface QueryServiceAvailabilityRequest {
+  city: string;
+  pickupLatitude: number;
+  pickupLongitude: number;
+  dropoffLatitude?: number;
+  dropoffLongitude?: number;
+  simulateZeroDrivers?: boolean;
+}

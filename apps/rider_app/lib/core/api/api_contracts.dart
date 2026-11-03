@@ -263,6 +263,152 @@ class QuoteResponse {
   }
 }
 
+/// EV Service Category Availability Item (EV-037)
+class ServiceCategoryAvailabilityItem {
+  final String serviceCategory;
+  final String vehicleClass;
+  final String displayName;
+  final String description;
+  final int seatingCapacity;
+  final String seatingConfiguration;
+  final String propulsion;
+  final bool isEnabled;
+  final bool isBookable;
+  final int availableCaptainsCount;
+  final int? estimatedFarePaise;
+  final String? formattedFare;
+  final int? estimatedEtaMinutes;
+  final String? rejectionOrUnavailableReason;
+
+  const ServiceCategoryAvailabilityItem({
+    required this.serviceCategory,
+    required this.vehicleClass,
+    required this.displayName,
+    required this.description,
+    required this.seatingCapacity,
+    required this.seatingConfiguration,
+    this.propulsion = 'BATTERY_ELECTRIC',
+    required this.isEnabled,
+    required this.isBookable,
+    required this.availableCaptainsCount,
+    this.estimatedFarePaise,
+    this.formattedFare,
+    this.estimatedEtaMinutes,
+    this.rejectionOrUnavailableReason,
+  });
+
+  factory ServiceCategoryAvailabilityItem.fromJson(Map<String, dynamic> json) {
+    return ServiceCategoryAvailabilityItem(
+      serviceCategory: json['serviceCategory'] as String? ?? '',
+      vehicleClass: json['vehicleClass'] as String? ?? '',
+      displayName: json['displayName'] as String? ?? '',
+      description: json['description'] as String? ?? '',
+      seatingCapacity: json['seatingCapacity'] as int? ?? 1,
+      seatingConfiguration: json['seatingConfiguration'] as String? ?? 'D+1',
+      propulsion: json['propulsion'] as String? ?? 'BATTERY_ELECTRIC',
+      isEnabled: json['isEnabled'] as bool? ?? false,
+      isBookable: json['isBookable'] as bool? ?? false,
+      availableCaptainsCount: json['availableCaptainsCount'] as int? ?? 0,
+      estimatedFarePaise: json['estimatedFarePaise'] as int?,
+      formattedFare: json['formattedFare'] as String?,
+      estimatedEtaMinutes: json['estimatedEtaMinutes'] as int?,
+      rejectionOrUnavailableReason: json['rejectionOrUnavailableReason'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'serviceCategory': serviceCategory,
+    'vehicleClass': vehicleClass,
+    'displayName': displayName,
+    'description': description,
+    'seatingCapacity': seatingCapacity,
+    'seatingConfiguration': seatingConfiguration,
+    'propulsion': propulsion,
+    'isEnabled': isEnabled,
+    'isBookable': isBookable,
+    'availableCaptainsCount': availableCaptainsCount,
+    if (estimatedFarePaise != null) 'estimatedFarePaise': estimatedFarePaise,
+    if (formattedFare != null) 'formattedFare': formattedFare,
+    if (estimatedEtaMinutes != null) 'estimatedEtaMinutes': estimatedEtaMinutes,
+    if (rejectionOrUnavailableReason != null)
+      'rejectionOrUnavailableReason': rejectionOrUnavailableReason,
+  };
+}
+
+/// Regulatory Cancellation Policy Terms (EV-037)
+class CancellationTermsDto {
+  final int freeCancellationMinutes;
+  final int driverCompensationFeePaise;
+  final String formattedCancellationFee;
+  final String policySummary;
+
+  const CancellationTermsDto({
+    required this.freeCancellationMinutes,
+    required this.driverCompensationFeePaise,
+    required this.formattedCancellationFee,
+    required this.policySummary,
+  });
+
+  factory CancellationTermsDto.fromJson(Map<String, dynamic> json) {
+    return CancellationTermsDto(
+      freeCancellationMinutes: json['freeCancellationMinutes'] as int? ?? 3,
+      driverCompensationFeePaise: json['driverCompensationFeePaise'] as int? ?? 1500,
+      formattedCancellationFee: json['formattedCancellationFee'] as String? ?? '₹15.00',
+      policySummary: json['policySummary'] as String? ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'freeCancellationMinutes': freeCancellationMinutes,
+    'driverCompensationFeePaise': driverCompensationFeePaise,
+    'formattedCancellationFee': formattedCancellationFee,
+    'policySummary': policySummary,
+  };
+}
+
+/// Service Availability & Pricing Response (EV-037)
+class ServiceAvailabilityResponse {
+  final String city;
+  final String? zoneId;
+  final String? zoneName;
+  final String? zoneCode;
+  final bool isInsideGeofence;
+  final List<ServiceCategoryAvailabilityItem> categories;
+  final String operatorNotice;
+  final CancellationTermsDto cancellationTerms;
+  final DateTime evaluatedAt;
+
+  const ServiceAvailabilityResponse({
+    required this.city,
+    this.zoneId,
+    this.zoneName,
+    this.zoneCode,
+    required this.isInsideGeofence,
+    required this.categories,
+    required this.operatorNotice,
+    required this.cancellationTerms,
+    required this.evaluatedAt,
+  });
+
+  factory ServiceAvailabilityResponse.fromJson(Map<String, dynamic> json) {
+    return ServiceAvailabilityResponse(
+      city: json['city'] as String? ?? '',
+      zoneId: json['zoneId'] as String?,
+      zoneName: json['zoneName'] as String?,
+      zoneCode: json['zoneCode'] as String?,
+      isInsideGeofence: json['isInsideGeofence'] as bool? ?? false,
+      categories: (json['categories'] as List<dynamic>? ?? [])
+          .map((c) => ServiceCategoryAvailabilityItem.fromJson(c as Map<String, dynamic>))
+          .toList(),
+      operatorNotice: json['operatorNotice'] as String? ?? '',
+      cancellationTerms: CancellationTermsDto.fromJson(
+        json['cancellationTerms'] as Map<String, dynamic>? ?? {},
+      ),
+      evaluatedAt: DateTime.tryParse(json['evaluatedAt'] as String? ?? '') ?? DateTime.now(),
+    );
+  }
+}
+
 /// Geographic Point coordinates
 class GeoPointDto {
   final double latitude;

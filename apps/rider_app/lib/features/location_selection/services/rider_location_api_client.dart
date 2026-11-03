@@ -34,6 +34,16 @@ abstract class RiderLocationApiClient {
 
   /// Retrieves saved locations for a rider
   Future<List<SavedPlaceItem>> getSavedPlaces(String userId);
+
+  /// Queries dynamic service availability, enabled categories, fares, ETA, and cancellation terms (EV-037)
+  Future<ServiceAvailabilityResponse> getServiceAvailability({
+    required double pickupLatitude,
+    required double pickupLongitude,
+    double? dropoffLatitude,
+    double? dropoffLongitude,
+    String city,
+    bool simulateZeroDrivers,
+  });
 }
 
 /// Standalone Mock API Client with verified Andhra Pradesh pilot landmarks
@@ -43,12 +53,14 @@ class MockRiderLocationApiClient implements RiderLocationApiClient {
   Duration networkDelay;
   bool shouldFailQuote;
   String? mockRejectionReason;
+  bool simulateZeroDrivers;
 
   MockRiderLocationApiClient({
     this.simulateSlowNetwork = false,
     this.networkDelay = const Duration(milliseconds: 50),
     this.shouldFailQuote = false,
     this.mockRejectionReason,
+    this.simulateZeroDrivers = false,
   });
 
   // Curated Andhra Pradesh Landmarks
@@ -352,6 +364,144 @@ class MockRiderLocationApiClient implements RiderLocationApiClient {
       await Future.delayed(networkDelay);
     }
     return defaultSavedPlaces;
+  }
+
+  @override
+  Future<ServiceAvailabilityResponse> getServiceAvailability({
+    required double pickupLatitude,
+    required double pickupLongitude,
+    double? dropoffLatitude,
+    double? dropoffLongitude,
+    String city = 'Visakhapatnam',
+    bool simulateZeroDrivers = false,
+  }) async {
+    if (simulateSlowNetwork) {
+      await Future.delayed(networkDelay);
+    }
+
+    final isZeroDrivers = simulateZeroDrivers || this.simulateZeroDrivers;
+    final isVisakhapatnam = city.trim().toLowerCase() == 'visakhapatnam';
+    final isInsideVizagBounds = pickupLatitude >= 17.55 &&
+        pickupLatitude <= 17.90 &&
+        pickupLongitude >= 83.10 &&
+        pickupLongitude <= 83.45;
+
+    final isInside = isVisakhapatnam && isInsideVizagBounds && mockRejectionReason == null;
+
+    int? estFare2W;
+    int? estFareShuttle;
+    int? estEta2W;
+    int? estEtaShuttle;
+
+    if (dropoffLatitude != null && dropoffLongitude != null) {
+      final dLat = (dropoffLatitude - pickupLatitude) * 111000;
+      final dLng = (dropoffLongitude - pickupLongitude) * 105000;
+      final distMeters = (dLat * dLat + dLng * dLng > 0)
+          ? (500 + (dLat.abs() + dLng.abs())).round()
+          : 3500;
+      final distKm = distMeters / 1000.0;
+      estFare2W = 2500 + (distKm * 800).round();
+      estFareShuttle = 1500 + (distKm * 450).round();
+      estEta2W = (distKm * 2.5).clamp(3.0, 30.0).round();
+      estEtaShuttle = (distKm * 3.5).clamp(5.0, 45.0).round();
+    } else {
+      estFare2W = 7800; // ₹78.00 base indicative
+      estFareShuttle = 4200; // ₹42.00 base indicative
+      estEta2W = 4;
+      estEtaShuttle = 8;
+    }
+
+    final categories = <ServiceCategoryAvailabilityItem>[
+      ServiceCategoryAvailabilityItem(
+        serviceCategory: 'CITY_COMMUTE_2W',
+        vehicleClass: 'TWO_WHEELER',
+        displayName: 'EcoBike (City Commute)',
+        description: 'Solo electric two-wheeler pilot ride',
+        seatingCapacity: 1,
+        seatingConfiguration: 'D+1',
+        propulsion: 'BATTERY_ELECTRIC',
+        isEnabled: isInside,
+        isBookable: isInside && !isZeroDrivers,
+        availableCaptainsCount: (!isInside || isZeroDrivers) ? 0 : 3,
+        estimatedFarePaise: isInside ? estFare2W : null,
+        formattedFare: isInside ? '₹${(estFare2W / 100.0).toStringAsFixed(2)}' : null,
+        estimatedEtaMinutes: isInside ? estEta2W : null,
+        rejectionOrUnavailableReason: !isInside
+            ? 'Location is outside approved Visakhapatnam EV pilot zone geofence (AP-RTO-VZG-EV-ZONE-01).'
+            : (isZeroDrivers ? 'No EV captains currently online in this zone.' : null),
+      ),
+      ServiceCategoryAvailabilityItem(
+        serviceCategory: 'SHARED_SHUTTLE_4W',
+        vehicleClass: 'FOUR_WHEELER',
+        displayName: 'EcoVan Shuttle',
+        description: 'Shared electric multi-seater route shuttle',
+        seatingCapacity: 10,
+        seatingConfiguration: 'D+10',
+        propulsion: 'BATTERY_ELECTRIC',
+        isEnabled: isInside,
+        isBookable: isInside && !isZeroDrivers,
+        availableCaptainsCount: (!isInside || isZeroDrivers) ? 0 : 2,
+        estimatedFarePaise: isInside ? estFareShuttle : null,
+        formattedFare: isInside ? '₹${(estFareShuttle / 100.0).toStringAsFixed(2)}' : null,
+        estimatedEtaMinutes: isInside ? estEtaShuttle : null,
+        rejectionOrUnavailableReason: !isInside
+            ? 'Location is outside approved Visakhapatnam EV pilot zone geofence (AP-RTO-VZG-EV-ZONE-01).'
+            : (isZeroDrivers ? 'No EV captains currently online in this zone.' : null),
+      ),
+      const ServiceCategoryAvailabilityItem(
+        serviceCategory: 'AUTO_COMMUTE_3W',
+        vehicleClass: 'THREE_WHEELER',
+        displayName: 'EcoAuto',
+        description: 'Electric 3-wheeler auto rickshaw',
+        seatingCapacity: 3,
+        seatingConfiguration: 'D+3',
+        propulsion: 'BATTERY_ELECTRIC',
+        isEnabled: false,
+        isBookable: false,
+        availableCaptainsCount: 0,
+        estimatedFarePaise: null,
+        formattedFare: null,
+        estimatedEtaMinutes: null,
+        rejectionOrUnavailableReason:
+            'Category disabled pending AP Transport Department EV auto guidelines (AP-STA-EV-AUTO-2026).',
+      ),
+      const ServiceCategoryAvailabilityItem(
+        serviceCategory: 'CAB_PRIVATE_4W',
+        vehicleClass: 'FOUR_WHEELER',
+        displayName: 'EcoCab (Private 4W)',
+        description: 'Private 4-passenger electric cab',
+        seatingCapacity: 4,
+        seatingConfiguration: 'D+4',
+        propulsion: 'BATTERY_ELECTRIC',
+        isEnabled: false,
+        isBookable: false,
+        availableCaptainsCount: 0,
+        estimatedFarePaise: null,
+        formattedFare: null,
+        estimatedEtaMinutes: null,
+        rejectionOrUnavailableReason:
+            'Category disabled pending AP State EV cab aggregator stage carriage permit.',
+      ),
+    ];
+
+    return ServiceAvailabilityResponse(
+      city: city.toLowerCase(),
+      zoneId: isInside ? '90111111-1111-4000-8000-000000000001' : null,
+      zoneName: isInside ? 'Visakhapatnam Central EV Pilot Corridor' : null,
+      zoneCode: isInside ? 'AP-RTO-VZG-EV-ZONE-01' : null,
+      isInsideGeofence: isInside,
+      categories: categories,
+      operatorNotice:
+          'EcoRide operates under AP-STA Special Commercial Pilot Permit #STA-AP-2026-EV-PILOT-001. All trips 100% electric. Fare policy version VZG-PILOT-2026.1.',
+      cancellationTerms: const CancellationTermsDto(
+        freeCancellationMinutes: 3,
+        driverCompensationFeePaise: 1500,
+        formattedCancellationFee: '₹15.00',
+        policySummary:
+            'Free cancellation within 3 minutes of captain assignment. ₹15.00 driver compensation fee applies thereafter.',
+      ),
+      evaluatedAt: DateTime.now(),
+    );
   }
 }
 

@@ -1,6 +1,7 @@
 import { BadRequestException, ForbiddenException, ConflictException } from '@nestjs/common';
 import { ApiErrorCode, VehicleServiceClass } from '@ecoride/contracts';
 import { QuotesService } from '../src/modules/quotes/quotes.service';
+import { ZonesService } from '../src/modules/zones/zones.service';
 import { FareRule } from '../src/database/entities/fare-rule.entity';
 import { RideQuote } from '../src/database/entities/ride-quote.entity';
 import { Repository } from 'typeorm';
@@ -62,7 +63,7 @@ describe('Quote Safeguards, Expiry, Eligibility & Replay (EV-036 Unit Specs)', (
     };
 
     quotesService = new QuotesService(
-      mockZonesService,
+      mockZonesService as unknown as ZonesService,
       undefined,
       mockQuoteRepo as Repository<RideQuote>,
       undefined,

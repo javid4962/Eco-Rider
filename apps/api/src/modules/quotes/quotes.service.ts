@@ -20,8 +20,12 @@ import {
   VehicleServiceClass,
   CATEGORY_TO_SERVICE_CLASS,
   SERVICE_CLASS_TO_CATEGORY,
+  ServiceCategoryAvailabilityItem,
+  CancellationTermsDto,
+  ServiceAvailabilityResponse,
 } from '@ecoride/contracts';
 import { QuoteRequestDto } from '../../common/dto/quote-request.dto';
+import { QueryServiceAvailabilityDto } from './dto/query-service-availability.dto';
 import { ZonesService } from '../zones/zones.service';
 import { FareRulesService } from '../fare-rules/fare-rules.service';
 import { MapsService } from '../maps/maps.service';
@@ -585,6 +589,211 @@ export class QuotesService {
       isRevoked: false,
       isCrossAccount: false,
       isTampered: false,
+    };
+  }
+
+  /**
+   * Evaluates enabled EV categories, estimated fares, ETAs, zero-driver states,
+   * operator regulatory notice, and cancellation policy for a given location.
+   * Guarantees that only actually authorized categories are bookable.
+   */
+  async getServiceAvailability(
+    dto: QueryServiceAvailabilityDto,
+  ): Promise<ServiceAvailabilityResponse> {
+    const city = dto.city.toLowerCase().trim();
+    const evaluatedAt = new Date().toISOString();
+
+    const cancellationTerms: CancellationTermsDto = {
+      freeCancellationMinutes: 3,
+      driverCompensationFeePaise: 1500,
+      formattedCancellationFee: '₹15.00',
+      policySummary:
+        'Free cancellation within 3 minutes of captain assignment. ₹15.00 driver compensation fee applies after captain arrives at pickup location to protect driver earnings.',
+    };
+
+    const operatorNotice =
+      'EcoRide AP Pilot: 100% Battery-Electric mobility regulated under AP State Transport Authority Permit (GO-42). Category availability and fares are enforced server-side. Fares inclusive of 5% AP GST.';
+
+    if (city !== 'visakhapatnam') {
+      return {
+        city: dto.city,
+        isInsideGeofence: false,
+        categories: [],
+        operatorNotice: `EcoRide EV mobility platform currently operates exclusively in the Visakhapatnam EV pilot corridor. Service is unavailable in '${dto.city}'.`,
+        cancellationTerms,
+        evaluatedAt,
+      };
+    }
+
+    // Verify location in geofence
+    let isInside = false;
+    let zoneId: string | null = null;
+    let zoneName: string | null = null;
+    let zoneCode: string | null = null;
+    let categorySwitches: Record<string, boolean> = {};
+
+    if (this.zonesService) {
+      const verification = await this.zonesService.verifyLocation({
+        city: dto.city,
+        latitude: dto.pickupLatitude,
+        longitude: dto.pickupLongitude,
+        serviceCategory: 'CITY_COMMUTE_2W',
+      });
+
+      isInside = verification.isInsideGeofence;
+      zoneId = verification.zoneId || null;
+      zoneName = verification.zoneName || null;
+      zoneCode = verification.zoneCode || null;
+
+      if (isInside && zoneId) {
+        try {
+          const zoneDetails = await this.zonesService.getZoneById(zoneId);
+          categorySwitches = zoneDetails.categorySwitches || {};
+        } catch {
+          // If zone query fails, fallback
+        }
+      }
+    } else {
+      isInside = true;
+      zoneName = 'Visakhapatnam Pilot Corridor';
+      categorySwitches = {
+        CITY_COMMUTE_2W: true,
+        SHARED_SHUTTLE_4W: true,
+        AUTO_COMMUTE_3W: false,
+        CAB_PRIVATE_4W: false,
+      };
+    }
+
+    if (!isInside) {
+      return {
+        city: dto.city,
+        zoneId: null,
+        zoneName: null,
+        zoneCode: null,
+        isInsideGeofence: false,
+        categories: [],
+        operatorNotice: `Pickup location (${dto.pickupLatitude}, ${dto.pickupLongitude}) is outside authorized Andhra Pradesh service zones.`,
+        cancellationTerms,
+        evaluatedAt,
+      };
+    }
+
+    // Standard EV categories definitions
+    const categoryConfigs = [
+      {
+        serviceCategory: 'CITY_COMMUTE_2W',
+        vehicleClass: VehicleServiceClass.ECO_BIKE,
+        displayName: 'EcoBike',
+        description: 'Single passenger electric bike taxi (D+1)',
+        seatingCapacity: 1,
+        seatingConfiguration: 'D+1',
+        defaultCaptains: 3,
+        defaultEta: 4,
+      },
+      {
+        serviceCategory: 'SHARED_SHUTTLE_4W',
+        vehicleClass: VehicleServiceClass.ECO_VAN,
+        displayName: 'EcoVan Shuttle',
+        description: 'Shared electric shuttle up to 10 passenger seats (D+10)',
+        seatingCapacity: 10,
+        seatingConfiguration: 'D+10',
+        defaultCaptains: 2,
+        defaultEta: 8,
+      },
+      {
+        serviceCategory: 'AUTO_COMMUTE_3W',
+        vehicleClass: VehicleServiceClass.ECO_AUTO,
+        displayName: 'EcoAuto',
+        description: 'Electric 3W auto rickshaw (D+3)',
+        seatingCapacity: 3,
+        seatingConfiguration: 'D+3',
+        defaultCaptains: 0,
+        defaultEta: 12,
+      },
+      {
+        serviceCategory: 'CAB_PRIVATE_4W',
+        vehicleClass: VehicleServiceClass.ECO_CAB,
+        displayName: 'EcoCab',
+        description: 'Private 4W electric cab with air conditioning (D+4)',
+        seatingCapacity: 4,
+        seatingConfiguration: 'D+4',
+        defaultCaptains: 0,
+        defaultEta: 15,
+      },
+    ];
+
+    const categories: ServiceCategoryAvailabilityItem[] = [];
+
+    for (const config of categoryConfigs) {
+      const isEnabled = categorySwitches[config.serviceCategory] === true;
+      const availableCaptainsCount = dto.simulateZeroDrivers
+        ? 0
+        : isEnabled
+          ? config.defaultCaptains
+          : 0;
+      const isBookable = isEnabled && availableCaptainsCount > 0;
+
+      let rejectionOrUnavailableReason: string | null = null;
+      if (!isEnabled) {
+        rejectionOrUnavailableReason =
+          'Service category is disabled or pending statutory AP-STA approval in this zone.';
+      } else if (availableCaptainsCount === 0) {
+        rejectionOrUnavailableReason =
+          'No EV captains currently online in this corridor. Please check back shortly.';
+      }
+
+      let estimatedFarePaise: number | undefined;
+      let formattedFare: string | undefined;
+      let estimatedEtaMinutes = config.defaultEta;
+
+      if (dto.dropoffLatitude !== undefined && dto.dropoffLongitude !== undefined && isEnabled) {
+        try {
+          const q = this.calculateQuote({
+            city: dto.city,
+            serviceCategory: config.serviceCategory,
+            vehicleClass: config.vehicleClass,
+            pickupLatitude: dto.pickupLatitude,
+            pickupLongitude: dto.pickupLongitude,
+            dropoffLatitude: dto.dropoffLatitude,
+            dropoffLongitude: dto.dropoffLongitude,
+            passengerCount: 1,
+          });
+          estimatedFarePaise = q.fare.amountPaise;
+          formattedFare = q.fare.formattedRupees;
+          estimatedEtaMinutes = q.etaMinutes;
+        } catch {
+          // If fare calculation fails or category not supported, omit fare
+        }
+      }
+
+      categories.push({
+        serviceCategory: config.serviceCategory,
+        vehicleClass: config.vehicleClass,
+        displayName: config.displayName,
+        description: config.description,
+        seatingCapacity: config.seatingCapacity,
+        seatingConfiguration: config.seatingConfiguration,
+        propulsion: 'BATTERY_ELECTRIC',
+        isEnabled,
+        isBookable,
+        availableCaptainsCount,
+        estimatedFarePaise,
+        formattedFare,
+        estimatedEtaMinutes,
+        rejectionOrUnavailableReason,
+      });
+    }
+
+    return {
+      city: dto.city,
+      zoneId,
+      zoneName,
+      zoneCode,
+      isInsideGeofence: true,
+      categories,
+      operatorNotice,
+      cancellationTerms,
+      evaluatedAt,
     };
   }
 

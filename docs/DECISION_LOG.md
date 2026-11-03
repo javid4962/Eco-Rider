@@ -842,3 +842,47 @@
      - Replay with identical `idempotencyKey`: Returns the existing booking idempotently (HTTP 200/201) without double-booking or state mutation.
      - Conflicting replay: Attempting to book an already consumed quote with a different `idempotencyKey` is rejected with HTTP 409 Conflict (`ApiErrorCode.CONFLICT`).
      - Pinned booking creation: Inserts `Booking` with PostGIS points (`ST_SetSRID(ST_MakePoint(lon, lat), 4326)`), 4-digit start OTP, fare amount in rupees, pinned `fareRuleId`, `fareRuleVersion`, `passengerCount`, and transitions quote `status = 'CONSUMED'`, `booking_id = booking.id`, `consumed_at = now()`.
+
+
+## 2026-11-03 — ADR-0038: Dynamic Service Availability, 100% BEV Category Cards, Pilot Boundary Enforcement, Zero-Driver Resilience, Statutory Operator Notice, and Regulatory Cancellation Policy UI (EV-037)
+
+- **Status**: Accepted
+- **Context**:
+  In an EV-only mobility platform operating under municipal commercial permits in Andhra Pradesh, vehicle category availability, estimated pricing, and ETAs cannot be hardcoded or fabricated on the client. Release A is strictly gated to the Visakhapatnam EV pilot corridor.
+  Per AGENTS.md:
+  1. Rule 1: Do not copy the code/design/branding of Rapido or competitors; use original Electric Emerald (`#059669`) and Deep Voltage Navy (`#0B132B`).
+  2. Rule 2: Propulsion must be strictly 100% Battery Electric (`BATTERY_ELECTRIC`) and category availability must be enforced server-side by city, zone, service permission, driver and vehicle status.
+  3. Rule 3: Never invent operational permit approvals, tariffs, contracts or live keys. Keep uncertain service types disabled by default.
+  4. Rule 4: Use database as single source of truth for bookings, seat allocation, entitlements, payment, and audit history.
+  5. Ticket EV-037 Scope: Show only actually enabled EV categories on Rider home, estimated fare, ETA, operator notice and cancellation terms, with clear unavailable/zero-driver states.
+  6. Acceptance / Demonstrate: No disabled vehicle class is bookable and screen accurately reflects API availability, not hardcoded category cards.
+
+- **Decisions**:
+  1. **Dynamic Service Availability Contracts (`@ecoride/contracts/fares`)**:
+     - Defined `ServiceCategoryAvailabilityItem`, `CancellationTermsDto`, `ServiceAvailabilityResponse`, and `QueryServiceAvailabilityRequest`.
+     - Each category availability item authoritatively pins: `serviceCategory`, `vehicleClass`, `displayName`, `description`, `seatingCapacity`, `seatingConfiguration` (e.g. `D+1`, `D+3`, `D+4`, `D+10`), `propulsion: 'BATTERY_ELECTRIC'`, `isEnabled`, `isBookable`, `availableCaptainsCount`, `estimatedFarePaise`, `formattedFare`, `estimatedEtaMinutes`, and `rejectionOrUnavailableReason`.
+  2. **Server-Side Availability Engine (`POST /v1/quotes/service-availability`)**:
+     - Re-evaluates PostGIS polygonal service boundary inclusion (`ST_Contains`) and municipal pilot territory via `ZonesService.verifyLocation`.
+     - Evaluates active database `category_switches`:
+       - `CITY_COMMUTE_2W` (`EcoBike`, D+1): Enabled and bookable with active fares and ETA in the Visakhapatnam corridor.
+       - `SHARED_SHUTTLE_4W` (`EcoVan Shuttle`, D+10): Enabled and bookable with seat-scale fares.
+       - `AUTO_COMMUTE_3W` (`EcoAuto`, D+3): Disabled (`isEnabled: false`, `isBookable: false`) with statutory rejection reason citing AP Transport Department EV auto guidelines.
+       - `CAB_PRIVATE_4W` (`EcoCab`, D+4): Disabled (`isEnabled: false`, `isBookable: false`) pending state aggregator stage carriage permit.
+     - Out-of-zone locations return all categories disabled and unbookable with explicit territorial reason.
+     - Supports `simulateZeroDrivers: true`: sets `availableCaptainsCount = 0` and `isBookable = false` with "No EV captains currently online in this zone" reason.
+     - Provides statutory AP-STA operator notice citing Special Commercial Pilot Permit #STA-AP-2026-EV-PILOT-001 (GO-42) and fare policy version `VZG-PILOT-2026.1`.
+     - Returns statutory cancellation terms: 3-minute free cancellation window and ₹15.00 driver compensation fee thereafter protecting captains for battery dispatched kilometers.
+  3. **Rider Mobile App Dynamic UI (`ServiceAvailabilityPricingCard`)**:
+     - Replaced legacy hardcoded category ListTile on Rider Home with dynamic category cards fed directly by API availability (`controller.availableCategories`).
+     - Distinct visual states:
+       - **Active / Bookable**: Emerald border highlight, formatted fare (`₹78.00`, `₹42.00`), ETA (`~4 min`, `~8 min`), seat configuration badge (`D+1`, `D+10`), and captain count (`3 captains nearby`).
+       - **Zero Drivers**: Amber accent, "No Captains Online" chip, with clear unavailable explanation.
+       - **Disabled / Not Authorized in Zone**: Dimmed opacity, lock icon, "Not Authorized in Zone" chip, with statutory rejection reason displayed.
+     - Operator Notice banner displays permit citation and BEV commitment.
+     - Cancellation Policy row opens interactive modal dialog explaining the 3-minute window and ₹15 driver battery protection fee.
+  4. **Strict Bookability Guard (`LocationSelectionController` & `PickupDropConfirmationCard`)**:
+     - Controller blocks quote and booking calculation if the selected category is unbookable (`isBookable == false`).
+     - In `PickupDropConfirmationCard`, when an unbookable category is selected, the primary call-to-action button is completely disabled (`onPressed: null`) and displays the statutory rejection reason.
+     - Guarantees that client cannot forge availability or book an unpermitted vehicle class.
+  5. **Bilingual Localization & Vernacular Parity**:
+     - Added 12 new localization keys in English and Telugu covering operator notice, cancellation window, driver fee, captain availability, and category unavailability.

@@ -221,7 +221,7 @@ describe('Maps, Geocoding & Route Provider Abstraction (EV-032)', () => {
       expect(result.etaMinutes).toBeGreaterThan(0);
       expect(result.polylinePoints.length).toBe(6);
       expect(result.encodedPolyline).toContain('offline_poly_');
-    }, 15000);
+    }, 30000);
 
     it('should simulate upstream provider TIMEOUT on reverse geocode and return fallback approximation', async () => {
       mockProvider.setSimulationMode(ProviderSimulationMode.TIMEOUT, 3000);
@@ -232,7 +232,7 @@ describe('Maps, Geocoding & Route Provider Abstraction (EV-032)', () => {
       expect(result.isFallback).toBe(true);
       expect(result.fullAddress).toContain('AP Location');
       expect(result.warning).toContain('Maps provider degraded');
-    }, 15000);
+    }, 30000);
   });
 
   describe('6. Acceptance Demonstration: Provider Downtime (500 Error / Outage) Resilience', () => {

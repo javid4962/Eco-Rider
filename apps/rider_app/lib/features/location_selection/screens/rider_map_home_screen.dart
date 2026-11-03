@@ -12,6 +12,7 @@ import '../widgets/manual_pin_overlay.dart';
 import '../widgets/permission_denied_banner.dart';
 import '../widgets/pickup_drop_confirmation_card.dart';
 import '../widgets/saved_places_chips.dart';
+import '../widgets/service_availability_pricing_card.dart';
 import '../widgets/unsupported_zone_sheet.dart';
 import 'location_search_screen.dart';
 
@@ -183,33 +184,17 @@ class _RiderMapHomeScreenState extends State<RiderMapHomeScreen> {
                         // Search Card (Where to / Pickup & Drop summary)
                         _buildSearchCard(context, l10n),
 
-                        // Saved Places Chips
+                        // Saved Places Chips & Service Availability on Map Home (EV-037)
                         if (!widget.controller.hasBothLocations) ...[
                           const SizedBox(height: 6),
                           SavedPlacesChips(
                             controller: widget.controller,
                             target: LocationTarget.destination,
                           ),
-                          const SizedBox(height: 12),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                            child: Text(
-                              l10n.availableCategories,
-                              style: const TextStyle(color: Colors.white70, fontSize: 13),
-                            ),
-                          ),
                           const SizedBox(height: 6),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                            child: ListTile(
-                              tileColor: const Color(0xFF1C2541),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                              leading: const Icon(Icons.electric_scooter, color: Color(0xFF059669)),
-                              title: Text(l10n.cityCommuteTitle, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                              subtitle: Text(l10n.cityCommuteSubtitle, style: const TextStyle(color: Colors.white60, fontSize: 12)),
-                              trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white54, size: 14),
-                              onTap: () => _openSearch(LocationTarget.destination),
-                            ),
+                          ServiceAvailabilityPricingCard(
+                            controller: widget.controller,
+                            onSearchDestination: () => _openSearch(LocationTarget.destination),
                           ),
                         ],
 

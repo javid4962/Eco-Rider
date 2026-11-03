@@ -245,6 +245,59 @@ class PickupDropConfirmationCard extends StatelessWidget {
             ),
           ],
 
+          // Selected Category Info Pill (EV-037)
+          if (controller.selectedCategory != null) ...[
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0B132B),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: controller.selectedCategory!.isBookable
+                      ? const Color(0xFF059669)
+                      : const Color(0xFFEF4444),
+                  width: 0.8,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    controller.selectedCategory!.isBookable
+                        ? Icons.bolt
+                        : Icons.lock_outline,
+                    size: 14,
+                    color: controller.selectedCategory!.isBookable
+                        ? const Color(0xFF10B981)
+                        : const Color(0xFFEF4444),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    '${controller.selectedCategory!.displayName} (${controller.selectedCategory!.seatingConfiguration})',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    controller.selectedCategory!.isBookable
+                        ? 'Ready'
+                        : l10n.notAuthorizedInZone,
+                    style: TextStyle(
+                      color: controller.selectedCategory!.isBookable
+                          ? const Color(0xFF10B981)
+                          : const Color(0xFFEF4444),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+
           const SizedBox(height: 16),
 
           // 4. Primary Confirmation or Booking Button
@@ -258,25 +311,47 @@ class PickupDropConfirmationCard extends StatelessWidget {
                     ),
                   )
                 : isQuoteReady
-                    ? ElevatedButton.icon(
-                        onPressed: onBookRide,
-                        icon: const Icon(Icons.bolt, color: Colors.white),
-                        label: Text(
-                          l10n.bookElectricRide,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15,
-                          ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF059669),
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      )
+                    ? (controller.selectedCategory != null && !controller.selectedCategory!.isBookable)
+                        ? ElevatedButton(
+                            onPressed: null,
+                            style: ElevatedButton.styleFrom(
+                              disabledBackgroundColor: const Color(0xFF334155),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            child: Text(
+                              controller.selectedCategory?.rejectionOrUnavailableReason ??
+                                  l10n.categoryUnavailable,
+                              style: const TextStyle(
+                                color: Colors.white54,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                              ),
+                              textAlign: TextAlign.center,
+                              maxLines: 2,
+                            ),
+                          )
+                        : ElevatedButton.icon(
+                            onPressed: onBookRide,
+                            icon: const Icon(Icons.bolt, color: Colors.white),
+                            label: Text(
+                              l10n.bookElectricRide,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF059669),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          )
                     : ElevatedButton(
                         onPressed: controller.confirmLocationsAndCalculateQuote,
                         style: ElevatedButton.styleFrom(

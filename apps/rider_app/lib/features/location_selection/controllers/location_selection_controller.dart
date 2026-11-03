@@ -26,6 +26,14 @@ class LocationSelectionController extends ChangeNotifier {
   List<AddressSuggestionDto> _suggestions = [];
   List<SavedPlaceItem> _savedPlaces = [];
 
+  // Service Availability & Pricing state (EV-037)
+  List<ServiceCategoryAvailabilityItem> _availableCategories = [];
+  ServiceCategoryAvailabilityItem? _selectedCategory;
+  String? _operatorNotice;
+  CancellationTermsDto? _cancellationTerms;
+  bool _isLoadingAvailability = false;
+  bool _simulateZeroDrivers = false;
+
   // Manual pin placement tracking
   LocationTarget _activePinTarget = LocationTarget.pickup;
   double _pinLatitude = 17.7231; // Visakhapatnam Central RTC Complex default
@@ -74,6 +82,15 @@ class LocationSelectionController extends ChangeNotifier {
   List<AddressSuggestionDto> get suggestions => List.unmodifiable(_suggestions);
   List<SavedPlaceItem> get savedPlaces => List.unmodifiable(_savedPlaces);
 
+  // Service Availability getters (EV-037)
+  List<ServiceCategoryAvailabilityItem> get availableCategories =>
+      List.unmodifiable(_availableCategories);
+  ServiceCategoryAvailabilityItem? get selectedCategory => _selectedCategory;
+  String? get operatorNotice => _operatorNotice;
+  CancellationTermsDto? get cancellationTerms => _cancellationTerms;
+  bool get isLoadingAvailability => _isLoadingAvailability;
+  bool get simulateZeroDrivers => _simulateZeroDrivers;
+
   LocationTarget get activePinTarget => _activePinTarget;
   double get pinLatitude => _pinLatitude;
   double get pinLongitude => _pinLongitude;
@@ -87,7 +104,7 @@ class LocationSelectionController extends ChangeNotifier {
       _pickupLocation?.isConfirmed == true &&
       _destinationLocation?.isConfirmed == true;
 
-  /// Initializes controller, loads saved places and default suggestions
+  /// Initializes controller, loads saved places, default suggestions, and service availability
   Future<void> initialize({String userId = 'user-rider-default'}) async {
     _isLoading = true;
     notifyListeners();
@@ -95,11 +112,71 @@ class LocationSelectionController extends ChangeNotifier {
     try {
       _savedPlaces = await apiClient.getSavedPlaces(userId);
       _suggestions = await apiClient.getAddressSuggestions('', city: activeCity);
+      await fetchServiceAvailability();
       _isLoading = false;
       notifyListeners();
     } catch (e) {
       _isLoading = false;
       _errorMessage = 'Could not load saved locations: $e';
+      notifyListeners();
+    }
+  }
+
+  /// Sets selected category and notifies listeners (EV-037)
+  void selectCategory(ServiceCategoryAvailabilityItem category) {
+    _selectedCategory = category;
+    notifyListeners();
+  }
+
+  /// Queries dynamic service availability, enabled categories, fares, ETA, and cancellation terms (EV-037)
+  Future<void> fetchServiceAvailability({bool? simulateZeroDrivers}) async {
+    if (simulateZeroDrivers != null) {
+      _simulateZeroDrivers = simulateZeroDrivers;
+    }
+    _isLoadingAvailability = true;
+    notifyListeners();
+
+    try {
+      final pickupLat = _pickupLocation?.latitude ?? _pinLatitude;
+      final pickupLng = _pickupLocation?.longitude ?? _pinLongitude;
+      final dropoffLat = _destinationLocation?.latitude;
+      final dropoffLng = _destinationLocation?.longitude;
+
+      final res = await apiClient.getServiceAvailability(
+        pickupLatitude: pickupLat,
+        pickupLongitude: pickupLng,
+        dropoffLatitude: dropoffLat,
+        dropoffLongitude: dropoffLng,
+        city: activeCity,
+        simulateZeroDrivers: _simulateZeroDrivers,
+      );
+
+      _availableCategories = res.categories;
+      _operatorNotice = res.operatorNotice;
+      _cancellationTerms = res.cancellationTerms;
+
+      // Preserve or set selected category
+      if (_selectedCategory != null) {
+        final matching = _availableCategories
+            .where((c) => c.serviceCategory == _selectedCategory!.serviceCategory);
+        if (matching.isNotEmpty) {
+          _selectedCategory = matching.first;
+        } else {
+          _selectedCategory =
+              _availableCategories.isNotEmpty ? _availableCategories.first : null;
+        }
+      } else {
+        final bookable = _availableCategories.where((c) => c.isBookable);
+        if (bookable.isNotEmpty) {
+          _selectedCategory = bookable.first;
+        } else if (_availableCategories.isNotEmpty) {
+          _selectedCategory = _availableCategories.first;
+        }
+      }
+    } catch (e) {
+      _errorMessage = 'Failed to load service availability: $e';
+    } finally {
+      _isLoadingAvailability = false;
       notifyListeners();
     }
   }
@@ -196,6 +273,7 @@ class LocationSelectionController extends ChangeNotifier {
     }
 
     notifyListeners();
+    fetchServiceAvailability();
   }
 
   /// Cancels pin placement mode without modifying existing points
@@ -253,6 +331,7 @@ class LocationSelectionController extends ChangeNotifier {
     }
 
     notifyListeners();
+    fetchServiceAvailability();
   }
 
   /// Selects a saved place (Home, Work, etc.) for pickup or destination
@@ -278,6 +357,7 @@ class LocationSelectionController extends ChangeNotifier {
     }
 
     notifyListeners();
+    fetchServiceAvailability();
   }
 
   /// Clears pickup point
@@ -305,6 +385,18 @@ class LocationSelectionController extends ChangeNotifier {
       return;
     }
 
+    final effectiveCategory =
+        _selectedCategory?.serviceCategory ?? activeServiceCategory;
+
+    // Acceptance EV-037: No disabled vehicle class is bookable
+    if (_selectedCategory != null && !_selectedCategory!.isBookable) {
+      _unsupportedReason = _selectedCategory!.rejectionOrUnavailableReason ??
+          'Category ${_selectedCategory!.displayName} is currently not bookable in this pilot zone.';
+      _currentMode = LocationSelectionMode.unsupportedLocation;
+      notifyListeners();
+      return;
+    }
+
     _isLoading = true;
     _errorMessage = null;
     _unsupportedReason = null;
@@ -317,7 +409,7 @@ class LocationSelectionController extends ChangeNotifier {
         latitude: _pickupLocation!.latitude,
         longitude: _pickupLocation!.longitude,
         city: activeCity,
-        serviceCategory: activeServiceCategory,
+        serviceCategory: effectiveCategory,
       );
 
       if (!verification.isAuthorized) {
@@ -335,7 +427,7 @@ class LocationSelectionController extends ChangeNotifier {
         latitude: _destinationLocation!.latitude,
         longitude: _destinationLocation!.longitude,
         city: activeCity,
-        serviceCategory: activeServiceCategory,
+        serviceCategory: effectiveCategory,
       );
 
       if (!destVerification.isAuthorized) {
@@ -355,7 +447,7 @@ class LocationSelectionController extends ChangeNotifier {
       // 4. Request authoritative quote
       final quoteReq = QuoteRequest(
         city: activeCity,
-        serviceCategory: activeServiceCategory,
+        serviceCategory: effectiveCategory,
         pickupLatitude: _pickupLocation!.latitude,
         pickupLongitude: _pickupLocation!.longitude,
         dropoffLatitude: _destinationLocation!.latitude,
@@ -401,6 +493,7 @@ class LocationSelectionController extends ChangeNotifier {
     _errorMessage = null;
     _unsupportedReason = null;
     _unsupportedZoneDetails = null;
+    fetchServiceAvailability();
     notifyListeners();
   }
 }

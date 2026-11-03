@@ -126,6 +126,20 @@ class AppLocalizations {
     'rejection_reason_label': 'Reason: {reason}',
     'change_location_action': 'Select Another Location',
     'notify_expansion_action': 'Notify Me on Expansion',
+
+    // Service Availability & Pricing (EV-037)
+    'operator_notice_title': 'Statutory Operator Notice (AP-STA)',
+    'cancellation_terms_title': 'Cancellation Policy',
+    'free_cancellation_window': 'Free cancellation within {mins} mins',
+    'driver_compensation_fee': 'Driver fee {fee} after window',
+    'zero_drivers_nearby': 'No Captains Online',
+    'captains_nearby': '{count} captains nearby',
+    'not_authorized_in_zone': 'Not Authorized in Zone',
+    'category_unavailable': 'Category Unavailable',
+    'seating_label': 'Seats: {config} ({count} pass)',
+    'view_cancellation_policy': 'View Cancellation Terms',
+    'pilot_pricing_notice': 'Estimated EV fare',
+    'service_availability_title': 'EV Service Availability & Pricing',
   };
 
   static const Map<String, String> _teStrings = {
@@ -228,6 +242,20 @@ class AppLocalizations {
     'rejection_reason_label': 'కారణం: {reason}',
     'change_location_action': 'వేరే స్థానాన్ని ఎంచుకోండి',
     'notify_expansion_action': 'మా విస్తరణ గురించి తెలియజేయండి',
+
+    // Service Availability & Pricing (EV-037)
+    'operator_notice_title': 'చట్టబద్ధమైన ఆపరేటర్ నోటీసు (AP-STA)',
+    'cancellation_terms_title': 'రద్దు విధానం',
+    'free_cancellation_window': '{mins} నిమిషాల్లోపు ఉచిత రద్దు',
+    'driver_compensation_fee': 'సమయం దాటిన తర్వాత డ్రైవర్ పరిహారం {fee}',
+    'zero_drivers_nearby': 'ప్రస్తుతం కెప్టెన్లు అందుబాటులో లేరు',
+    'captains_nearby': '{count} కెప్టెన్లు సమీపంలో ఉన్నారు',
+    'not_authorized_in_zone': 'ఈ జోన్‌లో అనుమతించబడలేదు',
+    'category_unavailable': 'కేటగిరీ అందుబాటులో లేదు',
+    'seating_label': 'సీట్లు: {config} ({count} ప్రయాణికులు)',
+    'view_cancellation_policy': 'రద్దు నిబంధనలను వీక్షించండి',
+    'pilot_pricing_notice': 'అంచనా వేయబడిన ఈవీ ఛార్జీ',
+    'service_availability_title': 'ఈవీ సేవ లభ్యత మరియు ధరలు',
   };
 
   /// Translate a string key into active language with automatic fallback to English.
@@ -358,6 +386,24 @@ class AppLocalizations {
   String rejectionReasonLabel(String reason) => translate('rejection_reason_label', {'reason': reason});
   String get changeLocationAction => translate('change_location_action');
   String get notifyExpansionAction => translate('notify_expansion_action');
+
+  // Service Availability & Pricing Getters (EV-037)
+  String get operatorNoticeTitle => translate('operator_notice_title');
+  String get cancellationTermsTitle => translate('cancellation_terms_title');
+  String freeCancellationWindow(int mins) =>
+      translate('free_cancellation_window', {'mins': mins.toString()});
+  String driverCompensationFee(String fee) =>
+      translate('driver_compensation_fee', {'fee': fee});
+  String get zeroDriversNearby => translate('zero_drivers_nearby');
+  String captainsNearby(int count) =>
+      translate('captains_nearby', {'count': count.toString()});
+  String get notAuthorizedInZone => translate('not_authorized_in_zone');
+  String get categoryUnavailable => translate('category_unavailable');
+  String seatingLabel(String config, int count) =>
+      translate('seating_label', {'config': config, 'count': count.toString()});
+  String get viewCancellationPolicy => translate('view_cancellation_policy');
+  String get pilotPricingNotice => translate('pilot_pricing_notice');
+  String get serviceAvailabilityTitle => translate('service_availability_title');
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
