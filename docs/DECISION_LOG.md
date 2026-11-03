@@ -740,3 +740,32 @@
      - Blocks fare quotation and booking initiation until valid permitted coordinates are chosen.
   6. **Bilingual English & Telugu Parity**:
      - Added 36 bilingual localized strings to `apps/rider_app/lib/core/localization/app_localizations.dart` covering search hints, saved places chips, pin confirmation, route summary, EV fare metrics, and out-of-zone explanations in both English and Telugu script.
+
+
+## 2026-11-03 — ADR-0035: Versioned Server-Side Fare Rule Schema, Non-Live Illustrative Tariffs, Approval Audit History, and Immutable Ride Quote Snapshots
+
+- **Status**: Accepted
+- **Context**:
+  The EcoRide EV-only platform requires server-side tariff modeling, versioning, statutory approval workflows, and immutable ride quote retention.
+  Per AGENTS.md:
+  1. Rule 2: Propulsion must be ELECTRIC and category availability must be enforced server-side by city, zone, service permission, driver and vehicle status.
+  2. Rule 3: Never invent operational permit approvals, tariffs, contracts or live keys. Keep uncertain service types disabled by default. Do not make source PDF illustrative fares live defaults.
+  3. Rule 4: Use database as single source of truth for bookings, seat allocation, entitlements, payment, and audit history.
+  4. Ticket EV-034 Scope: Model approved/DRAFT base rate, per-km, waiting, time, eligible taxes, optional promotions, city/service scope and effective dates. Do not make source PDF illustrative fares live defaults.
+  5. Acceptance / Demonstrate: Fare versions have approval/audit history; old ride quotes retain their original price version.
+
+- **Decisions**:
+  1. **Relational Schema (`CreateFareRuleVersionsAndAuditTrail1700000000015`)**:
+     - `fare_rules` table: models versioned rate parameters in integer paise (`base_fare_paise`, `base_distance_meters`, `per_km_rate_paise`, `per_minute_rate_paise`, `waiting_charge_paise_per_minute`, `minimum_fare_paise`, `surge_multiplier`, `tax_rate_bps`, `commission_rate_bps`), optional promotion configurations (`promotions` JSONB), city/service category scope, and effective date ranges (`effective_from`, `effective_to`).
+     - `ride_quotes` table: stores ride estimates (`distance_meters`, `duration_minutes`, `fare_rule_id`, `fare_rule_version`, `fare_breakdown` JSONB, `total_fare_paise`, `expires_at`, `applied_promo_code`).
+     - `bookings` table: linked to `quote_id`, `fare_rule_id`, and `fare_rule_version` for end-to-end pricing audit traceability.
+  2. **Non-Live Illustrative Fares Isolation**:
+     - Illustrative tariff samples (such as those from pitch decks and source PDFs) are strictly flagged with `is_illustrative = true` and initialized in `DRAFT` status.
+     - Live quote calculations strictly reject unapproved DRAFT or illustrative rules with `ApiErrorCode.NO_ACTIVE_FARE_RULE`.
+  3. **Role-Gated Approval & Historical Superseding (`FareRulesService.approveRule`)**:
+     - Only authorized administrators (`OPERATOR` or `SUPER_ADMIN`) can approve fare rules (non-privileged roles return HTTP 403 Forbidden).
+     - Approval mandates a non-empty statutory evidence reference (`evidenceReference`) citing government gazetted orders (e.g., `AP-STA-2026-GO-42`).
+     - Approving a new version promotes it to `ACTIVE` and automatically supersedes any previously active rule for that city and category (`status = 'SUPERSEDED'`, `effective_to = now()`), logging immutable entries in `audit_events`.
+  4. **Immutable Ride Quote Snapshots (`QuotesService.calculateAuthoritativeQuote` & `getQuote`)**:
+     - Each generated quote stores a complete snapshot of `fareRuleId`, `fareRuleVersion`, and `fareBreakdown` (base, distance beyond base, transit time, waiting, 5% AP GST [2.5% CGST + 2.5% SGST], discounts, total paise).
+     - When subsequent fare rule versions are approved (e.g., Version 2 with revised base rates), previously issued quotes retain their original price version, rate components, and exact total fare without retroactive recalculation.

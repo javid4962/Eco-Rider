@@ -81,4 +81,13 @@ export class QuoteRequestDto {
   @IsOptional()
   @IsBoolean()
   clientForgedAvailability?: boolean;
+
+  @ApiProperty({
+    description: 'Optional promotional coupon code to apply eligible discounts',
+    example: 'ECOPILOT',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  promoCode?: string;
 }

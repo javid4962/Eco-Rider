@@ -21,3 +21,5 @@ export * from './fleet-organization.entity';
 export * from './fleet-vehicle-assignment.entity';
 export * from './fleet-shift.entity';
 export * from './service-city.entity';
+export * from './fare-rule.entity';
+export * from './ride-quote.entity';

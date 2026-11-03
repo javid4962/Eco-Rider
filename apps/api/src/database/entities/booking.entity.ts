@@ -54,6 +54,15 @@ export class Booking {
   @Column({ type: 'numeric', precision: 10, scale: 2, default: 0.0, name: 'fare_amount' })
   fareAmount!: number;
 
+  @Column({ type: 'uuid', nullable: true, name: 'quote_id' })
+  quoteId?: string;
+
+  @Column({ type: 'uuid', nullable: true, name: 'fare_rule_id' })
+  fareRuleId?: string;
+
+  @Column({ type: 'int', nullable: true, name: 'fare_rule_version' })
+  fareRuleVersion?: number;
+
   @CreateDateColumn({ type: 'timestamptz', name: 'created_at' })
   createdAt!: Date;
 

@@ -14,3 +14,4 @@ export * from './compliance';
 export * from './fleet';
 export * from './zones';
 export * from './maps';
+export * from './fares';

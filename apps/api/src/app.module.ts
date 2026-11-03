@@ -22,6 +22,7 @@ import { ComplianceModule } from './modules/compliance/compliance.module';
 import { FleetModule } from './modules/fleet/fleet.module';
 import { ZonesModule } from './modules/zones/zones.module';
 import { MapsModule } from './modules/maps/maps.module';
+import { FareRulesModule } from './modules/fare-rules/fare-rules.module';
 import { CorrelationIdMiddleware } from './common/middleware/correlation-id.middleware';
 import { AuthMiddleware } from './modules/auth/middleware/auth.middleware';
 
@@ -52,6 +53,7 @@ import { AuthMiddleware } from './modules/auth/middleware/auth.middleware';
     FleetModule,
     ZonesModule,
     MapsModule,
+    FareRulesModule,
   ],
 })
 export class AppModule implements NestModule {
