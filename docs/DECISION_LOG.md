@@ -769,3 +769,39 @@
   4. **Immutable Ride Quote Snapshots (`QuotesService.calculateAuthoritativeQuote` & `getQuote`)**:
      - Each generated quote stores a complete snapshot of `fareRuleId`, `fareRuleVersion`, and `fareBreakdown` (base, distance beyond base, transit time, waiting, 5% AP GST [2.5% CGST + 2.5% SGST], discounts, total paise).
      - When subsequent fare rule versions are approved (e.g., Version 2 with revised base rates), previously issued quotes retain their original price version, rate components, and exact total fare without retroactive recalculation.
+
+
+## 2026-11-03 — ADR-0036: Deterministic Fare Quote Calculation, Whole-Rupee Rounding Arithmetic, Vehicle Classification Controls, and Map Provider Fallback Rules
+
+- **Status**: Accepted
+- **Context**:
+  The EcoRide EV-only mobility platform requires server-side fare quotation for electric vehicles in Andhra Pradesh.
+  Per AGENTS.md:
+  1. Rule 2: Propulsion must be ELECTRIC and category availability must be enforced server-side by city, zone, service permission, driver and vehicle status.
+  2. Rule 3: Never invent operational permit approvals, tariffs, contracts or live keys. Keep uncertain service types disabled by default.
+  3. Rule 4: Use database as single source of truth for bookings, seat allocation, entitlements, payment, and audit history.
+  4. Ticket EV-035 Scope: Build fare quote API using route estimate, vehicle class, passenger count when relevant, taxes/fees, provider fallback rules and currency-in-paise arithmetic.
+  5. Acceptance / Demonstrate: Known test examples calculate deterministically; client-supplied fare or modified service does not override server values.
+
+- **Decisions**:
+  1. **Strict Integer-Paise Arithmetic & Whole-Rupee Rounding**:
+     - All monetary calculations are performed in integer paise without floating-point math to prevent IEEE-754 rounding drift.
+     - Rate components: base fare, distance beyond base distance, transit time rate, waiting rate, and ₹2.00 (200 paise) regulatory technology and safety platform fee.
+     - Whole-rupee rounding: Passenger transport regulations mandate whole rupee rounding for passenger convenience and driver cash/digital reconciliation. Fares are rounded to the nearest whole rupee (`Math.round(unroundedTotalPaise / 100) * 100`).
+     - Transparent rounding audit: `roundingDeltaPaise` (difference between rounded total and raw unrounded total) and `unroundedTotalPaise` are explicitly persisted in `fareBreakdown` for complete financial reconciliation.
+  2. **Vehicle Classification & Legal Seating Controls**:
+     - Maps vehicle classes (`ECO_BIKE`, `ECO_AUTO`, `ECO_CAB`, `ECO_VAN`) to permitted commercial categories (`CITY_COMMUTE_2W`, `AUTO_COMMUTE_3W`, `CAB_PRIVATE_4W`, `SHARED_SHUTTLE_4W`).
+     - Rejects incompatible pairings (e.g. `ECO_CAB` with `CITY_COMMUTE_2W`) with `ApiErrorCode.BAD_REQUEST`.
+     - Enforces legal passenger seating capacities (excluding driver):
+       - `CITY_COMMUTE_2W` / `ECO_BIKE`: 1 customer seat (D+1). Requests exceeding 1 are rejected.
+       - `AUTO_COMMUTE_3W` / `ECO_AUTO`: 3 customer seats (D+3). Requests exceeding 3 are rejected.
+       - `CAB_PRIVATE_4W` / `ECO_CAB`: 4 customer seats (D+4). Requests exceeding 4 are rejected.
+       - `SHARED_SHUTTLE_4W` / `ECO_VAN`: Up to 10 customer seats (D+10).
+  3. **Multi-Passenger Shared Shuttle Seat Scaling**:
+     - In `SHARED_SHUTTLE_4W`, fares are calculated per passenger seat (`perPassengerFarePaise`).
+     - Total trip subtotal scales linearly with requested `passengerCount`, retaining single platform fee and regulatory taxes.
+  4. **Provider Resilience & Route Provider Fallback**:
+     - Integrates `MapsService.calculateRoute` to obtain road winding distance and transit duration.
+     - When upstream map providers experience downtime, timeouts, or simulation (`simulateProviderDowntime: true`), automatically falls back to offline geometric estimation (`isRouteFallback: true`) with road winding factor (1.25x) and urban speed models, preventing client loading traps.
+  5. **Server-Side Authoritative Tamper-Resistance**:
+     - Client-supplied fare parameters (`clientSuppliedFare`) and forged availability flags are completely ignored or rejected. The server calculates and persists the authoritative fare snapshot.

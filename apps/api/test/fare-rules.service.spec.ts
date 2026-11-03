@@ -307,7 +307,9 @@ describe('FareRulesService & Versioned Pricing Engine (TASK EV-034)', () => {
       expect(breakdown.baseFarePaise).toBe(2500);
       expect(breakdown.taxes.cgstPaise + breakdown.taxes.sgstPaise).toBe(breakdown.taxPaise);
       expect(breakdown.totalPaise).toBe(
-        breakdown.surgedSubtotalPaise - breakdown.discountPaise + breakdown.taxPaise,
+        (breakdown.unroundedTotalPaise ??
+          breakdown.surgedSubtotalPaise - breakdown.discountPaise + breakdown.taxPaise) +
+          (breakdown.roundingDeltaPaise || 0),
       );
       expect(Number.isInteger(breakdown.totalPaise)).toBe(true);
     });

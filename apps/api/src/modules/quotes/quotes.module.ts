@@ -4,11 +4,17 @@ import { QuotesController } from './quotes.controller';
 import { QuotesService } from './quotes.service';
 import { ZonesModule } from '../zones/zones.module';
 import { FareRulesModule } from '../fare-rules/fare-rules.module';
+import { MapsModule } from '../maps/maps.module';
 import { RideQuote } from '../../database/entities/ride-quote.entity';
 import { FareRule } from '../../database/entities/fare-rule.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([RideQuote, FareRule]), ZonesModule, FareRulesModule],
+  imports: [
+    TypeOrmModule.forFeature([RideQuote, FareRule]),
+    ZonesModule,
+    FareRulesModule,
+    MapsModule,
+  ],
   controllers: [QuotesController],
   providers: [QuotesService],
   exports: [QuotesService],

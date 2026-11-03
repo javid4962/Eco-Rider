@@ -353,7 +353,7 @@ export class MapsService {
   /**
    * Offline fallback for route calculation during provider downtime or timeouts.
    */
-  private getOfflineRouteCalculation(
+  public getOfflineRouteCalculation(
     dto: RouteCalculationDto,
     errorReason: string,
   ): RouteCalculationResponse {

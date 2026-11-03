@@ -30,6 +30,60 @@ export class QuoteRequestDto {
   serviceCategory!: string;
 
   @ApiProperty({
+    description: 'Vehicle class (e.g. ECO_BIKE, ECO_AUTO, ECO_CAB, ECO_VAN)',
+    example: 'ECO_BIKE',
+    required: false,
+    enum: ['ECO_BIKE', 'ECO_AUTO', 'ECO_CAB', 'ECO_VAN'],
+  })
+  @IsOptional()
+  @IsString()
+  @IsIn(['ECO_BIKE', 'ECO_AUTO', 'ECO_CAB', 'ECO_VAN'])
+  vehicleClass?: string;
+
+  @ApiProperty({
+    description: 'Number of passenger seats requested (excluding driver)',
+    example: 1,
+    required: false,
+    minimum: 1,
+    maximum: 10,
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  @Max(10)
+  passengerCount?: number;
+
+  @ApiProperty({
+    description: 'Optional waiting duration in minutes',
+    example: 0,
+    required: false,
+    minimum: 0,
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  waitingMinutes?: number;
+
+  @ApiProperty({
+    description:
+      'Simulated client-supplied fare to verify server-side tamper-resistance (strictly ignored)',
+    example: 100,
+    required: false,
+  })
+  @IsOptional()
+  @IsNumber()
+  clientSuppliedFare?: number;
+
+  @ApiProperty({
+    description: 'Simulate maps provider downtime to trigger fallback routing rules',
+    example: false,
+    required: false,
+  })
+  @IsOptional()
+  @IsBoolean()
+  simulateProviderDowntime?: boolean;
+
+  @ApiProperty({
     description: 'Pickup latitude within Andhra Pradesh',
     example: 17.6868,
     minimum: 12.0,

@@ -89,9 +89,15 @@ export interface FareCalculationBreakdown {
   subtotalPaise: number;
   surgeMultiplier: number;
   surgedSubtotalPaise: number;
+  platformFeePaise?: number; // Regulatory technology and safety platform fee (paise)
+  passengerCount?: number; // Count of passenger seats booked
+  perPassengerFarePaise?: number; // Unit seat fare for shared shuttle services
   taxPaise: number;
   taxes: TaxBreakdown;
   discountPaise: number;
+  unroundedTotalPaise?: number; // Exact integer paise sum before whole-rupee rounding
+  roundingDeltaPaise?: number; // Rounding adjustment applied (+/- paise to nearest whole rupee)
+  isRouteFallback?: boolean; // True when maps provider fallback / offline routing was used
   totalPaise: number;
   currency: 'INR';
   formattedRupees: string;
@@ -102,6 +108,8 @@ export interface StoredRideQuote {
   riderId?: string | null;
   city: string;
   serviceCategory: string;
+  vehicleClass?: string;
+  passengerCount?: number;
   pickupLatitude: number;
   pickupLongitude: number;
   dropoffLatitude: number;

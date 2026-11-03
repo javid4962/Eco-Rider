@@ -95,6 +95,16 @@ export const CATEGORY_TO_SERVICE_CLASS: Record<VehicleCategory, VehicleServiceCl
 };
 
 /**
+ * Reverse mapping from commercial VehicleServiceClass to VehicleCategory.
+ */
+export const SERVICE_CLASS_TO_CATEGORY: Record<VehicleServiceClass, VehicleCategory> = {
+  [VehicleServiceClass.ECO_BIKE]: VehicleCategory.CITY_COMMUTE_2W,
+  [VehicleServiceClass.ECO_AUTO]: VehicleCategory.AUTO_COMMUTE_3W,
+  [VehicleServiceClass.ECO_CAB]: VehicleCategory.CAB_PRIVATE_4W,
+  [VehicleServiceClass.ECO_VAN]: VehicleCategory.VAN_COMMUTE_4W,
+};
+
+/**
  * Permitted commercial vehicle categories by Andhra Pradesh municipality.
  * Enforces Rule 2 & 3: Keep uncertain service types and non-pilot cities disabled by default.
  */
