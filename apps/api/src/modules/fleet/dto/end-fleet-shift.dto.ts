@@ -42,4 +42,3 @@ export class EndFleetShiftDto implements EndFleetShiftRequest {
   @Min(0)
   totalEarningsPaise?: number;
 }
-

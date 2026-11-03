@@ -262,3 +262,210 @@ class QuoteResponse {
     );
   }
 }
+
+/// Geographic Point coordinates
+class GeoPointDto {
+  final double latitude;
+  final double longitude;
+
+  const GeoPointDto({
+    required this.latitude,
+    required this.longitude,
+  });
+
+  factory GeoPointDto.fromJson(Map<String, dynamic> json) {
+    return GeoPointDto(
+      latitude: (json['latitude'] as num?)?.toDouble() ?? 0.0,
+      longitude: (json['longitude'] as num?)?.toDouble() ?? 0.0,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'latitude': latitude,
+    'longitude': longitude,
+  };
+}
+
+/// Address Suggestion for Search Autocompletion (EV-032 / EV-033)
+class AddressSuggestionDto {
+  final String id;
+  final String placeId;
+  final String primaryText;
+  final String secondaryText;
+  final String fullAddress;
+  final String city;
+  final String? district;
+  final double latitude;
+  final double longitude;
+
+  const AddressSuggestionDto({
+    required this.id,
+    required this.placeId,
+    required this.primaryText,
+    required this.secondaryText,
+    required this.fullAddress,
+    required this.city,
+    this.district,
+    required this.latitude,
+    required this.longitude,
+  });
+
+  factory AddressSuggestionDto.fromJson(Map<String, dynamic> json) {
+    final coords = json['coordinates'] as Map<String, dynamic>?;
+    return AddressSuggestionDto(
+      id: json['id'] as String? ?? '',
+      placeId: json['placeId'] as String? ?? '',
+      primaryText: json['primaryText'] as String? ?? '',
+      secondaryText: json['secondaryText'] as String? ?? '',
+      fullAddress: json['fullAddress'] as String? ?? '',
+      city: json['city'] as String? ?? '',
+      district: json['district'] as String?,
+      latitude: coords != null ? (coords['latitude'] as num).toDouble() : (json['latitude'] as num?)?.toDouble() ?? 0.0,
+      longitude: coords != null ? (coords['longitude'] as num).toDouble() : (json['longitude'] as num?)?.toDouble() ?? 0.0,
+    );
+  }
+}
+
+/// Detailed Reverse Geocode Result for Manual Pin & Coordinates (EV-032 / EV-033)
+class ReverseGeocodeDto {
+  final String fullAddress;
+  final String primaryName;
+  final String city;
+  final String? district;
+  final String state;
+  final String? postalCode;
+  final double latitude;
+  final double longitude;
+  final bool isWithinAndhraPradesh;
+  final bool isFallback;
+  final String? warning;
+
+  const ReverseGeocodeDto({
+    required this.fullAddress,
+    required this.primaryName,
+    required this.city,
+    this.district,
+    required this.state,
+    this.postalCode,
+    required this.latitude,
+    required this.longitude,
+    required this.isWithinAndhraPradesh,
+    this.isFallback = false,
+    this.warning,
+  });
+
+  factory ReverseGeocodeDto.fromJson(Map<String, dynamic> json) {
+    final coords = json['coordinates'] as Map<String, dynamic>?;
+    return ReverseGeocodeDto(
+      fullAddress: json['fullAddress'] as String? ?? '',
+      primaryName: json['primaryName'] as String? ?? '',
+      city: json['city'] as String? ?? '',
+      district: json['district'] as String?,
+      state: json['state'] as String? ?? 'Andhra Pradesh',
+      postalCode: json['postalCode'] as String?,
+      latitude: coords != null ? (coords['latitude'] as num).toDouble() : (json['latitude'] as num?)?.toDouble() ?? 0.0,
+      longitude: coords != null ? (coords['longitude'] as num).toDouble() : (json['longitude'] as num?)?.toDouble() ?? 0.0,
+      isWithinAndhraPradesh: json['isWithinAndhraPradesh'] as bool? ?? true,
+      isFallback: json['isFallback'] as bool? ?? false,
+      warning: json['warning'] as String?,
+    );
+  }
+}
+
+/// Verification result for Point-in-Polygon Geofence & Category switch (EV-031 / EV-033)
+class VerifyLocationResultDto {
+  final bool isAuthorized;
+  final String? zoneId;
+  final String? zoneCode;
+  final String? zoneName;
+  final String city;
+  final String serviceCategory;
+  final bool isInsideGeofence;
+  final bool isPermitValid;
+  final bool isCategoryEnabled;
+  final String operationalStatus;
+  final String? permitExpiresAt;
+  final String? rejectionReason;
+  final String evaluatedAt;
+
+  const VerifyLocationResultDto({
+    required this.isAuthorized,
+    this.zoneId,
+    this.zoneCode,
+    this.zoneName,
+    required this.city,
+    required this.serviceCategory,
+    required this.isInsideGeofence,
+    required this.isPermitValid,
+    required this.isCategoryEnabled,
+    required this.operationalStatus,
+    this.permitExpiresAt,
+    this.rejectionReason,
+    required this.evaluatedAt,
+  });
+
+  factory VerifyLocationResultDto.fromJson(Map<String, dynamic> json) {
+    return VerifyLocationResultDto(
+      isAuthorized: json['isAuthorized'] as bool? ?? false,
+      zoneId: json['zoneId'] as String?,
+      zoneCode: json['zoneCode'] as String?,
+      zoneName: json['zoneName'] as String?,
+      city: json['city'] as String? ?? '',
+      serviceCategory: json['serviceCategory'] as String? ?? '',
+      isInsideGeofence: json['isInsideGeofence'] as bool? ?? false,
+      isPermitValid: json['isPermitValid'] as bool? ?? false,
+      isCategoryEnabled: json['isCategoryEnabled'] as bool? ?? false,
+      operationalStatus: json['operationalStatus'] as String? ?? 'DISABLED',
+      permitExpiresAt: json['permitExpiresAt'] as String?,
+      rejectionReason: json['rejectionReason'] as String?,
+      evaluatedAt: json['evaluatedAt'] as String? ?? DateTime.now().toIso8601String(),
+    );
+  }
+}
+
+/// Saved Places DTO (Home, Work, Custom Favorite) (EV-019 / EV-033)
+class SavedPlaceDto {
+  final String id;
+  final String userId;
+  final String label;
+  final String addressType;
+  final String addressLine;
+  final String? landmark;
+  final double latitude;
+  final double longitude;
+
+  const SavedPlaceDto({
+    required this.id,
+    required this.userId,
+    required this.label,
+    required this.addressType,
+    required this.addressLine,
+    this.landmark,
+    required this.latitude,
+    required this.longitude,
+  });
+
+  factory SavedPlaceDto.fromJson(Map<String, dynamic> json) {
+    return SavedPlaceDto(
+      id: json['id'] as String? ?? '',
+      userId: json['userId'] as String? ?? '',
+      label: json['label'] as String? ?? '',
+      addressType: json['addressType'] as String? ?? 'BOTH',
+      addressLine: json['addressLine'] as String? ?? '',
+      landmark: json['landmark'] as String?,
+      latitude: (json['latitude'] as num?)?.toDouble() ?? 0.0,
+      longitude: (json['longitude'] as num?)?.toDouble() ?? 0.0,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'userId': userId,
+    'label': label,
+    'addressType': addressType,
+    'addressLine': addressLine,
+    if (landmark != null) 'landmark': landmark,
+    'latitude': latitude,
+    'longitude': longitude,
+  };
+}

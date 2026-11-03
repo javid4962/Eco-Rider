@@ -84,4 +84,3 @@ export class CreateServiceCityDto implements CreateServiceCityRequest {
   @IsNumber()
   centerLongitude!: number;
 }
-

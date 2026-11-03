@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'core/localization/app_localizations.dart';
-import 'core/localization/language_switcher.dart';
 import 'core/localization/locale_controller.dart';
+import 'features/location_selection/controllers/location_selection_controller.dart';
+import 'features/location_selection/screens/rider_map_home_screen.dart';
+import 'features/location_selection/services/rider_location_api_client.dart';
 
 void main() {
   runApp(const EcoRideRiderApp());
@@ -9,8 +11,13 @@ void main() {
 
 class EcoRideRiderApp extends StatefulWidget {
   final LocaleController? controller;
+  final LocationSelectionController? locationController;
 
-  const EcoRideRiderApp({super.key, this.controller});
+  const EcoRideRiderApp({
+    super.key,
+    this.controller,
+    this.locationController,
+  });
 
   static const Color primaryElectric = Color(0xFF059669);
   static const Color voltageNavy = Color(0xFF0B132B);
@@ -22,11 +29,16 @@ class EcoRideRiderApp extends StatefulWidget {
 
 class _EcoRideRiderAppState extends State<EcoRideRiderApp> {
   late final LocaleController _controller;
+  late final LocationSelectionController _locationController;
 
   @override
   void initState() {
     super.initState();
     _controller = widget.controller ?? LocaleController();
+    _locationController = widget.locationController ??
+        LocationSelectionController(
+          apiClient: MockRiderLocationApiClient(),
+        );
   }
 
   @override
@@ -54,102 +66,35 @@ class _EcoRideRiderAppState extends State<EcoRideRiderApp> {
               surface: EcoRideRiderApp.surfaceNavy,
             ),
           ),
-          home: RiderHomeScreen(controller: _controller),
+          home: RiderMapHomeScreen(
+            localeController: _controller,
+            controller: _locationController,
+          ),
         );
       },
     );
   }
 }
 
+/// Backward compatibility shim for RiderHomeScreen
 class RiderHomeScreen extends StatelessWidget {
   final LocaleController controller;
+  final LocationSelectionController? locationController;
 
-  const RiderHomeScreen({super.key, required this.controller});
+  const RiderHomeScreen({
+    super.key,
+    required this.controller,
+    this.locationController,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.appName),
-        backgroundColor: const Color(0xFF0B132B),
-        elevation: 0,
-        actions: [
-          LanguageSwitcherButton(controller: controller),
-        ],
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Card(
-                color: const Color(0xFF1C2541),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF059669),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              l10n.electricTag,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ),
-                          const Spacer(),
-                          Text(
-                            l10n.pilotCorridor,
-                            style: const TextStyle(color: Colors.white70, fontSize: 12),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        l10n.whereTo,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                l10n.availableCategories,
-                style: const TextStyle(color: Colors.white70, fontSize: 14),
-              ),
-              const SizedBox(height: 8),
-              ListTile(
-                tileColor: const Color(0xFF1C2541),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                leading: const Icon(Icons.electric_scooter, color: Color(0xFF059669)),
-                title: Text(l10n.cityCommuteTitle, style: const TextStyle(color: Colors.white)),
-                subtitle: Text(l10n.cityCommuteSubtitle, style: const TextStyle(color: Colors.white60)),
-                trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white54, size: 16),
-              ),
-            ],
+    return RiderMapHomeScreen(
+      localeController: controller,
+      controller: locationController ??
+          LocationSelectionController(
+            apiClient: MockRiderLocationApiClient(),
           ),
-        ),
-      ),
     );
   }
 }

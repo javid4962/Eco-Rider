@@ -77,6 +77,55 @@ class AppLocalizations {
     'switch_language': 'Language / భాష',
     'language_english': 'English',
     'language_telugu': 'తెలుగు',
+
+    // Location Search & Selection (EV-033)
+    'search_pickup': 'Search pickup location',
+    'search_destination': 'Search destination',
+    'search_placeholder': 'Enter street, area, or landmark in AP...',
+    'recent_searches': 'Recent Places in Visakhapatnam',
+    'suggested_places': 'Suggested Locations',
+    'no_places_found': 'No matching places found. Try a nearby landmark.',
+    'select_on_map': 'Set Pin on Map',
+    'choose_on_map': 'Choose on Map',
+    'confirm_pickup_pin': 'Confirm Pickup Pin',
+    'confirm_destination_pin': 'Confirm Destination Pin',
+    'adjust_pin_instructions': 'Move the map or drag the pin to your exact pickup location.',
+    'pin_location_set': 'Pin placed at {address}',
+
+    // Saved Places (EV-033)
+    'saved_places': 'Saved Places',
+    'place_home': 'Home',
+    'place_work': 'Work',
+    'place_favorite': 'Favorite',
+    'add_saved_place': 'Save Location',
+    'saved_place_default_home': 'Beach Road, MVP Colony, Visakhapatnam',
+    'saved_place_default_work': 'Rushikonda IT SEZ, Visakhapatnam',
+
+    // Confirmation & Verification (EV-033)
+    'confirm_locations_title': 'Confirm Ride Locations',
+    'confirm_locations_subtitle': 'Please verify both pickup and dropoff points before continuing.',
+    'pickup_point': 'Pickup Point',
+    'dropoff_point': 'Dropoff Point',
+    'confirm_and_proceed': 'Confirm Locations & Get Fare',
+    'manual_pin_badge': 'Manually Confirmed Pin',
+    'estimated_distance': 'Distance: {distance} km',
+    'estimated_duration': 'Duration: ~{duration} min',
+    'book_electric_ride': 'Book Electric Ride',
+
+    // Permission Fallback (EV-033)
+    'gps_permission_denied_title': 'Location Access Denied',
+    'gps_permission_denied_desc': 'EcoRide requires your pickup location to dispatch an EV captain. Please select your pickup manually or pick on the map.',
+    'pick_on_map_action': 'Set Pin on Map',
+    'search_manually_action': 'Search Manually',
+    'gps_unavailable_notice': 'GPS signal is weak or restricted. Using manual pin selection.',
+
+    // Unsupported Locations / Pilot Boundaries (EV-033)
+    'unsupported_location_title': 'Service Unavailable in This Area',
+    'unsupported_location_desc': 'EcoRide operates exclusively with 100% BEVs in authorized Andhra Pradesh pilot corridors. The selected location is outside our active pilot boundary.',
+    'active_pilot_notice': 'Currently serving: Visakhapatnam EV Pilot Corridor (AP-RTO-VZG-EV-ZONE-01)',
+    'rejection_reason_label': 'Reason: {reason}',
+    'change_location_action': 'Select Another Location',
+    'notify_expansion_action': 'Notify Me on Expansion',
   };
 
   static const Map<String, String> _teStrings = {
@@ -130,6 +179,55 @@ class AppLocalizations {
     'switch_language': 'భాష / Language',
     'language_english': 'English',
     'language_telugu': 'తెలుగు',
+
+    // Location Search & Selection (EV-033)
+    'search_pickup': 'పికప్ స్థలాన్ని వెతకండి',
+    'search_destination': 'గమ్యస్థానాన్ని వెతకండి',
+    'search_placeholder': 'వీధి, ప్రాంతం లేదా మైలురాయి పేరు నమోదు చేయండి...',
+    'recent_searches': 'విశాఖపట్నంలో ఇటీవల వెతికిన ప్రదేశాలు',
+    'suggested_places': 'సూచించిన ప్రదేశాలు',
+    'no_places_found': 'స్థలాలు ఏవీ కనుగొనబడలేదు. సమీప మైలురాయిని ప్రయత్నించండి.',
+    'select_on_map': 'మ్యాప్‌లో పిన్ ఉంచండి',
+    'choose_on_map': 'మ్యాప్‌లో ఎంచుకోండి',
+    'confirm_pickup_pin': 'పికప్ పిన్ నిర్ధారించండి',
+    'confirm_destination_pin': 'డ్రాప్ పిన్ నిర్ధారించండి',
+    'adjust_pin_instructions': 'ఖచ్చితమైన పికప్ స్థలాన్ని ఎంచుకోవడానికి పిన్‌ను జరపండి.',
+    'pin_location_set': '{address} వద్ద పిన్ ఉంచబడింది',
+
+    // Saved Places (EV-033)
+    'saved_places': 'సేవ్ చేసిన స్థలాలు',
+    'place_home': 'ఇల్లు',
+    'place_work': 'కార్యాలయం',
+    'place_favorite': 'ఇష్టమైనవి',
+    'add_saved_place': 'స్థలాన్ని సేవ్ చేయండి',
+    'saved_place_default_home': 'బీచ్ రోడ్, ఎంవీపీ కాలనీ, విశాఖపట్నం',
+    'saved_place_default_work': 'రుషికొండ ఐటీ సెజ్, విశాఖపట్నం',
+
+    // Confirmation & Verification (EV-033)
+    'confirm_locations_title': 'రైడ్ స్థానాలను నిర్ధారించండి',
+    'confirm_locations_subtitle': 'కొనసాగే ముందు దయచేసి పికప్ మరియు డ్రాప్ స్థానాలను సరిచూసుకోండి.',
+    'pickup_point': 'పికప్ స్థానం',
+    'dropoff_point': 'డ్రాప్ స్థానం',
+    'confirm_and_proceed': 'స్థానాలను నిర్ధారించి ఛార్జీ పొందండి',
+    'manual_pin_badge': 'ఖచ్చితంగా నిర్ధారించిన పిన్',
+    'estimated_distance': 'దూరం: {distance} కి.మీ.',
+    'estimated_duration': 'సమయం: ~{duration} నిమిషాలు',
+    'book_electric_ride': 'ఈవీ రైడ్ బుక్ చేయండి',
+
+    // Permission Fallback (EV-033)
+    'gps_permission_denied_title': 'లొకేషన్ అనుమతి నిరాకరించబడింది',
+    'gps_permission_denied_desc': 'ఈవీ కెప్టెన్‌ను పంపడానికి మీ పికప్ స్థానం అవసరం. దయచేసి స్థానాన్ని వెతకండి లేదా మ్యాప్‌లో పిన్ ఎంచుకోండి.',
+    'pick_on_map_action': 'మ్యాప్‌లో పిన్ ఉంచండి',
+    'search_manually_action': 'మ్యానువల్‌గా వెతకండి',
+    'gps_unavailable_notice': 'జీపీఎస్ సిగ్నల్ లేదు. మ్యానువల్ పిన్ ఎంపికను ఉపయోగిస్తున్నాము.',
+
+    // Unsupported Locations / Pilot Boundaries (EV-033)
+    'unsupported_location_title': 'ఈ ప్రాంతంలో సేవ అందుబాటులో లేదు',
+    'unsupported_location_desc': 'ఈకోరైడ్ ప్రస్తుతం ఆంధ్రప్రదేశ్ ప్రభుత్వం అనుమతించిన విశాఖపట్నం పైలట్ జోన్‌లో మాత్రమే 100% ఈవీలను నడుపుతోంది.',
+    'active_pilot_notice': 'ప్రస్తుతం సేవలందిస్తున్నది: విశాఖపట్నం ఈవీ పైలట్ కారిడార్ (AP-RTO-VZG-EV-ZONE-01)',
+    'rejection_reason_label': 'కారణం: {reason}',
+    'change_location_action': 'వేరే స్థానాన్ని ఎంచుకోండి',
+    'notify_expansion_action': 'మా విస్తరణ గురించి తెలియజేయండి',
   };
 
   /// Translate a string key into active language with automatic fallback to English.
@@ -211,6 +309,55 @@ class AppLocalizations {
   String get switchLanguage => translate('switch_language');
   String get languageEnglish => translate('language_english');
   String get languageTelugu => translate('language_telugu');
+
+  // Location Search & Selection Getters (EV-033)
+  String get searchPickup => translate('search_pickup');
+  String get searchDestination => translate('search_destination');
+  String get searchPlaceholder => translate('search_placeholder');
+  String get recentSearches => translate('recent_searches');
+  String get suggestedPlaces => translate('suggested_places');
+  String get noPlacesFound => translate('no_places_found');
+  String get selectOnMap => translate('select_on_map');
+  String get chooseOnMap => translate('choose_on_map');
+  String get confirmPickupPin => translate('confirm_pickup_pin');
+  String get confirmDestinationPin => translate('confirm_destination_pin');
+  String get adjustPinInstructions => translate('adjust_pin_instructions');
+  String pinLocationSet(String address) => translate('pin_location_set', {'address': address});
+
+  // Saved Places Getters (EV-033)
+  String get savedPlaces => translate('saved_places');
+  String get placeHome => translate('place_home');
+  String get placeWork => translate('place_work');
+  String get placeFavorite => translate('place_favorite');
+  String get addSavedPlace => translate('add_saved_place');
+  String get savedPlaceDefaultHome => translate('saved_place_default_home');
+  String get savedPlaceDefaultWork => translate('saved_place_default_work');
+
+  // Confirmation & Route Details Getters (EV-033)
+  String get confirmLocationsTitle => translate('confirm_locations_title');
+  String get confirmLocationsSubtitle => translate('confirm_locations_subtitle');
+  String get pickupPoint => translate('pickup_point');
+  String get dropoffPoint => translate('dropoff_point');
+  String get confirmAndProceed => translate('confirm_and_proceed');
+  String get manualPinBadge => translate('manual_pin_badge');
+  String estimatedDistance(String distance) => translate('estimated_distance', {'distance': distance});
+  String estimatedDuration(String duration) => translate('estimated_duration', {'duration': duration});
+  String get bookElectricRide => translate('book_electric_ride');
+
+  // Permission Fallback Getters (EV-033)
+  String get gpsPermissionDeniedTitle => translate('gps_permission_denied_title');
+  String get gpsPermissionDeniedDesc => translate('gps_permission_denied_desc');
+  String get pickOnMapAction => translate('pick_on_map_action');
+  String get searchManuallyAction => translate('search_manually_action');
+  String get gpsUnavailableNotice => translate('gps_unavailable_notice');
+
+  // Unsupported Location Getters (EV-033)
+  String get unsupportedLocationTitle => translate('unsupported_location_title');
+  String get unsupportedLocationDesc => translate('unsupported_location_desc');
+  String get activePilotNotice => translate('active_pilot_notice');
+  String rejectionReasonLabel(String reason) => translate('rejection_reason_label', {'reason': reason});
+  String get changeLocationAction => translate('change_location_action');
+  String get notifyExpansionAction => translate('notify_expansion_action');
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

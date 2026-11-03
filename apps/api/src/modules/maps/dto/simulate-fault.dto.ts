@@ -22,4 +22,3 @@ export class SimulateFaultDto implements SimulateFaultRequest {
   @Max(30000)
   delayMs?: number;
 }
-

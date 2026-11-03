@@ -5,4 +5,3 @@ export * from './create-service-city.dto';
 export * from './update-service-city.dto';
 export * from './toggle-category-switch.dto';
 export * from './query-zones.dto';
-

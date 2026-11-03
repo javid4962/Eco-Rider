@@ -705,3 +705,38 @@
      - Implements in-memory cache with strict capacity limit of 500 entries and 10-minute TTL.
      - Evicts oldest entries on overflow (FIFO/LRU) to prevent unbounded memory growth.
      - Tracks hit/miss telemetry accessible via `GET /v1/maps/status`.
+
+
+## 2026-11-03 — ADR-0034: Rider Pickup and Destination Selection with Explicit Confirmation, Saved Places, Draggable Pin, and Pilot Geofence Restrictions
+
+- **Status**: Accepted
+- **Context**:
+  The Rider Flutter mobile application (`apps/rider_app`) requires a location selection flow connecting map browsing, searchable address autocompletion, saved places (Home/Work/Favorites), manual pickup pin placement, and permission-denied fallback handling.
+  Per AGENTS.md:
+  1. Rule 1: Do not copy the code/design/branding of Rapido or competitors; use original Electric Emerald (`#059669`) and Deep Voltage Navy (`#0B132B`).
+  2. Rule 2: Propulsion must be 100% ELECTRIC (`BATTERY_ELECTRIC`), category availability enforced server-side by city, zone, and vehicle status.
+  3. Rule 3: Keep uncertain service types disabled by default; strictly respect pilot corridor boundaries (Visakhapatnam EV pilot corridor).
+  4. Ticket EV-033 Scope: Connect rider map home to searchable locations, saved places, manual pickup pin and permission-denied fallback. Require pickup/drop confirmation instead of trusting GPS.
+  5. Acceptance / Demonstrate: Booking is possible with manually selected location in a test zone; unsupported locations explain why service is unavailable; raw GPS coordinates are never trusted silently.
+
+- **Decisions**:
+  1. **Explicit Two-Point Confirmation Workflow (`PickupDropConfirmationCard`)**:
+     - Raw device GPS coordinates are never silently submitted for booking. Both pickup and dropoff points must be explicitly selected or verified by the rider.
+     - Displays formatted street address, coordinate preview, route distance, estimated transit time, and estimated EV fare (in Indian Rupees ₹) calculated from backend authoritative quotes.
+     - Includes bilingual confirmation call-to-action button that triggers ride request booking with selected coordinates.
+  2. **Interactive Manual Pin Placement with Cardinal Nudge Controls (`ManualPinOverlay`)**:
+     - Allows riders to position the pickup pin manually on the map canvas.
+     - Provides directional nudge buttons (North, South, East, West) adjusting coordinates by ~50 meters (0.0005°) per tap to allow micro-adjustment on mobile touchscreens without relying on imprecise touch drags.
+     - Triggers reverse geocoding on pin confirmation to resolve formatted street addresses.
+  3. **Saved Places Fast Selection (`SavedPlacesChips`)**:
+     - Provides single-tap access to Home, Work, and Favorited destinations.
+     - Displays location chips with icons and one-tap selection that pre-fills destination and transitions rider directly to route confirmation.
+  4. **GPS Permission-Denied Resilience (`PermissionDeniedBanner`)**:
+     - When location permissions are permanently denied, restricted, or unavailable, the application gracefully degrades to manual search and pin placement without crashing, throwing unhandled exceptions, or trapping the rider in an indefinite loading spinner.
+     - Provides a clear bilingual informative banner and defaults the initial map canvas to the center of the active pilot zone (Visakhapatnam RK Beach corridor).
+  5. **Authoritative Geofence & Pilot Zone Validation (`UnsupportedZoneSheet`)**:
+     - Connects location selection to the backend `POST /v1/zones/verify-location` endpoint.
+     - When a rider selects coordinates outside the gazetted pilot geofence or in a non-permitted municipal district (e.g. Hyderabad or non-pilot rural areas), displays an explanatory bottom sheet explaining that EcoRide is currently operating exclusively in the Visakhapatnam EV pilot zone.
+     - Blocks fare quotation and booking initiation until valid permitted coordinates are chosen.
+  6. **Bilingual English & Telugu Parity**:
+     - Added 36 bilingual localized strings to `apps/rider_app/lib/core/localization/app_localizations.dart` covering search hints, saved places chips, pin confirmation, route summary, EV fare metrics, and out-of-zone explanations in both English and Telugu script.

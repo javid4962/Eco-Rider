@@ -29,4 +29,3 @@ export class QueryZonesDto {
   @IsBoolean()
   isActive?: boolean;
 }
-

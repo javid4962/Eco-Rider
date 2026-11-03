@@ -16,4 +16,3 @@ export class ValidateCoordinatesDto {
   @IsNumber()
   longitude!: number;
 }
-

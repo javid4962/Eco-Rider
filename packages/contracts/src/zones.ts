@@ -152,4 +152,3 @@ export interface ToggleCategorySwitchRequest {
   isEnabled: boolean;
   evidenceReference?: string;
 }
-

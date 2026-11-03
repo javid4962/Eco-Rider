@@ -103,4 +103,3 @@ export class FleetShift {
   @UpdateDateColumn({ type: 'timestamptz', name: 'updated_at' })
   updatedAt!: Date;
 }
-

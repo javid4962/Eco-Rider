@@ -25,4 +25,3 @@ export class CoordinateDto implements GeoPoint {
   @Max(180)
   longitude!: number;
 }
-

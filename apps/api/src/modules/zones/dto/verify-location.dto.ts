@@ -34,7 +34,8 @@ export class VerifyLocationDto implements VerifyLocationRequest {
   longitude!: number;
 
   @ApiProperty({
-    description: 'Requested mobility service category or vehicle class (e.g. CITY_COMMUTE_2W, private_ev)',
+    description:
+      'Requested mobility service category or vehicle class (e.g. CITY_COMMUTE_2W, private_ev)',
     example: 'CITY_COMMUTE_2W',
   })
   @IsNotEmpty()
@@ -50,4 +51,3 @@ export class VerifyLocationDto implements VerifyLocationRequest {
   @IsBoolean()
   clientForgedAvailability?: boolean;
 }
-
