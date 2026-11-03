@@ -4,6 +4,7 @@ import {
   Get,
   Body,
   Param,
+  Headers,
   HttpCode,
   HttpStatus,
   ParseUUIDPipe,
@@ -24,6 +25,7 @@ import {
   BookingDetailsResponse,
   TransitionRideStatusResponse,
   RideTimelineResponse,
+  CancelRidePolicyResponse,
 } from '@ecoride/contracts';
 
 @ApiTags('Bookings')
@@ -65,11 +67,12 @@ export class BookingsController {
   })
   async createBooking(
     @Body() dto: CreateBookingFromQuoteDto,
+    @Headers('idempotency-key') idempotencyKeyHeader?: string,
     @CurrentActor() actor?: CurrentActorPayload,
   ): Promise<BookingDetailsResponse> {
     const actorUserId =
       actor?.id && actor.id !== '00000000-0000-0000-0000-000000000000' ? actor.id : dto.riderId;
-    return this.bookingsService.createBookingFromQuote(actorUserId, dto);
+    return this.bookingsService.createBookingFromQuote(actorUserId, dto, idempotencyKeyHeader);
   }
 
   @Get(':id')
@@ -219,7 +222,7 @@ export class BookingsController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: CancelRideDto,
     @CurrentActor() actor?: CurrentActorPayload,
-  ): Promise<TransitionRideStatusResponse> {
+  ): Promise<CancelRidePolicyResponse> {
     return this.bookingsService.cancelRide(
       id,
       actor || { id: '00000000-0000-0000-0000-000000000000', role: 'ANONYMOUS', scopes: [] },

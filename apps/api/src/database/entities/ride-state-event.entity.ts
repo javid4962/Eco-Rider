@@ -42,4 +42,3 @@ export class RideStateEvent {
   @CreateDateColumn({ type: 'timestamptz', name: 'created_at' })
   createdAt!: Date;
 }
-

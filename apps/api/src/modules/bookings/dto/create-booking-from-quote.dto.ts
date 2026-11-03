@@ -20,13 +20,15 @@ export class CreateBookingFromQuoteDto {
   quoteId!: string;
 
   @ApiProperty({
-    description: 'Client idempotency key for replay prevention and at-most-once execution',
+    description:
+      'Client idempotency key for replay prevention and at-most-once execution (can also be passed in Idempotency-Key header)',
     example: 'idemp-quote-booking-2026-vzg-001',
+    required: false,
   })
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
   @Length(8, 100)
-  idempotencyKey!: string;
+  idempotencyKey?: string;
 
   @ApiProperty({
     description: 'Cryptographically signed quote token issued with the quote',

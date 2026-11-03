@@ -101,6 +101,9 @@ export class Booking {
   @Column({ type: 'uuid', nullable: true, name: 'cancelled_by_id' })
   cancelledById?: string | null;
 
+  @Column({ type: 'bigint', default: 0, name: 'cancellation_fee_paise' })
+  cancellationFeePaise!: number;
+
   @Column({ type: 'timestamptz', nullable: true, name: 'failed_at' })
   failedAt?: Date | null;
 

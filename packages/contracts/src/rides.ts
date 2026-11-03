@@ -139,3 +139,87 @@ export interface RideTimelineResponse {
   events: RideStateEventDto[];
 }
 
+/**
+ * Ride Incident Severity Levels
+ */
+export type RideIncidentSeverity = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+
+/**
+ * Ride Incident Resolution Lifecycle Statuses
+ */
+export type RideIncidentStatus =
+  'REPORTED' | 'INVESTIGATING' | 'ESCALATED_POLICE_112' | 'RESOLVED' | 'CLOSED';
+
+/**
+ * Common Ride Incident Types
+ */
+export type RideIncidentType =
+  | 'SOS_TRIGGERED'
+  | 'SAFETY_STOP'
+  | 'ACCIDENT_REPORT'
+  | 'ROUTE_DEVIATION'
+  | 'DRIVER_BEHAVIOR'
+  | 'BATTERY_HAZARD'
+  | 'OTHER';
+
+/**
+ * Immutable Ride Incident Record
+ */
+export interface RideIncidentDto {
+  id: string;
+  bookingId: string;
+  incidentCode: string;
+  incidentType: RideIncidentType | string;
+  severity: RideIncidentSeverity | string;
+  status: RideIncidentStatus | string;
+  reportedById: string;
+  reportedByRole: string;
+  description: string;
+  metadata: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Request payload to report a safety or operational incident
+ */
+export interface CreateRideIncidentRequest {
+  incidentType: RideIncidentType | string;
+  severity?: RideIncidentSeverity | string;
+  description: string;
+  metadata?: Record<string, unknown>;
+}
+
+/**
+ * Cancellation policy response details including ledger & incident preservation (EV-039)
+ */
+export interface CancelRidePolicyResponse extends TransitionRideStatusResponse {
+  cancellationFeePaise: number;
+  formattedCancellationFee: string;
+  gracePeriodExpired: boolean;
+  ledgerEntriesCreated: number;
+  ledgerEntriesPreserved: boolean;
+  activeIncidentsCount: number;
+  activeIncidents: {
+    id: string;
+    incidentCode: string;
+    incidentType: string;
+    severity: string;
+    status: string;
+  }[];
+}
+
+/**
+ * Financial ledger transaction entry linked to ride
+ */
+export interface RideLedgerEntryDto {
+  id: string;
+  bookingId?: string | null;
+  accountId: string;
+  entryType: 'DEBIT' | 'CREDIT';
+  amountPaise: number;
+  currency: string;
+  description?: string | null;
+  idempotencyKey: string;
+  createdAt: string;
+}

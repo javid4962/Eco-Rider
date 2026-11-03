@@ -924,3 +924,49 @@
      - Attached PostgreSQL trigger `trg_prevent_ride_state_events_mutation` running `prevent_ride_state_events_mutation()` before `UPDATE` or `DELETE`. Any direct mutation of audit logs is aborted at the database engine level.
   6. **Timeline API Endpoint (`GET /v1/bookings/:id/events`)**:
      - Exposes complete chronological timeline of all transitions, scoped by actor ownership. Riders and captains can only inspect events for their own booking; operators and admins have platform-wide audit access.
+
+## ADR-0040: Idempotent Ride Creation, Cancellation Policies, and Active Incident/Ledger Preservation (EV-039)
+
+- **Date**: 2026-03-11
+- **Status**: Accepted
+- **Context**:
+  In a high-throughput commercial mobility platform operating in Andhra Pradesh, network retries, double taps on mobile clients, and concurrent booking calls must produce at most one authoritative ride. Furthermore, cancellations by riders, captains, or safety desks must enforce statutory grace periods, generate immutable double-entry ledger compensation entries, and under no circumstances erase or modify financial ledgers or safety incidents.
+  Per AGENTS.md:
+  1. Propulsion must be 100% Electric (`BATTERY_ELECTRIC`).
+  2. Use transactions, locks, and idempotency for concurrency. Double-entry ledger (`ledger_entries`) and audit history must be preserved.
+  3. Ticket EV-039 Scope: Add `POST /rides` using authoritative quote, `Idempotency-Key`, concurrency-safe deduplication, and cancellation policies by state/actor. Record cancellations and reasons.
+  4. Acceptance / Demonstrate: Double taps or network retries create one ride; cancellation cannot erase the ledger or active incident.
+
+- **Decisions**:
+  1. **Authoritative Idempotency & Concurrency Deduplication (`POST /v1/rides`)**:
+     - Client supplies an `Idempotency-Key` via HTTP header (`Idempotency-Key` / `x-idempotency-key`) or body payload. If missing, the request is rejected with HTTP 400 `IDEMPOTENCY_KEY_REQUIRED`.
+     - In Migration 18, added unique partial index `idx_bookings_idempotency_unique` on `bookings("idempotency_key") WHERE "idempotency_key" IS NOT NULL`.
+     - Double-tap concurrency deduplication: On concurrent requests racing with the same `Idempotency-Key`:
+       - The primary transaction acquires a pessimistic write lock on `RideQuote`, verifies quote validity, inserts the booking with pinned quote fare and coordinates, transitions quote status to `CONSUMED`, and commits.
+       - Any racing concurrent transaction catching PostgreSQL error `23505` (`unique_violation` on `idx_bookings_idempotency_unique`) immediately recovers by fetching and returning the committed booking. Exactly one ride is created, zero duplicate rows exist, and both requests return HTTP 201 with identical booking details.
+     - Replay prevention: Consuming an already-consumed quote with a different idempotency key is rejected with HTTP 409 `CONFLICT`.
+  2. **State & Actor Cancellation Policies (`POST /v1/rides/:id/cancel`)**:
+     - **Rider Cancellation**:
+       - `REQUESTED` / `DISPATCHING`: Within pre-dispatch window -> ₹0 cancellation fee (`gracePeriodExpired: false`).
+       - `ASSIGNED` within 3 minutes of `assigned_at`: Within statutory grace period -> ₹0 cancellation fee (`gracePeriodExpired: false`).
+       - `ASSIGNED` after 3 minutes: Grace period expired -> statutory driver compensation fee of 1500 paise (₹15.00) applies (`gracePeriodExpired: true`).
+       - `ARRIVED`: Captain has arrived and is waiting at pickup -> 1500 paise (₹15.00) fee applies (`gracePeriodExpired: true`).
+       - `IN_PROGRESS`: Unilateral cancellation forbidden (HTTP 403 `UNAUTHORIZED_RIDE_ACTOR`).
+       - `COMPLETED` / `CANCELLED` / `FAILED`: Terminal status rejected with HTTP 409 `RIDE_ALREADY_TERMINATED`.
+     - **Captain Cancellation**:
+       - Allowed in `ASSIGNED` or `ARRIVED` states for valid operational reasons (e.g. rider no-show, vehicle breakdown). ₹0 fee charged to rider.
+     - **Operator / Safety Officer / System Cancellation**:
+       - Authorized across all non-terminal states (including `IN_PROGRESS` for SOS/breakdown/override) with ₹0 fee to rider.
+  3. **Balanced Double-Entry Financial Ledger Generation**:
+     - When a cancellation fee > 0 is assessed (1500 paise / ₹15.00):
+       - `DEBIT` entry created for `rider:{riderId}`: 1500 paise (`amount_paise`), currency `INR`.
+       - `CREDIT` entry created for `captain:{captainId}`: 1500 paise (`amount_paise`), compensating driver for battery expenditure and transit to pickup.
+       - Both entries are inserted atomically in `ledger_entries` under the cancellation transaction.
+  4. **Strict Active Incident & Ledger Preservation**:
+     - Database foreign key constraints enforce `ON DELETE RESTRICT` on both `ledger_entries.booking_id` and `ride_incidents.booking_id`. Direct deletion of a booking with ledger records or incidents is rejected at the database engine level.
+     - Software cancellation flow queries all active incidents (`ride_incidents` where status is not `RESOLVED` or `CLOSED`), audits them in `ride_state_events.metadata`, and returns them in `CancelRidePolicyResponse.activeIncidents`.
+     - No ledger entries or incidents are ever cleared, modified, or truncated on ride cancellation.
+  5. **Ride Incident & Ledger Query APIs**:
+     - `POST /v1/rides/:id/incidents`: Reports immutable incident in `ride_incidents` with unique `incidentCode` (`INC-XXXX-XXXXXX`).
+     - `GET /v1/rides/:id/incidents`: Returns chronological list of all incidents recorded on the ride.
+     - `GET /v1/rides/:id/ledger`: Returns double-entry accounting records linked to the ride.

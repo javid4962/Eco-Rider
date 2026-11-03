@@ -89,4 +89,3 @@ export class CreateRideStateMachineAndEventLog1700000000017 implements Migration
     `);
   }
 }
-

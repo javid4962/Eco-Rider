@@ -7,7 +7,7 @@ import {
   Optional,
 } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
-import { DataSource, EntityManager } from 'typeorm';
+import { DataSource, EntityManager, Not, In } from 'typeorm';
 import {
   ApiErrorCode,
   BookingDetailsResponse,
@@ -17,13 +17,19 @@ import {
   TERMINAL_RIDE_STATUSES,
   TransitionRideStatusResponse,
   RideTimelineResponse,
+  CancelRidePolicyResponse,
+  RideIncidentDto,
+  RideLedgerEntryDto,
 } from '@ecoride/contracts';
 import { Booking } from '../../database/entities/booking.entity';
 import { RideQuote } from '../../database/entities/ride-quote.entity';
 import { RideStateEvent } from '../../database/entities/ride-state-event.entity';
+import { RideIncident } from '../../database/entities/ride-incident.entity';
+import { LedgerEntry } from '../../database/entities/ledger-entry.entity';
 import { QuotesService } from '../quotes/quotes.service';
 import { ZonesService } from '../zones/zones.service';
 import { CreateBookingFromQuoteDto } from './dto/create-booking-from-quote.dto';
+import { CreateRideIncidentDto } from './dto/create-ride-incident.dto';
 import {
   TransitionRideStatusDto,
   AssignCaptainDto,
@@ -53,242 +59,272 @@ export class BookingsService {
   async createBookingFromQuote(
     actorUserId: string | undefined,
     dto: CreateBookingFromQuoteDto,
+    idempotencyKeyHeader?: string,
   ): Promise<BookingDetailsResponse> {
-    return await this.dataSource.transaction(async (manager: EntityManager) => {
-      // 1. Fetch quote with pessimistic write lock to prevent concurrent double-booking
-      const quote = await manager
-        .createQueryBuilder(RideQuote, 'q')
-        .setLock('pessimistic_write')
-        .where('q.id = :id', { id: dto.quoteId })
-        .getOne();
-
-      if (!quote) {
-        throw new NotFoundException({
-          code: ApiErrorCode.NOT_FOUND,
-          message: `Quote with ID '${dto.quoteId}' not found.`,
-        });
-      }
-
-      // 2. Replay & Idempotency Safeguards
-      if (quote.status === 'CONSUMED') {
-        if (dto.idempotencyKey && quote.idempotencyKey === dto.idempotencyKey && quote.bookingId) {
-          const existing = await this.findBookingWithCoords(manager, quote.bookingId);
-          if (existing) {
-            return existing;
-          }
-        }
-        throw new ConflictException({
-          code: ApiErrorCode.CONFLICT,
-          message: `Quote '${dto.quoteId}' has already been consumed for booking '${quote.bookingId}'. Replaying quotes across multiple bookings is prohibited.`,
-        });
-      }
-
-      // Check if existing booking exists with this idempotency key
-      const existingWithKey = await manager.findOne(Booking, {
-        where: { idempotencyKey: dto.idempotencyKey },
+    const effectiveIdempotencyKey = (idempotencyKeyHeader || dto.idempotencyKey || '').trim();
+    if (!effectiveIdempotencyKey) {
+      throw new BadRequestException({
+        code: ApiErrorCode.IDEMPOTENCY_KEY_REQUIRED,
+        message:
+          'Idempotency-Key header or idempotencyKey body field is required for ride booking deduplication.',
       });
-      if (existingWithKey) {
-        const found = await this.findBookingWithCoords(manager, existingWithKey.id);
-        if (found) return found;
-      }
+    }
 
-      // 3. Cross-Account Security Checks
-      const effectiveRiderId = actorUserId || dto.riderId || quote.riderId;
-      if (quote.riderId && actorUserId && quote.riderId !== actorUserId) {
-        throw new ForbiddenException({
-          code: ApiErrorCode.FORBIDDEN,
-          message: `Access denied: Quote belongs to rider '${quote.riderId}'. Cross-account ride booking is strictly prohibited.`,
-        });
-      }
-      if (quote.riderId && dto.riderId && quote.riderId !== dto.riderId) {
-        throw new ForbiddenException({
-          code: ApiErrorCode.FORBIDDEN,
-          message: `Access denied: Quote belongs to rider '${quote.riderId}'. Cross-account ride booking is strictly prohibited.`,
-        });
-      }
+    try {
+      return await this.dataSource.transaction(async (manager: EntityManager) => {
+        // 1. Fetch quote with pessimistic write lock to prevent concurrent double-booking
+        const quote = await manager
+          .createQueryBuilder(RideQuote, 'q')
+          .setLock('pessimistic_write')
+          .where('q.id = :id', { id: dto.quoteId })
+          .getOne();
 
-      // 4. Expiration Verification
-      const isExpired = new Date(quote.expiresAt).getTime() <= Date.now();
-      if (isExpired) {
-        if (quote.status === 'ACTIVE') {
-          quote.status = 'EXPIRED';
-          await manager.save(quote);
-        }
-        throw new BadRequestException({
-          code: ApiErrorCode.BAD_REQUEST,
-          message: `Quote '${quote.id}' expired at ${quote.expiresAt.toISOString()}. Please request a fresh fare quote.`,
-        });
-      }
-
-      // 5. Tampering & Cryptographic Token Verification
-      if (dto.quoteToken) {
-        const tokenCheck = this.quotesService.verifyQuoteToken(dto.quoteToken);
-        if (!tokenCheck.isValid || !tokenCheck.payload) {
-          throw new BadRequestException({
-            code: ApiErrorCode.BAD_REQUEST,
-            message: `Quote token signature is invalid or tampered: ${tokenCheck.reason || 'TAMPERED_SIGNATURE'}. Client-side fare overrides are strictly rejected.`,
+        if (!quote) {
+          throw new NotFoundException({
+            code: ApiErrorCode.NOT_FOUND,
+            message: `Quote with ID '${dto.quoteId}' not found.`,
           });
         }
 
-        const p = tokenCheck.payload;
-        if (
-          p.quoteId !== quote.id ||
-          p.fareRuleId !== quote.fareRuleId ||
-          p.fareRuleVersion !== quote.fareRuleVersion ||
-          p.totalFarePaise !== quote.totalFarePaise ||
-          p.serviceCategory !== quote.serviceCategory ||
-          p.passengerCount !== quote.passengerCount
-        ) {
-          throw new BadRequestException({
-            code: ApiErrorCode.BAD_REQUEST,
-            message: `Quote token payload does not match authoritative database quote. Tampering detected.`,
+        // 2. Replay & Idempotency Safeguards
+        if (quote.status === 'CONSUMED') {
+          if (quote.idempotencyKey === effectiveIdempotencyKey && quote.bookingId) {
+            const existing = await this.findBookingWithCoords(manager, quote.bookingId);
+            if (existing) {
+              return existing;
+            }
+          }
+          throw new ConflictException({
+            code: ApiErrorCode.CONFLICT,
+            message: `Quote '${dto.quoteId}' has already been consumed for booking '${quote.bookingId}'. Replaying quotes across multiple bookings is prohibited.`,
           });
         }
-      }
 
-      // Context mismatch checks
-      if (dto.serviceCategory && dto.serviceCategory !== quote.serviceCategory) {
-        throw new BadRequestException({
-          code: ApiErrorCode.BAD_REQUEST,
-          message: `Requested service category '${dto.serviceCategory}' does not match pinned quote category '${quote.serviceCategory}'.`,
+        // Check if existing booking exists with this idempotency key
+        const existingWithKey = await manager.findOne(Booking, {
+          where: { idempotencyKey: effectiveIdempotencyKey },
         });
-      }
+        if (existingWithKey) {
+          const found = await this.findBookingWithCoords(manager, existingWithKey.id);
+          if (found) return found;
+        }
 
-      if (dto.passengerCount !== undefined && dto.passengerCount !== quote.passengerCount) {
-        throw new BadRequestException({
-          code: ApiErrorCode.BAD_REQUEST,
-          message: `Requested passenger count ${dto.passengerCount} does not match pinned quote passenger count ${quote.passengerCount}.`,
-        });
-      }
+        // 3. Cross-Account Security Checks
+        const effectiveRiderId = actorUserId || dto.riderId || quote.riderId;
+        if (quote.riderId && actorUserId && quote.riderId !== actorUserId) {
+          throw new ForbiddenException({
+            code: ApiErrorCode.FORBIDDEN,
+            message: `Access denied: Quote belongs to rider '${quote.riderId}'. Cross-account ride booking is strictly prohibited.`,
+          });
+        }
+        if (quote.riderId && dto.riderId && quote.riderId !== dto.riderId) {
+          throw new ForbiddenException({
+            code: ApiErrorCode.FORBIDDEN,
+            message: `Access denied: Quote belongs to rider '${quote.riderId}'. Cross-account ride booking is strictly prohibited.`,
+          });
+        }
 
-      if (
-        dto.pickupLatitude !== undefined &&
-        Math.abs(Number(dto.pickupLatitude) - Number(quote.pickupLatitude)) > 0.0001
-      ) {
-        throw new BadRequestException({
-          code: ApiErrorCode.BAD_REQUEST,
-          message: `Requested pickup latitude does not match pinned quote location.`,
-        });
-      }
-
-      if (
-        dto.dropoffLatitude !== undefined &&
-        Math.abs(Number(dto.dropoffLatitude) - Number(quote.dropoffLatitude)) > 0.0001
-      ) {
-        throw new BadRequestException({
-          code: ApiErrorCode.BAD_REQUEST,
-          message: `Requested dropoff latitude does not match pinned quote location.`,
-        });
-      }
-
-      // 6. Post-Quote Zone & Category Switch Revocation Safeguard
-      if (this.zonesService) {
-        const zoneCheck = await this.zonesService.verifyLocation({
-          city: quote.city,
-          latitude: Number(quote.pickupLatitude),
-          longitude: Number(quote.pickupLongitude),
-          serviceCategory: quote.serviceCategory,
-        });
-
-        if (!zoneCheck.isAuthorized) {
+        // 4. Expiration Verification
+        const isExpired = new Date(quote.expiresAt).getTime() <= Date.now();
+        if (isExpired) {
           if (quote.status === 'ACTIVE') {
-            quote.status = 'REVOKED';
+            quote.status = 'EXPIRED';
             await manager.save(quote);
           }
           throw new BadRequestException({
-            code: ApiErrorCode.ZONE_RESTRICTED,
-            message:
-              zoneCheck.rejectionReason ||
-              `Service category '${quote.serviceCategory}' or operational zone in '${quote.city}' was revoked after quote generation.`,
+            code: ApiErrorCode.BAD_REQUEST,
+            message: `Quote '${quote.id}' expired at ${quote.expiresAt.toISOString()}. Please request a fresh fare quote.`,
           });
         }
-      }
 
-      // 7. Insert Booking with pinned values and PostGIS geometry points
-      const bookingId = randomUUID();
-      const bookingCode = `ECO-VZ-${bookingId.substring(0, 8).toUpperCase()}`;
-      const startOtp = Math.floor(1000 + Math.random() * 9000).toString();
-      const fareAmountRupees = quote.totalFarePaise / 100;
-      const rider = effectiveRiderId || 'b0000000-0000-4000-8000-000000000001';
+        // 5. Tampering & Cryptographic Token Verification
+        if (dto.quoteToken) {
+          const tokenCheck = this.quotesService.verifyQuoteToken(dto.quoteToken);
+          if (!tokenCheck.isValid || !tokenCheck.payload) {
+            throw new BadRequestException({
+              code: ApiErrorCode.BAD_REQUEST,
+              message: `Quote token signature is invalid or tampered: ${tokenCheck.reason || 'TAMPERED_SIGNATURE'}. Client-side fare overrides are strictly rejected.`,
+            });
+          }
 
-      await manager.query(
-        `INSERT INTO "bookings" (
-           "id", "booking_code", "rider_id", "service_category", "status",
-           "pickup_location", "dropoff_location",
-           "start_otp", "fare_amount", "quote_id", "fare_rule_id", "fare_rule_version",
-           "idempotency_key", "passenger_count", "created_at", "updated_at"
-         )
-         VALUES (
-           $1, $2, $3, $4, 'CREATED',
-           ST_SetSRID(ST_MakePoint($5, $6), 4326), ST_SetSRID(ST_MakePoint($7, $8), 4326),
-           $9, $10, $11, $12, $13,
-           $14, $15, NOW(), NOW()
-         )`,
-        [
+          const p = tokenCheck.payload;
+          if (
+            p.quoteId !== quote.id ||
+            p.fareRuleId !== quote.fareRuleId ||
+            p.fareRuleVersion !== quote.fareRuleVersion ||
+            p.totalFarePaise !== quote.totalFarePaise ||
+            p.serviceCategory !== quote.serviceCategory ||
+            p.passengerCount !== quote.passengerCount
+          ) {
+            throw new BadRequestException({
+              code: ApiErrorCode.BAD_REQUEST,
+              message: `Quote token payload does not match authoritative database quote. Tampering detected.`,
+            });
+          }
+        }
+
+        // Context mismatch checks
+        if (dto.serviceCategory && dto.serviceCategory !== quote.serviceCategory) {
+          throw new BadRequestException({
+            code: ApiErrorCode.BAD_REQUEST,
+            message: `Requested service category '${dto.serviceCategory}' does not match pinned quote category '${quote.serviceCategory}'.`,
+          });
+        }
+
+        if (dto.passengerCount !== undefined && dto.passengerCount !== quote.passengerCount) {
+          throw new BadRequestException({
+            code: ApiErrorCode.BAD_REQUEST,
+            message: `Requested passenger count ${dto.passengerCount} does not match pinned quote passenger count ${quote.passengerCount}.`,
+          });
+        }
+
+        if (
+          dto.pickupLatitude !== undefined &&
+          Math.abs(Number(dto.pickupLatitude) - Number(quote.pickupLatitude)) > 0.0001
+        ) {
+          throw new BadRequestException({
+            code: ApiErrorCode.BAD_REQUEST,
+            message: `Requested pickup latitude does not match pinned quote location.`,
+          });
+        }
+
+        if (
+          dto.dropoffLatitude !== undefined &&
+          Math.abs(Number(dto.dropoffLatitude) - Number(quote.dropoffLatitude)) > 0.0001
+        ) {
+          throw new BadRequestException({
+            code: ApiErrorCode.BAD_REQUEST,
+            message: `Requested dropoff latitude does not match pinned quote location.`,
+          });
+        }
+
+        // 6. Post-Quote Zone & Category Switch Revocation Safeguard
+        if (this.zonesService) {
+          const zoneCheck = await this.zonesService.verifyLocation({
+            city: quote.city,
+            latitude: Number(quote.pickupLatitude),
+            longitude: Number(quote.pickupLongitude),
+            serviceCategory: quote.serviceCategory,
+          });
+
+          if (!zoneCheck.isAuthorized) {
+            if (quote.status === 'ACTIVE') {
+              quote.status = 'REVOKED';
+              await manager.save(quote);
+            }
+            throw new BadRequestException({
+              code: ApiErrorCode.ZONE_RESTRICTED,
+              message:
+                zoneCheck.rejectionReason ||
+                `Service category '${quote.serviceCategory}' or operational zone in '${quote.city}' was revoked after quote generation.`,
+            });
+          }
+        }
+
+        // 7. Insert Booking with pinned values and PostGIS geometry points
+        const bookingId = randomUUID();
+        const bookingCode = `ECO-VZ-${bookingId.substring(0, 8).toUpperCase()}`;
+        const startOtp = Math.floor(1000 + Math.random() * 9000).toString();
+        const fareAmountRupees = quote.totalFarePaise / 100;
+        const rider = effectiveRiderId || 'b0000000-0000-4000-8000-000000000001';
+
+        await manager.query(
+          `INSERT INTO "bookings" (
+             "id", "booking_code", "rider_id", "service_category", "status",
+             "pickup_location", "dropoff_location",
+             "start_otp", "fare_amount", "quote_id", "fare_rule_id", "fare_rule_version",
+             "idempotency_key", "passenger_count", "created_at", "updated_at"
+           )
+           VALUES (
+             $1, $2, $3, $4, 'CREATED',
+             ST_SetSRID(ST_MakePoint($5, $6), 4326), ST_SetSRID(ST_MakePoint($7, $8), 4326),
+             $9, $10, $11, $12, $13,
+             $14, $15, NOW(), NOW()
+           )`,
+          [
+            bookingId,
+            bookingCode,
+            rider,
+            quote.serviceCategory,
+            Number(quote.pickupLongitude),
+            Number(quote.pickupLatitude),
+            Number(quote.dropoffLongitude),
+            Number(quote.dropoffLatitude),
+            startOtp,
+            fareAmountRupees,
+            quote.id,
+            quote.fareRuleId,
+            quote.fareRuleVersion,
+            effectiveIdempotencyKey,
+            quote.passengerCount || 1,
+          ],
+        );
+
+        // 8. Atomically transition Quote to CONSUMED
+        quote.status = 'CONSUMED';
+        quote.consumedAt = new Date();
+        quote.bookingId = bookingId;
+        quote.idempotencyKey = effectiveIdempotencyKey;
+        await manager.save(quote);
+
+        // 9. Record initial requested state event in immutable ride_state_events
+        const initialEvent = manager.create(RideStateEvent, {
+          id: randomUUID(),
+          bookingId,
+          fromStatus: null,
+          toStatus: RideStatus.REQUESTED,
+          actorId: rider,
+          actorRole: RideActorRole.RIDER,
+          metadata: {
+            bookingCode,
+            fareAmountRupees,
+            fareAmountPaise: quote.totalFarePaise,
+            serviceCategory: quote.serviceCategory,
+            initialCreation: true,
+            idempotencyKey: effectiveIdempotencyKey,
+          },
+        });
+        await manager.save(initialEvent);
+
+        return {
           bookingId,
           bookingCode,
-          rider,
-          quote.serviceCategory,
-          Number(quote.pickupLongitude),
-          Number(quote.pickupLatitude),
-          Number(quote.dropoffLongitude),
-          Number(quote.dropoffLatitude),
-          startOtp,
-          fareAmountRupees,
-          quote.id,
-          quote.fareRuleId,
-          quote.fareRuleVersion,
-          dto.idempotencyKey,
-          quote.passengerCount || 1,
-        ],
-      );
-
-      // 8. Atomically transition Quote to CONSUMED
-      quote.status = 'CONSUMED';
-      quote.consumedAt = new Date();
-      quote.bookingId = bookingId;
-      quote.idempotencyKey = dto.idempotencyKey;
-      await manager.save(quote);
-
-      // 9. Record initial requested state event in immutable ride_state_events
-      const initialEvent = manager.create(RideStateEvent, {
-        id: randomUUID(),
-        bookingId,
-        fromStatus: null,
-        toStatus: RideStatus.REQUESTED,
-        actorId: rider,
-        actorRole: RideActorRole.RIDER,
-        metadata: {
-          bookingCode,
+          riderId: rider,
+          quoteId: quote.id,
+          fareRuleId: quote.fareRuleId,
+          fareRuleVersion: quote.fareRuleVersion,
+          serviceCategory: quote.serviceCategory,
+          status: 'CREATED',
           fareAmountRupees,
           fareAmountPaise: quote.totalFarePaise,
-          serviceCategory: quote.serviceCategory,
-          initialCreation: true,
-        },
+          startOtp,
+          idempotencyKey: effectiveIdempotencyKey,
+          passengerCount: quote.passengerCount || 1,
+          pickupLatitude: Number(quote.pickupLatitude),
+          pickupLongitude: Number(quote.pickupLongitude),
+          dropoffLatitude: Number(quote.dropoffLatitude),
+          dropoffLongitude: Number(quote.dropoffLongitude),
+          createdAt: new Date().toISOString(),
+        };
       });
-      await manager.save(initialEvent);
-
-      return {
-        bookingId,
-        bookingCode,
-        riderId: rider,
-        quoteId: quote.id,
-        fareRuleId: quote.fareRuleId,
-        fareRuleVersion: quote.fareRuleVersion,
-        serviceCategory: quote.serviceCategory,
-        status: 'CREATED',
-        fareAmountRupees,
-        fareAmountPaise: quote.totalFarePaise,
-        startOtp,
-        idempotencyKey: dto.idempotencyKey,
-        passengerCount: quote.passengerCount || 1,
-        pickupLatitude: Number(quote.pickupLatitude),
-        pickupLongitude: Number(quote.pickupLongitude),
-        dropoffLatitude: Number(quote.dropoffLatitude),
-        dropoffLongitude: Number(quote.dropoffLongitude),
-        createdAt: new Date().toISOString(),
-      };
-    });
+    } catch (err: unknown) {
+      const dbErr = err as { code?: string; message?: string };
+      if (
+        dbErr?.code === '23505' ||
+        (typeof dbErr?.message === 'string' &&
+          (dbErr.message.includes('idx_bookings_idempotency_unique') ||
+            dbErr.message.includes('idempotency_key')))
+      ) {
+        const existing = await this.dataSource.manager.findOne(Booking, {
+          where: { idempotencyKey: effectiveIdempotencyKey },
+        });
+        if (existing) {
+          const found = await this.findBookingWithCoords(this.dataSource.manager, existing.id);
+          if (found) return found;
+        }
+      }
+      throw err;
+    }
   }
 
   /**
@@ -380,6 +416,14 @@ export class BookingsService {
     actor: CurrentActorPayload | undefined,
     dto: TransitionRideStatusDto,
   ): Promise<TransitionRideStatusResponse> {
+    if (dto.targetStatus === RideStatus.CANCELLED) {
+      return this.cancelRide(
+        bookingId,
+        actor || { id: '00000000-0000-0000-0000-000000000000', role: 'ANONYMOUS', scopes: [] },
+        { reason: dto.reason, metadata: dto.metadata },
+      );
+    }
+
     return await this.dataSource.transaction(async (manager: EntityManager) => {
       // 1. Fetch booking with pessimistic write lock
       const booking = await manager
@@ -765,12 +809,413 @@ export class BookingsService {
     bookingId: string,
     actor: CurrentActorPayload,
     dto: CancelRideDto,
-  ): Promise<TransitionRideStatusResponse> {
-    return this.transitionRideStatus(bookingId, actor, {
-      targetStatus: RideStatus.CANCELLED,
-      reason: dto.reason,
-      metadata: dto.metadata,
+  ): Promise<CancelRidePolicyResponse> {
+    return await this.dataSource.transaction(async (manager: EntityManager) => {
+      // 1. Fetch booking with pessimistic write lock
+      const booking = await manager
+        .createQueryBuilder(Booking, 'b')
+        .setLock('pessimistic_write')
+        .where('b.id = :id', { id: bookingId })
+        .getOne();
+
+      if (!booking) {
+        throw new NotFoundException({
+          code: ApiErrorCode.NOT_FOUND,
+          message: `Booking with ID '${bookingId}' not found.`,
+        });
+      }
+
+      // 2. Terminal state check
+      const currentStatus = booking.status as RideStatus;
+      if (TERMINAL_RIDE_STATUSES.includes(currentStatus)) {
+        throw new ConflictException({
+          code: ApiErrorCode.RIDE_ALREADY_TERMINATED,
+          message: `Ride '${bookingId}' has already reached terminal status '${currentStatus}' and cannot be transitioned further.`,
+        });
+      }
+
+      const normalizedFromStatus =
+        booking.status === 'CREATED' ? RideStatus.REQUESTED : (booking.status as RideStatus);
+
+      // 3. Actor authorization checks
+      const effectiveActorRole = (actor?.role || 'ANONYMOUS').toUpperCase();
+      const effectiveActorId = actor?.id || '00000000-0000-0000-0000-000000000000';
+
+      const isAdminOrOps = ['ADMIN', 'OPERATOR', 'DISPATCHER', 'SAFETY_OFFICER', 'SYSTEM'].includes(
+        effectiveActorRole,
+      );
+
+      if (effectiveActorRole === 'RIDER') {
+        if (
+          booking.riderId !== effectiveActorId &&
+          effectiveActorId !== '00000000-0000-0000-0000-000000000000'
+        ) {
+          throw new ForbiddenException({
+            code: ApiErrorCode.UNAUTHORIZED_RIDE_ACTOR,
+            message: `Access denied: Booking belongs to another rider account. Cross-account ride management is prohibited.`,
+          });
+        }
+        if (normalizedFromStatus === RideStatus.IN_PROGRESS) {
+          throw new ForbiddenException({
+            code: ApiErrorCode.UNAUTHORIZED_RIDE_ACTOR,
+            message: `Riders cannot unilaterally cancel a ride in progress. Please contact safety support or the operations desk.`,
+          });
+        }
+      } else if (effectiveActorRole === 'CAPTAIN') {
+        if (
+          booking.captainId &&
+          booking.captainId !== effectiveActorId &&
+          effectiveActorId !== '00000000-0000-0000-0000-000000000000'
+        ) {
+          throw new ForbiddenException({
+            code: ApiErrorCode.UNAUTHORIZED_RIDE_ACTOR,
+            message: `Access denied: Only the assigned captain can cancel this ride.`,
+          });
+        }
+        if (![RideStatus.ASSIGNED, RideStatus.ARRIVED].includes(normalizedFromStatus)) {
+          throw new ForbiddenException({
+            code: ApiErrorCode.UNAUTHORIZED_RIDE_ACTOR,
+            message: `Captains can only cancel rides in ASSIGNED or ARRIVED status.`,
+          });
+        }
+      } else if (!isAdminOrOps) {
+        throw new ForbiddenException({
+          code: ApiErrorCode.UNAUTHORIZED_RIDE_ACTOR,
+          message: `Actor role '${effectiveActorRole}' is not authorized to cancel ride.`,
+        });
+      }
+
+      const now = new Date();
+      let cancellationFeePaise = 0;
+      let gracePeriodExpired = false;
+
+      // 4. Calculate cancellation fee policy based on actor and ride state
+      if (effectiveActorRole === 'RIDER') {
+        if (normalizedFromStatus === RideStatus.ASSIGNED) {
+          const assignedAtTime = booking.assignedAt
+            ? booking.assignedAt.getTime()
+            : booking.createdAt.getTime();
+          const elapsedMs = now.getTime() - assignedAtTime;
+          // Grace period: 3 minutes (180,000 ms)
+          if (elapsedMs > 180_000) {
+            cancellationFeePaise = 1500; // ₹15.00 statutory driver compensation
+            gracePeriodExpired = true;
+          }
+        } else if (normalizedFromStatus === RideStatus.ARRIVED) {
+          // Captain has already arrived at pickup
+          cancellationFeePaise = 1500; // ₹15.00 statutory driver compensation
+          gracePeriodExpired = true;
+        }
+      }
+
+      // 5. Update booking entity
+      const previousStatus = booking.status;
+      booking.status = RideStatus.CANCELLED;
+      booking.cancelledAt = now;
+      booking.cancellationReason = dto.reason || `Cancelled by ${effectiveActorRole}`;
+      booking.cancelledByRole = effectiveActorRole;
+      booking.cancelledById = effectiveActorId;
+      booking.cancellationFeePaise = cancellationFeePaise;
+      booking.updatedAt = now;
+      await manager.save(booking);
+
+      // 6. Create balanced double-entry ledger entries if cancellation fee > 0
+      let ledgerEntriesCreated = 0;
+      if (cancellationFeePaise > 0) {
+        const debitEntry = manager.create(LedgerEntry, {
+          id: randomUUID(),
+          idempotencyKey: `cancel-debit-${booking.id}-${now.getTime()}`,
+          bookingId: booking.id,
+          accountId: `rider:${booking.riderId}`,
+          entryType: 'DEBIT',
+          amountPaise: cancellationFeePaise,
+          currency: 'INR',
+          description: `Statutory cancellation fee for booking ${booking.bookingCode}`,
+          createdAt: now,
+        });
+
+        const creditEntry = manager.create(LedgerEntry, {
+          id: randomUUID(),
+          idempotencyKey: `cancel-credit-${booking.id}-${now.getTime()}`,
+          bookingId: booking.id,
+          accountId: booking.captainId
+            ? `captain:${booking.captainId}`
+            : 'platform:compensation_pool',
+          entryType: 'CREDIT',
+          amountPaise: cancellationFeePaise,
+          currency: 'INR',
+          description: `Captain compensation for rider cancellation on ${booking.bookingCode}`,
+          createdAt: now,
+        });
+
+        await manager.save(LedgerEntry, [debitEntry, creditEntry]);
+        ledgerEntriesCreated = 2;
+      }
+
+      // 7. Verify active incidents and ledger entries are strictly preserved
+      const activeIncidents = await manager.find(RideIncident, {
+        where: {
+          bookingId: booking.id,
+          status: Not(In(['RESOLVED', 'CLOSED'])),
+        },
+      });
+
+      // 8. Record immutable transition audit event in ride_state_events
+      const event = manager.create(RideStateEvent, {
+        id: randomUUID(),
+        bookingId: booking.id,
+        fromStatus: previousStatus === 'CREATED' ? RideStatus.REQUESTED : previousStatus,
+        toStatus: RideStatus.CANCELLED,
+        actorId: effectiveActorId,
+        actorRole: effectiveActorRole,
+        metadata: {
+          ...(dto.metadata || {}),
+          reason: dto.reason || booking.cancellationReason,
+          cancellationFeePaise,
+          formattedCancellationFee: `₹${(cancellationFeePaise / 100).toFixed(2)}`,
+          gracePeriodExpired,
+          ledgerEntriesCreated,
+          ledgerEntriesPreserved: true,
+          activeIncidentsCount: activeIncidents.length,
+          activeIncidentCodes: activeIncidents.map((i) => i.incidentCode),
+        },
+      });
+      await manager.save(event);
+
+      return {
+        bookingId: booking.id,
+        bookingCode: booking.bookingCode,
+        previousStatus,
+        currentStatus: RideStatus.CANCELLED,
+        riderId: booking.riderId,
+        captainId: booking.captainId || null,
+        vehicleId: booking.vehicleId || null,
+        serviceCategory: booking.serviceCategory,
+        timestamps: {
+          requestedAt: booking.requestedAt
+            ? booking.requestedAt.toISOString()
+            : booking.createdAt.toISOString(),
+          dispatchingAt: booking.dispatchingAt ? booking.dispatchingAt.toISOString() : null,
+          assignedAt: booking.assignedAt ? booking.assignedAt.toISOString() : null,
+          arrivedAt: booking.arrivedAt ? booking.arrivedAt.toISOString() : null,
+          tripStartedAt: booking.tripStartedAt ? booking.tripStartedAt.toISOString() : null,
+          tripCompletedAt: booking.tripCompletedAt ? booking.tripCompletedAt.toISOString() : null,
+          cancelledAt: booking.cancelledAt.toISOString(),
+          failedAt: booking.failedAt ? booking.failedAt.toISOString() : null,
+        },
+        cancellationDetails: {
+          reason: booking.cancellationReason || '',
+          cancelledByRole: booking.cancelledByRole || '',
+          cancelledById: booking.cancelledById || '',
+        },
+        failureDetails: null,
+        transitionEvent: {
+          id: event.id,
+          bookingId: event.bookingId,
+          fromStatus: event.fromStatus ?? null,
+          toStatus: event.toStatus,
+          actorId: event.actorId,
+          actorRole: event.actorRole,
+          metadata: event.metadata,
+          createdAt: event.createdAt ? event.createdAt.toISOString() : now.toISOString(),
+        },
+        cancellationFeePaise,
+        formattedCancellationFee: `₹${(cancellationFeePaise / 100).toFixed(2)}`,
+        gracePeriodExpired,
+        ledgerEntriesCreated,
+        ledgerEntriesPreserved: true,
+        activeIncidentsCount: activeIncidents.length,
+        activeIncidents: activeIncidents.map((i) => ({
+          id: i.id,
+          incidentCode: i.incidentCode,
+          incidentType: i.incidentType,
+          severity: i.severity,
+          status: i.status,
+        })),
+      };
     });
+  }
+
+  /**
+   * Reports a safety or operational incident on a ride.
+   * Incident is immutable and cannot be erased by cancellation.
+   */
+  async createRideIncident(
+    bookingId: string,
+    actor: CurrentActorPayload | undefined,
+    dto: CreateRideIncidentDto,
+  ): Promise<RideIncidentDto> {
+    const booking = await this.dataSource.manager.findOne(Booking, {
+      where: { id: bookingId },
+    });
+
+    if (!booking) {
+      throw new NotFoundException({
+        code: ApiErrorCode.NOT_FOUND,
+        message: `Booking with ID '${bookingId}' not found.`,
+      });
+    }
+
+    const effectiveActorRole = (actor?.role || 'ANONYMOUS').toUpperCase();
+    const effectiveActorId = actor?.id || '00000000-0000-0000-0000-000000000000';
+
+    const incidentCode = `INC-${booking.bookingCode.replace('ECO-VZ-', '')}-${Date.now().toString().slice(-6)}`;
+    const now = new Date();
+
+    const incident = this.dataSource.manager.create(RideIncident, {
+      id: randomUUID(),
+      bookingId: booking.id,
+      incidentCode,
+      incidentType: dto.incidentType,
+      severity: dto.severity || 'MEDIUM',
+      status: 'REPORTED',
+      reportedById: effectiveActorId,
+      reportedByRole: effectiveActorRole,
+      description: dto.description,
+      metadata: dto.metadata || {},
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    const saved = await this.dataSource.manager.save(RideIncident, incident);
+
+    return {
+      id: saved.id,
+      bookingId: saved.bookingId,
+      incidentCode: saved.incidentCode,
+      incidentType: saved.incidentType,
+      severity: saved.severity,
+      status: saved.status,
+      reportedById: saved.reportedById,
+      reportedByRole: saved.reportedByRole,
+      description: saved.description,
+      metadata: saved.metadata,
+      createdAt: saved.createdAt.toISOString(),
+      updatedAt: saved.updatedAt.toISOString(),
+    };
+  }
+
+  /**
+   * Retrieves all incidents recorded for a booking.
+   */
+  async getRideIncidents(
+    bookingId: string,
+    actor?: CurrentActorPayload,
+  ): Promise<RideIncidentDto[]> {
+    const booking = await this.dataSource.manager.findOne(Booking, {
+      where: { id: bookingId },
+    });
+
+    if (!booking) {
+      throw new NotFoundException({
+        code: ApiErrorCode.NOT_FOUND,
+        message: `Booking with ID '${bookingId}' not found.`,
+      });
+    }
+
+    const effectiveActorRole = (actor?.role || 'ANONYMOUS').toUpperCase();
+    const effectiveActorId = actor?.id;
+    const isAdminOrOps = ['ADMIN', 'OPERATOR', 'DISPATCHER', 'SAFETY_OFFICER', 'SYSTEM'].includes(
+      effectiveActorRole,
+    );
+
+    if (
+      !isAdminOrOps &&
+      effectiveActorId &&
+      effectiveActorId !== '00000000-0000-0000-0000-000000000000'
+    ) {
+      if (effectiveActorRole === 'RIDER' && booking.riderId !== effectiveActorId) {
+        throw new ForbiddenException({
+          code: ApiErrorCode.FORBIDDEN,
+          message: `Access denied: Cannot access incidents for another rider's booking.`,
+        });
+      }
+      if (
+        effectiveActorRole === 'CAPTAIN' &&
+        booking.captainId &&
+        booking.captainId !== effectiveActorId
+      ) {
+        throw new ForbiddenException({
+          code: ApiErrorCode.FORBIDDEN,
+          message: `Access denied: Cannot access incidents for another captain's booking.`,
+        });
+      }
+    }
+
+    const incidents = await this.dataSource.manager.find(RideIncident, {
+      where: { bookingId },
+      order: { createdAt: 'ASC' },
+    });
+
+    return incidents.map((i) => ({
+      id: i.id,
+      bookingId: i.bookingId,
+      incidentCode: i.incidentCode,
+      incidentType: i.incidentType,
+      severity: i.severity,
+      status: i.status,
+      reportedById: i.reportedById,
+      reportedByRole: i.reportedByRole,
+      description: i.description,
+      metadata: i.metadata,
+      createdAt: i.createdAt.toISOString(),
+      updatedAt: i.updatedAt.toISOString(),
+    }));
+  }
+
+  /**
+   * Retrieves all financial ledger entries linked to a booking.
+   */
+  async getRideLedgerEntries(
+    bookingId: string,
+    actor?: CurrentActorPayload,
+  ): Promise<RideLedgerEntryDto[]> {
+    const booking = await this.dataSource.manager.findOne(Booking, {
+      where: { id: bookingId },
+    });
+
+    if (!booking) {
+      throw new NotFoundException({
+        code: ApiErrorCode.NOT_FOUND,
+        message: `Booking with ID '${bookingId}' not found.`,
+      });
+    }
+
+    const effectiveActorRole = (actor?.role || 'ANONYMOUS').toUpperCase();
+    const effectiveActorId = actor?.id;
+    const isAdminOrOps = ['ADMIN', 'OPERATOR', 'DISPATCHER', 'SAFETY_OFFICER', 'SYSTEM'].includes(
+      effectiveActorRole,
+    );
+
+    if (
+      !isAdminOrOps &&
+      effectiveActorId &&
+      effectiveActorId !== '00000000-0000-0000-0000-000000000000'
+    ) {
+      if (effectiveActorRole === 'RIDER' && booking.riderId !== effectiveActorId) {
+        throw new ForbiddenException({
+          code: ApiErrorCode.FORBIDDEN,
+          message: `Access denied: Cannot access ledger records for another rider's booking.`,
+        });
+      }
+    }
+
+    const entries = await this.dataSource.manager.find(LedgerEntry, {
+      where: { bookingId },
+      order: { createdAt: 'ASC' },
+    });
+
+    return entries.map((e) => ({
+      id: e.id,
+      bookingId: e.bookingId,
+      accountId: e.accountId,
+      entryType: e.entryType,
+      amountPaise: Number(e.amountPaise),
+      currency: e.currency,
+      description: e.description || null,
+      idempotencyKey: e.idempotencyKey,
+      createdAt: e.createdAt.toISOString(),
+    }));
   }
 
   async failRide(
