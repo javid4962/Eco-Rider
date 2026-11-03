@@ -23,3 +23,4 @@ export * from './fleet-shift.entity';
 export * from './service-city.entity';
 export * from './fare-rule.entity';
 export * from './ride-quote.entity';
+export * from './ride-state-event.entity';

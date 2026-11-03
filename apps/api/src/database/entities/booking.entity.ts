@@ -70,6 +70,43 @@ export class Booking {
   @Column({ type: 'int', default: 1, name: 'passenger_count' })
   passengerCount!: number;
 
+  // Transition timestamps & tracking (EV-038)
+  @Column({ type: 'timestamptz', default: () => 'NOW()', name: 'requested_at' })
+  requestedAt!: Date;
+
+  @Column({ type: 'timestamptz', nullable: true, name: 'dispatching_at' })
+  dispatchingAt?: Date | null;
+
+  @Column({ type: 'timestamptz', nullable: true, name: 'assigned_at' })
+  assignedAt?: Date | null;
+
+  @Column({ type: 'timestamptz', nullable: true, name: 'arrived_at' })
+  arrivedAt?: Date | null;
+
+  @Column({ type: 'timestamptz', nullable: true, name: 'trip_started_at' })
+  tripStartedAt?: Date | null;
+
+  @Column({ type: 'timestamptz', nullable: true, name: 'trip_completed_at' })
+  tripCompletedAt?: Date | null;
+
+  @Column({ type: 'timestamptz', nullable: true, name: 'cancelled_at' })
+  cancelledAt?: Date | null;
+
+  @Column({ type: 'varchar', length: 255, nullable: true, name: 'cancellation_reason' })
+  cancellationReason?: string | null;
+
+  @Column({ type: 'varchar', length: 50, nullable: true, name: 'cancelled_by_role' })
+  cancelledByRole?: string | null;
+
+  @Column({ type: 'uuid', nullable: true, name: 'cancelled_by_id' })
+  cancelledById?: string | null;
+
+  @Column({ type: 'timestamptz', nullable: true, name: 'failed_at' })
+  failedAt?: Date | null;
+
+  @Column({ type: 'varchar', length: 255, nullable: true, name: 'failure_reason' })
+  failureReason?: string | null;
+
   @CreateDateColumn({ type: 'timestamptz', name: 'created_at' })
   createdAt!: Date;
 

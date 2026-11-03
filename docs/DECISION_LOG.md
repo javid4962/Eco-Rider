@@ -886,3 +886,41 @@
      - Guarantees that client cannot forge availability or book an unpermitted vehicle class.
   5. **Bilingual Localization & Vernacular Parity**:
      - Added 12 new localization keys in English and Telugu covering operator notice, cancellation window, driver fee, captain availability, and category unavailability.
+
+## ADR-0039: Ride State Machine, Authorization Matrix, and Immutable Audit Log (EV-038)
+
+- **Date**: 2026-03-11
+- **Status**: Accepted
+- **Context**:
+  In a zero-emission commercial mobility platform operating in Andhra Pradesh, ride lifecycle state transitions cannot rely on client trust, uncoordinated mutations, or mutable status columns.
+  Per AGENTS.md:
+  1. Propulsion must be 100% Electric (`BATTERY_ELECTRIC`).
+  2. Database is single source of truth for bookings, seat allocation, payment, and audit history. Use transactions, locks, and idempotency for concurrency.
+  3. Stable error codes must be returned for illegal transitions (`ILLEGAL_STATUS_TRANSITION`), unauthorized actors (`UNAUTHORIZED_RIDE_ACTOR`), invalid OTPs (`INVALID_START_OTP`), and terminal states (`RIDE_ALREADY_TERMINATED`).
+  4. Ticket EV-038 Scope: Implement requested, dispatching, assigned, arrived, in-progress, completed, cancelled, and failed transitions with actor permissions, timestamps, and immutable event log.
+
+- **Decisions**:
+  1. **Authoritative State Machine DAG (`@ecoride/contracts/rides`)**:
+     - Defined legal lifecycle statuses: `REQUESTED`, `DISPATCHING`, `ASSIGNED`, `ARRIVED`, `IN_PROGRESS`, `COMPLETED`, `CANCELLED`, `FAILED`.
+     - Initial states: `CREATED` is normalized to `REQUESTED` to guarantee backward compatibility with quote booking creation.
+     - Terminal statuses: `COMPLETED`, `CANCELLED`, `FAILED` are strictly terminal. Any subsequent transition attempt is rejected with HTTP 409 `RIDE_ALREADY_TERMINATED`.
+     - Legal transitions DAG (`VALID_RIDE_TRANSITIONS`):
+       - `REQUESTED` -> `DISPATCHING`, `CANCELLED`, `FAILED`
+       - `DISPATCHING` -> `ASSIGNED`, `CANCELLED`, `FAILED`
+       - `ASSIGNED` -> `ARRIVED`, `CANCELLED`, `FAILED`
+       - `ARRIVED` -> `IN_PROGRESS`, `CANCELLED`, `FAILED`
+       - `IN_PROGRESS` -> `COMPLETED`, `CANCELLED`, `FAILED`
+     - Any jump outside this DAG is rejected with HTTP 400 `ILLEGAL_STATUS_TRANSITION`.
+  2. **Role-Based Transition Authorization Matrix**:
+     - `RIDER`: Must own booking (`booking.rider_id === actor.id`). May dispatch or cancel prior to `IN_PROGRESS`. Unilateral cancellation during `IN_PROGRESS` is strictly prohibited (HTTP 403 `UNAUTHORIZED_RIDE_ACTOR`) to protect passenger and driver safety on active roads.
+     - `CAPTAIN`: May accept dispatch (`DISPATCHING -> ASSIGNED`) with vehicle assignment. Once assigned, only the assigned captain (`booking.captain_id === actor.id`) can mark `ARRIVED`, `IN_PROGRESS` (with OTP), `COMPLETED`, or cancel. Cross-captain mutations are rejected with HTTP 403 `UNAUTHORIZED_RIDE_ACTOR`.
+     - `ADMIN`, `OPERATOR`, `DISPATCHER`, `SAFETY_OFFICER`, `SYSTEM`: Empowered to execute administrative transitions, emergency cancellations (including during active trips), dispatch timeout failures, and emergency OTP overrides.
+  3. **Pessimistic Row Locking & ACID Transitions**:
+     - All status transitions acquire a pessimistic write lock (`SELECT ... FOR UPDATE`) on the `Booking` entity to serialize concurrent acceptance and cancellation attempts.
+  4. **Start OTP Verification**:
+     - Transitioning `ARRIVED -> IN_PROGRESS` requires captains to supply the 4-digit rider start OTP (`startOtp`). Incorrect or missing OTP is rejected with HTTP 400 `INVALID_START_OTP`.
+  5. **PostgreSQL Immutability Trigger (`Migration 17`)**:
+     - Created `ride_state_events` audit table tracking `id`, `booking_id`, `from_status`, `to_status`, `actor_id`, `actor_role`, `metadata`, and `created_at`.
+     - Attached PostgreSQL trigger `trg_prevent_ride_state_events_mutation` running `prevent_ride_state_events_mutation()` before `UPDATE` or `DELETE`. Any direct mutation of audit logs is aborted at the database engine level.
+  6. **Timeline API Endpoint (`GET /v1/bookings/:id/events`)**:
+     - Exposes complete chronological timeline of all transitions, scoped by actor ownership. Riders and captains can only inspect events for their own booking; operators and admins have platform-wide audit access.
