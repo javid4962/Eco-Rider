@@ -144,4 +144,22 @@ export class QuoteRequestDto {
   @IsOptional()
   @IsString()
   promoCode?: string;
+
+  @ApiProperty({
+    description: 'Rider account UUID requesting the quote',
+    example: 'b0000000-0000-4000-8000-000000000001',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  riderId?: string;
+
+  @ApiProperty({
+    description: 'Optional custom quote validity window in seconds (default: 600s)',
+    example: 600,
+    required: false,
+  })
+  @IsOptional()
+  @IsNumber()
+  expiresInSeconds?: number;
 }

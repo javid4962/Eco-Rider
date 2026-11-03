@@ -63,6 +63,13 @@ export class Booking {
   @Column({ type: 'int', nullable: true, name: 'fare_rule_version' })
   fareRuleVersion?: number;
 
+  @Index('idx_bookings_idempotency')
+  @Column({ type: 'varchar', length: 100, nullable: true, name: 'idempotency_key' })
+  idempotencyKey?: string | null;
+
+  @Column({ type: 'int', default: 1, name: 'passenger_count' })
+  passengerCount!: number;
+
   @CreateDateColumn({ type: 'timestamptz', name: 'created_at' })
   createdAt!: Date;
 

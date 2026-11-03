@@ -103,6 +103,25 @@ export interface FareCalculationBreakdown {
   formattedRupees: string;
 }
 
+export type QuoteStatus = 'ACTIVE' | 'CONSUMED' | 'EXPIRED' | 'REVOKED';
+
+export interface QuoteTokenPayload {
+  quoteId: string;
+  riderId?: string | null;
+  city: string;
+  serviceCategory: string;
+  vehicleClass: string;
+  passengerCount: number;
+  pickupLatitude: number;
+  pickupLongitude: number;
+  dropoffLatitude: number;
+  dropoffLongitude: number;
+  fareRuleId: string;
+  fareRuleVersion: number;
+  totalFarePaise: number;
+  expiresAt: string;
+}
+
 export interface StoredRideQuote {
   id: string;
   riderId?: string | null;
@@ -124,6 +143,59 @@ export interface StoredRideQuote {
   appliedPromoCode?: string | null;
   currency: 'INR';
   propulsion: 'BATTERY_ELECTRIC';
+  quoteToken?: string | null;
+  status: QuoteStatus;
+  consumedAt?: string | null;
+  bookingId?: string | null;
+  idempotencyKey?: string | null;
   expiresAt: string;
+  createdAt: string;
+}
+
+export interface QuoteEligibilityResult {
+  isEligible: boolean;
+  quoteId: string;
+  status: QuoteStatus;
+  rejectionReason?: string;
+  errorCode?: string;
+  expiresAt: string;
+  isExpired: boolean;
+  isConsumed: boolean;
+  isRevoked: boolean;
+  isCrossAccount: boolean;
+  isTampered: boolean;
+}
+
+export interface CreateBookingFromQuoteRequest {
+  quoteId: string;
+  quoteToken?: string;
+  idempotencyKey: string;
+  riderId?: string;
+  pickupLatitude?: number;
+  pickupLongitude?: number;
+  dropoffLatitude?: number;
+  dropoffLongitude?: number;
+  serviceCategory?: string;
+  passengerCount?: number;
+}
+
+export interface BookingDetailsResponse {
+  bookingId: string;
+  bookingCode: string;
+  riderId: string;
+  quoteId: string;
+  fareRuleId: string;
+  fareRuleVersion: number;
+  serviceCategory: string;
+  status: string;
+  fareAmountRupees: number;
+  fareAmountPaise: number;
+  startOtp: string;
+  idempotencyKey?: string | null;
+  passengerCount: number;
+  pickupLatitude: number;
+  pickupLongitude: number;
+  dropoffLatitude: number;
+  dropoffLongitude: number;
   createdAt: string;
 }

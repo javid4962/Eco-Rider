@@ -1,4 +1,11 @@
-import { Injectable, BadRequestException, NotFoundException, Optional } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+  ForbiddenException,
+  ConflictException,
+  Optional,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
@@ -6,6 +13,9 @@ import {
   paiseToRupees,
   FareCalculationBreakdown,
   StoredRideQuote,
+  QuoteStatus,
+  QuoteTokenPayload,
+  QuoteEligibilityResult,
   VehicleCategory,
   VehicleServiceClass,
   CATEGORY_TO_SERVICE_CLASS,
@@ -17,10 +27,13 @@ import { FareRulesService } from '../fare-rules/fare-rules.service';
 import { MapsService } from '../maps/maps.service';
 import { FareRule } from '../../database/entities/fare-rule.entity';
 import { RideQuote } from '../../database/entities/ride-quote.entity';
-import { randomUUID } from 'crypto';
+import { randomUUID, createHmac, timingSafeEqual } from 'crypto';
 
 export interface QuoteResult {
   quoteId: string;
+  quoteToken?: string;
+  status?: string;
+  riderId?: string | null;
   city: string;
   serviceCategory: string;
   vehicleClass?: string;
@@ -42,6 +55,11 @@ export interface QuoteResult {
 
 @Injectable()
 export class QuotesService {
+  private readonly quoteSecret =
+    process.env.QUOTE_SECRET ||
+    process.env.JWT_SECRET ||
+    'ecoride-ev-quote-token-safeguard-secret-ap-2026';
+
   constructor(
     @Optional()
     private readonly zonesService?: ZonesService,
@@ -53,6 +71,61 @@ export class QuotesService {
     @Optional()
     private readonly mapsService?: MapsService,
   ) {}
+
+  /**
+   * Generates a tamper-proof cryptographically signed quote token pinning
+   * fare policy version, origin, destination, service category, passenger count, and pricing.
+   */
+  public generateQuoteToken(payload: QuoteTokenPayload): string {
+    const payloadJson = JSON.stringify(payload);
+    const payloadB64 = Buffer.from(payloadJson, 'utf8').toString('base64url');
+    const signature = createHmac('sha256', this.quoteSecret).update(payloadB64).digest('base64url');
+    return `${payloadB64}.${signature}`;
+  }
+
+  /**
+   * Verifies the cryptographic HMAC signature and integrity of a quote token.
+   */
+  public verifyQuoteToken(token: string): {
+    isValid: boolean;
+    payload?: QuoteTokenPayload;
+    reason?: string;
+  } {
+    if (!token || typeof token !== 'string') {
+      return { isValid: false, reason: 'Token is missing or invalid format' };
+    }
+
+    const parts = token.split('.');
+    if (parts.length !== 2) {
+      return { isValid: false, reason: 'Invalid token structure' };
+    }
+
+    const [payloadB64, signature] = parts;
+    const expectedSignature = createHmac('sha256', this.quoteSecret)
+      .update(payloadB64)
+      .digest('base64url');
+
+    const sigBuf = Buffer.from(signature, 'utf8');
+    const expBuf = Buffer.from(expectedSignature, 'utf8');
+
+    if (sigBuf.length !== expBuf.length || !timingSafeEqual(sigBuf, expBuf)) {
+      return { isValid: false, reason: 'TAMPERED_SIGNATURE' };
+    }
+
+    try {
+      const payload: QuoteTokenPayload = JSON.parse(
+        Buffer.from(payloadB64, 'base64url').toString('utf8'),
+      );
+
+      if (new Date(payload.expiresAt).getTime() <= Date.now()) {
+        return { isValid: false, payload, reason: 'EXPIRED' };
+      }
+
+      return { isValid: true, payload };
+    } catch {
+      return { isValid: false, reason: 'MALFORMED_PAYLOAD' };
+    }
+  }
 
   /**
    * Validates and resolves vehicle class, commercial service category,
@@ -142,6 +215,7 @@ export class QuotesService {
    */
   async calculateAuthoritativeQuote(
     dto: QuoteRequestDto & { clientForgedAvailability?: boolean },
+    actorUserId?: string,
   ): Promise<QuoteResult> {
     const { serviceCategory, vehicleClass, passengerCount } =
       this.validateAndResolveVehicleAndCategory(dto);
@@ -239,12 +313,36 @@ export class QuotesService {
       routeEstimate,
     );
 
-    // 4. Persist quote to database for immutability and audit retention
+    const riderId = actorUserId || dto.riderId || null;
+
+    // 4. Generate cryptographic tamper-proof token pinning policy, geography, and context
+    const tokenPayload: QuoteTokenPayload = {
+      quoteId: quote.quoteId,
+      riderId,
+      city: quote.city,
+      serviceCategory: quote.serviceCategory,
+      vehicleClass,
+      passengerCount,
+      pickupLatitude: dto.pickupLatitude,
+      pickupLongitude: dto.pickupLongitude,
+      dropoffLatitude: dto.dropoffLatitude,
+      dropoffLongitude: dto.dropoffLongitude,
+      fareRuleId: activeRule?.id || '',
+      fareRuleVersion: activeRule?.version || 1,
+      totalFarePaise: quote.fare.amountPaise,
+      expiresAt: quote.expiresAt,
+    };
+    const quoteToken = this.generateQuoteToken(tokenPayload);
+
+    // 5. Persist quote to database for immutability and audit retention
     if (this.rideQuoteRepo && activeRule) {
       const entity = new RideQuote();
       entity.id = quote.quoteId;
+      entity.riderId = riderId;
       entity.city = quote.city;
       entity.serviceCategory = quote.serviceCategory;
+      entity.vehicleClass = vehicleClass;
+      entity.passengerCount = passengerCount;
       entity.pickupLatitude = dto.pickupLatitude;
       entity.pickupLongitude = dto.pickupLongitude;
       entity.dropoffLatitude = dto.dropoffLatitude;
@@ -259,12 +357,21 @@ export class QuotesService {
       entity.appliedPromoCode = quote.appliedPromoCode || null;
       entity.currency = 'INR';
       entity.propulsion = 'BATTERY_ELECTRIC';
+      entity.quoteToken = quoteToken;
+      entity.status = 'ACTIVE';
       entity.expiresAt = new Date(quote.expiresAt);
 
       await this.rideQuoteRepo.save(entity);
     }
 
-    return quote;
+    return {
+      ...quote,
+      quoteToken,
+      status: 'ACTIVE',
+      riderId,
+      vehicleClass,
+      passengerCount,
+    };
   }
 
   /**
@@ -293,11 +400,12 @@ export class QuotesService {
       city: quote.city,
       serviceCategory: quote.serviceCategory,
       vehicleClass:
-        quote.serviceCategory === 'SHARED_SHUTTLE_4W'
+        quote.vehicleClass ||
+        (quote.serviceCategory === 'SHARED_SHUTTLE_4W'
           ? VehicleServiceClass.ECO_VAN
           : CATEGORY_TO_SERVICE_CLASS[quote.serviceCategory as VehicleCategory] ||
-            VehicleServiceClass.ECO_BIKE,
-      passengerCount: quote.fareBreakdown?.passengerCount ?? 1,
+            VehicleServiceClass.ECO_BIKE),
+      passengerCount: quote.passengerCount ?? quote.fareBreakdown?.passengerCount ?? 1,
       pickupLatitude: Number(quote.pickupLatitude),
       pickupLongitude: Number(quote.pickupLongitude),
       dropoffLatitude: Number(quote.dropoffLatitude),
@@ -312,8 +420,171 @@ export class QuotesService {
       appliedPromoCode: quote.appliedPromoCode,
       currency: 'INR',
       propulsion: 'BATTERY_ELECTRIC',
+      quoteToken: quote.quoteToken,
+      status: (quote.status as QuoteStatus) || 'ACTIVE',
+      consumedAt: quote.consumedAt ? quote.consumedAt.toISOString() : null,
+      bookingId: quote.bookingId || null,
+      idempotencyKey: quote.idempotencyKey || null,
       expiresAt: quote.expiresAt.toISOString(),
       createdAt: quote.createdAt.toISOString(),
+    };
+  }
+
+  /**
+   * Verifies quote eligibility, cryptographic signature, lifecycle status,
+   * account ownership, and post-quote zone authorizations.
+   */
+  async verifyQuoteEligibility(
+    quoteId: string,
+    actorUserId?: string,
+    context?: {
+      quoteToken?: string;
+      pickupLatitude?: number;
+      pickupLongitude?: number;
+      dropoffLatitude?: number;
+      dropoffLongitude?: number;
+      serviceCategory?: string;
+      passengerCount?: number;
+    },
+  ): Promise<QuoteEligibilityResult> {
+    if (!this.rideQuoteRepo) {
+      throw new NotFoundException({
+        code: ApiErrorCode.NOT_FOUND,
+        message: `Quote '${quoteId}' not found.`,
+      });
+    }
+
+    const quote = await this.rideQuoteRepo.findOne({ where: { id: quoteId } });
+    if (!quote) {
+      throw new NotFoundException({
+        code: ApiErrorCode.NOT_FOUND,
+        message: `Quote '${quoteId}' not found.`,
+      });
+    }
+
+    // 1. Cross-account access check
+    if (quote.riderId && actorUserId && quote.riderId !== actorUserId) {
+      throw new ForbiddenException({
+        code: ApiErrorCode.FORBIDDEN,
+        message: `Access denied: Quote belongs to rider '${quote.riderId}'. Cross-account ride booking is strictly prohibited.`,
+      });
+    }
+
+    // 2. Lifecycle status: Consumed
+    if (quote.status === 'CONSUMED') {
+      throw new ConflictException({
+        code: ApiErrorCode.CONFLICT,
+        message: `Quote '${quoteId}' has already been consumed for booking '${quote.bookingId}'. Replaying quotes across multiple bookings is prohibited.`,
+      });
+    }
+
+    // 3. Expiry check
+    const isExpired = new Date(quote.expiresAt).getTime() <= Date.now();
+    if (isExpired) {
+      if (quote.status === 'ACTIVE') {
+        quote.status = 'EXPIRED';
+        await this.rideQuoteRepo.save(quote);
+      }
+      throw new BadRequestException({
+        code: ApiErrorCode.BAD_REQUEST,
+        message: `Quote '${quoteId}' expired at ${quote.expiresAt.toISOString()}. Please request a fresh fare quote.`,
+      });
+    }
+
+    // 4. Cryptographic HMAC token verification (if supplied)
+    if (context?.quoteToken) {
+      const verification = this.verifyQuoteToken(context.quoteToken);
+      if (!verification.isValid || !verification.payload) {
+        throw new BadRequestException({
+          code: ApiErrorCode.BAD_REQUEST,
+          message: `Quote token is invalid or tampered: ${verification.reason || 'TAMPERED_SIGNATURE'}. Client-side fare overrides are strictly rejected.`,
+        });
+      }
+
+      const p = verification.payload;
+      if (
+        p.quoteId !== quote.id ||
+        p.fareRuleId !== quote.fareRuleId ||
+        p.fareRuleVersion !== quote.fareRuleVersion ||
+        p.totalFarePaise !== quote.totalFarePaise ||
+        p.serviceCategory !== quote.serviceCategory ||
+        p.passengerCount !== quote.passengerCount
+      ) {
+        throw new BadRequestException({
+          code: ApiErrorCode.BAD_REQUEST,
+          message: `Quote token payload does not match authoritative database record. Tampering detected.`,
+        });
+      }
+    }
+
+    // 5. Context mismatch check
+    if (context?.serviceCategory && context.serviceCategory !== quote.serviceCategory) {
+      throw new BadRequestException({
+        code: ApiErrorCode.BAD_REQUEST,
+        message: `Requested service category '${context.serviceCategory}' does not match pinned quote category '${quote.serviceCategory}'.`,
+      });
+    }
+
+    if (context?.passengerCount && context.passengerCount !== quote.passengerCount) {
+      throw new BadRequestException({
+        code: ApiErrorCode.BAD_REQUEST,
+        message: `Requested passenger count ${context.passengerCount} does not match pinned quote passenger count ${quote.passengerCount}.`,
+      });
+    }
+
+    if (
+      context?.pickupLatitude !== undefined &&
+      Math.abs(Number(context.pickupLatitude) - Number(quote.pickupLatitude)) > 0.0001
+    ) {
+      throw new BadRequestException({
+        code: ApiErrorCode.BAD_REQUEST,
+        message: `Requested pickup latitude does not match pinned quote location.`,
+      });
+    }
+
+    if (
+      context?.dropoffLatitude !== undefined &&
+      Math.abs(Number(context.dropoffLatitude) - Number(quote.dropoffLatitude)) > 0.0001
+    ) {
+      throw new BadRequestException({
+        code: ApiErrorCode.BAD_REQUEST,
+        message: `Requested dropoff latitude does not match pinned quote location.`,
+      });
+    }
+
+    // 6. Post-quote Zone and Category switch revocation check
+    if (this.zonesService) {
+      const zoneCheck = await this.zonesService.verifyLocation({
+        city: quote.city,
+        latitude: Number(quote.pickupLatitude),
+        longitude: Number(quote.pickupLongitude),
+        serviceCategory: quote.serviceCategory,
+      });
+
+      if (!zoneCheck.isAuthorized) {
+        if (quote.status === 'ACTIVE') {
+          quote.status = 'REVOKED';
+          await this.rideQuoteRepo.save(quote);
+        }
+        throw new BadRequestException({
+          code: ApiErrorCode.ZONE_RESTRICTED,
+          message:
+            zoneCheck.rejectionReason ||
+            `Service category '${quote.serviceCategory}' or operational zone in '${quote.city}' was revoked after quote generation.`,
+        });
+      }
+    }
+
+    return {
+      isEligible: true,
+      quoteId: quote.id,
+      status: quote.status as QuoteStatus,
+      expiresAt: quote.expiresAt.toISOString(),
+      isExpired: false,
+      isConsumed: false,
+      isRevoked: false,
+      isCrossAccount: false,
+      isTampered: false,
     };
   }
 
@@ -451,7 +722,9 @@ export class QuotesService {
 
     // Anti-tampering: Server value is authoritative; clientSuppliedFare is ignored
     const totalFarePaise = roundedTotalPaise;
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+    const validitySeconds =
+      dto.expiresInSeconds && dto.expiresInSeconds > 0 ? dto.expiresInSeconds : 600;
+    const expiresAt = new Date(Date.now() + validitySeconds * 1000).toISOString();
 
     const breakdown: FareCalculationBreakdown = {
       baseFarePaise,

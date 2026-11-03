@@ -12,6 +12,7 @@ import { ApiTags, ApiOperation, ApiResponse, ApiHeader, ApiParam } from '@nestjs
 import { QuotesService, QuoteResult } from './quotes.service';
 import { QuoteRequestDto } from '../../common/dto/quote-request.dto';
 import { CORRELATION_ID_HEADER } from '../../common/middleware/correlation-id.middleware';
+import { CurrentActor, CurrentActorPayload } from '../identity/current-actor.decorator';
 
 @ApiTags('Quotes')
 @Controller('quotes')
@@ -47,13 +48,13 @@ export class QuotesController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary:
-      'Calculate electric ride quote with backend-authoritative PostGIS geofence checks and versioned fare rules',
+      'Calculate electric ride quote with backend-authoritative PostGIS geofence checks, cryptographic quote tokens, and versioned fare rules',
     description:
-      'Validates pickup coordinates against active polygonal service zones, resolves active approved fare rules, and persists an immutable quote.',
+      'Validates pickup coordinates against active polygonal service zones, resolves active approved fare rules, and persists an immutable quote with cryptographic HMAC token.',
   })
   @ApiResponse({
     status: 200,
-    description: 'Quote calculated successfully with versioned fare rule',
+    description: 'Quote calculated successfully with versioned fare rule and quote token',
   })
   @ApiResponse({
     status: 400,
@@ -61,8 +62,43 @@ export class QuotesController {
   })
   async calculateAuthoritativeQuote(
     @Body() dto: QuoteRequestDto & { clientForgedAvailability?: boolean },
+    @CurrentActor() actor?: CurrentActorPayload,
   ): Promise<QuoteResult> {
-    return this.quotesService.calculateAuthoritativeQuote(dto);
+    const actorUserId =
+      actor?.id && actor.id !== '00000000-0000-0000-0000-000000000000' ? actor.id : dto.riderId;
+    return this.quotesService.calculateAuthoritativeQuote(dto, actorUserId);
+  }
+
+  @Post(':id/verify-eligibility')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Verify quote validity, cryptographic signature, and zone authorization',
+    description:
+      'Validates that the quote is active, unexpired, belongs to caller, and that service zone/category permissions remain active.',
+  })
+  @ApiParam({ name: 'id', type: 'string', description: 'Quote UUID' })
+  @ApiResponse({ status: 200, description: 'Quote is eligible for booking' })
+  @ApiResponse({ status: 400, description: 'Expired, tampered, or zone-revoked quote' })
+  @ApiResponse({ status: 403, description: 'Cross-account quote access attempt' })
+  @ApiResponse({ status: 404, description: 'Quote not found' })
+  @ApiResponse({ status: 409, description: 'Quote has already been consumed' })
+  async verifyEligibility(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body()
+    body?: {
+      quoteToken?: string;
+      pickupLatitude?: number;
+      pickupLongitude?: number;
+      dropoffLatitude?: number;
+      dropoffLongitude?: number;
+      serviceCategory?: string;
+      passengerCount?: number;
+    },
+    @CurrentActor() actor?: CurrentActorPayload,
+  ) {
+    const actorUserId =
+      actor?.id && actor.id !== '00000000-0000-0000-0000-000000000000' ? actor.id : undefined;
+    return this.quotesService.verifyQuoteEligibility(id, actorUserId, body);
   }
 
   @Get(':id')

@@ -71,6 +71,29 @@ export class RideQuote {
   @Column({ type: 'varchar', length: 30, default: 'BATTERY_ELECTRIC' })
   propulsion!: string;
 
+  @Column({ type: 'text', nullable: true, name: 'quote_token' })
+  quoteToken?: string | null;
+
+  @Index('idx_ride_quotes_status')
+  @Column({ type: 'varchar', length: 20, default: 'ACTIVE' })
+  status!: string;
+
+  @Column({ type: 'timestamptz', nullable: true, name: 'consumed_at' })
+  consumedAt?: Date | null;
+
+  @Column({ type: 'uuid', nullable: true, name: 'booking_id' })
+  bookingId?: string | null;
+
+  @Index('idx_ride_quotes_idempotency')
+  @Column({ type: 'varchar', length: 100, nullable: true, name: 'idempotency_key' })
+  idempotencyKey?: string | null;
+
+  @Column({ type: 'int', default: 1, name: 'passenger_count' })
+  passengerCount!: number;
+
+  @Column({ type: 'varchar', length: 50, nullable: true, name: 'vehicle_class' })
+  vehicleClass?: string | null;
+
   @Column({ type: 'timestamptz', name: 'expires_at' })
   expiresAt!: Date;
 

@@ -805,3 +805,40 @@
      - When upstream map providers experience downtime, timeouts, or simulation (`simulateProviderDowntime: true`), automatically falls back to offline geometric estimation (`isRouteFallback: true`) with road winding factor (1.25x) and urban speed models, preventing client loading traps.
   5. **Server-Side Authoritative Tamper-Resistance**:
      - Client-supplied fare parameters (`clientSuppliedFare`) and forged availability flags are completely ignored or rejected. The server calculates and persists the authoritative fare snapshot.
+
+
+## 2026-11-03 — ADR-0037: Short-Lived Quote Tokens, Fare Version Pinning, Cross-Account Isolation, Zone Revocation Verification, and Idempotent Booking Transitions (EV-036)
+
+- **Status**: Accepted
+- **Context**:
+  In EV mobility booking workflows, fares and service eligibility can fluctuate due to fare rule updates, administrative zone/service suspension, and temporal quote validity. A quote issued to a rider must be pinned to the exact fare policy version, origin, destination, vehicle class, commercial service category, passenger count, and pricing in paise. Clients must not be able to tamper with quote values, book quotes belonging to other user accounts, reuse expired quotes, or double-book consumed quotes. Furthermore, if a service zone or category switch is administratively disabled between quote issuance and booking execution, the platform must detect the revocation and block the booking rather than allowing illegal transit.
+  Per AGENTS.md:
+  1. Rule 2: Propulsion must be ELECTRIC and category availability must be enforced server-side by city, zone, service permission, driver and vehicle status.
+  2. Rule 3: Never invent operational permit approvals, tariffs, contracts or live keys. Keep uncertain service types disabled by default.
+  3. Rule 4: Use database as single source of truth for bookings, seat allocation, entitlements, payment, and audit history. Use transactions, locks, and idempotency for concurrency and webhooks.
+  4. Rule 5: Do not expose other users' trips, locations, KYC files or financial data.
+  5. Ticket EV-036 Scope: Create short-lived quote tokens or references, pin fare policy version, origin/destination/service and passenger context; enforce expiry and idempotent transitions at booking.
+  6. Acceptance / Demonstrate: Expired, tampered, cross-account and zone-revoked quotes are rejected safely.
+
+- **Decisions**:
+  1. **Cryptographic HMAC-SHA256 Quote Tokens (`generateQuoteToken` / `verifyQuoteToken`)**:
+     - Cryptographically signed quote tokens pin: `quoteId`, `riderId`, `city`, `serviceCategory`, `vehicleClass`, `passengerCount`, `pickupLatitude`, `pickupLongitude`, `dropoffLatitude`, `dropoffLongitude`, `fareRuleId`, `fareRuleVersion`, `totalFarePaise`, and `expiresAt`.
+     - Signed with HMAC-SHA256 using server quote secret. Validated with `crypto.timingSafeEqual` against timing attacks.
+     - Any token tampering (altered signature, altered payload) or parameter discrepancy is rejected with HTTP 400 Bad Request (`ApiErrorCode.BAD_REQUEST`).
+  2. **Short-Lived Expiration Safeguards (`expiresAt`)**:
+     - Authoritative quotes have a strict, bounded validity window (default: 600 seconds / 10 minutes, configurable via `expiresInSeconds`).
+     - Both verification (`POST /v1/quotes/:id/verify-eligibility`) and booking creation (`POST /v1/bookings`) check whether `now > expiresAt`.
+     - Expired quotes are rejected with HTTP 400 Bad Request (`ApiErrorCode.BAD_REQUEST`) and their database lifecycle status is updated to `'EXPIRED'`.
+  3. **Strict Cross-Account Isolation**:
+     - Quotes are pinned to the requesting `riderId`.
+     - Verification and booking creation strictly verify caller identity (`x-actor-user-id` / JWT token).
+     - Any attempt by rider B to inspect, verify, or book rider A's quote is rejected with HTTP 403 Forbidden (`ApiErrorCode.FORBIDDEN`).
+  4. **Post-Quote Interim Zone & Category Revocation Safeguard**:
+     - Even if a quote was valid at generation time, administrative or regulatory changes may disable a zone or service category before the rider books.
+     - At booking transition, the backend re-evaluates polygonal PostGIS service boundaries and operational category switches via `ZonesService.verifyLocation`.
+     - If the category switch or zone is suspended/disabled, the booking is rejected with HTTP 400 `ZONE_RESTRICTED` and the quote lifecycle status is updated to `'REVOKED'`.
+  5. **ACID Transaction & Pessimistic Lock for Replay / Idempotency (`BookingsService.createBookingFromQuote`)**:
+     - Booking creation executes inside a PostgreSQL database transaction (`dataSource.transaction`) acquiring a pessimistic write lock (`SELECT ... FOR UPDATE`) on the `ride_quotes` row.
+     - Replay with identical `idempotencyKey`: Returns the existing booking idempotently (HTTP 200/201) without double-booking or state mutation.
+     - Conflicting replay: Attempting to book an already consumed quote with a different `idempotencyKey` is rejected with HTTP 409 Conflict (`ApiErrorCode.CONFLICT`).
+     - Pinned booking creation: Inserts `Booking` with PostGIS points (`ST_SetSRID(ST_MakePoint(lon, lat), 4326)`), 4-digit start OTP, fare amount in rupees, pinned `fareRuleId`, `fareRuleVersion`, `passengerCount`, and transitions quote `status = 'CONSUMED'`, `booking_id = booking.id`, `consumed_at = now()`.
