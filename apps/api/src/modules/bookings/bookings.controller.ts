@@ -26,6 +26,7 @@ import {
   TransitionRideStatusResponse,
   RideTimelineResponse,
   CancelRidePolicyResponse,
+  RotateStartOtpResponse,
 } from '@ecoride/contracts';
 
 @ApiTags('Bookings')
@@ -188,6 +189,32 @@ export class BookingsController {
       id,
       actor || { id: '00000000-0000-0000-0000-000000000000', role: 'ANONYMOUS', scopes: [] },
       dto,
+    );
+  }
+
+  @Post(':id/rotate-otp')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Rotate and regenerate ride start OTP (EV-045)',
+    description:
+      'Generates a fresh 4-digit start OTP, clears any active verification lockout, sets a 15-minute validity window, and enforces a 30-second rate-limiting cooldown. Restricted to passenger or administrator.',
+  })
+  @ApiParam({ name: 'id', type: 'string', description: 'Booking UUID' })
+  @ApiResponse({ status: 200, description: 'OTP rotated successfully' })
+  @ApiResponse({ status: 400, description: 'Ride already in progress' })
+  @ApiResponse({ status: 403, description: 'Unauthorized actor' })
+  @ApiResponse({ status: 404, description: 'Booking not found' })
+  @ApiResponse({ status: 409, description: 'Ride already terminated' })
+  @ApiResponse({ status: 429, description: 'Rotation rate limit exceeded' })
+  async rotateOtp(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @CurrentActor() actor?: CurrentActorPayload,
+    @Body() body?: { metadata?: Record<string, unknown> },
+  ): Promise<RotateStartOtpResponse> {
+    return this.bookingsService.rotateStartOtp(
+      id,
+      actor || { id: '00000000-0000-0000-0000-000000000000', role: 'ANONYMOUS', scopes: [] },
+      body?.metadata,
     );
   }
 

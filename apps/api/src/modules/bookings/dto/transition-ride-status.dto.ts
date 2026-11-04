@@ -117,3 +117,10 @@ export class FailRideDto {
   @IsObject()
   metadata?: Record<string, unknown>;
 }
+
+export class RotateStartOtpDto {
+  @ApiPropertyOptional({ description: 'Optional operational metadata' })
+  @IsOptional()
+  @IsObject()
+  metadata?: Record<string, unknown>;
+}

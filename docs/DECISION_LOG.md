@@ -1176,3 +1176,43 @@
        - Exactly 1 captain is transitioned to `ON_TRIP`.
        - Exactly 49 captains remain strictly in `AVAILABLE` status with zero duplicated captain reservations.
        - Exactly 1 outbox event persisted in `dispatch_outbox_events`.
+
+
+## ADR-0046: Pickup Arrival Authorization, Rider OTP Trip Start, Throttling Lockout, and Rotation Policy (EV-045)
+
+- **Date**: 2026-11-04
+- **Status**: Accepted
+- **Context**:
+  To protect passengers and captains in Andhra Pradesh's EV mobility ecosystem, rides must strictly follow a secure, sequential lifecycle. Starting a trip before reaching the rider's pickup location ("ghost riding" or premature trip start) compromises passenger trust, billing integrity, and emergency safety tracking.
+  Furthermore:
+  1. Only the assigned captain (or emergency support / safety officer) should be authorized to mark arrival at the pickup point (`POST /rides/:id/arrive`).
+  2. Starting the ride (`POST /rides/:id/start` or `transition` to `IN_PROGRESS`) strictly requires the correct 4-digit ride-specific passenger start OTP. Start-before-arrival (`ASSIGNED -> IN_PROGRESS`) must be explicitly refused with stable error codes.
+  3. OTP verification must be protected against brute-force guessing via rate limiting and temporary lockout (3 failed attempts -> 5-minute lockout).
+  4. OTPs must expire (15-30 minutes TTL) and passengers must have a secure, cooldown-protected mechanism (`POST /rides/:id/rotate-otp`, 30s rate limit) to regenerate their OTP and immediately clear any active verification lockout.
+  5. Privacy & Access Controls: Captains and other users must never be allowed to view or rotate another passenger's OTP.
+
+- **Decisions**:
+  1. **Strict Arrival Authorization & Timestamp Recording (`markCaptainArrived`)**:
+     - Transitions `ASSIGNED -> ARRIVED` with pessimistic row locking.
+     - Enforces caller ownership: only the assigned captain (`booking.captainId === actor.id`) or platform operators/admins can execute arrival. Unauthorized captains or riders receive HTTP 403 `UNAUTHORIZED_RIDE_ACTOR`.
+     - Records `arrivedAt = NOW()` and extends or refreshes `startOtpExpiresAt` to ensure a minimum 15-minute boarding window.
+     - Appends an immutable audit event to `ride_state_events`.
+  2. **Start-Before-Arrival Prevention & Sequential DAG Enforcement**:
+     - Attempts to start a ride before marking arrival (`ASSIGNED -> IN_PROGRESS`) are strictly rejected with HTTP 400 `ILLEGAL_STATUS_TRANSITION` and descriptive message: `Trip cannot be started before captain marks arrival at pickup.`
+     - Only the assigned captain can submit OTP verification; unauthorized callers receive HTTP 403 `UNAUTHORIZED_RIDE_ACTOR`.
+  3. **Brute-Force Throttling & Lockout Policy**:
+     - Persists `start_otp_failed_attempts` (INT) and `start_otp_locked_until` (TIMESTAMPTZ) in PostgreSQL `bookings` table via migration `1700000000022-AddRideOtpSafeguardsAndThrottling.ts`.
+     - First and second wrong OTP guesses increment `start_otp_failed_attempts` and return HTTP 400 `INVALID_START_OTP` with remaining attempt count.
+     - Third consecutive failed attempt triggers a 5-minute lockout (`start_otp_locked_until = NOW() + 5 minutes`) and returns HTTP 400 `OTP_ATTEMPTS_EXCEEDED`.
+     - Subsequent attempts during lockout are rejected immediately with `OTP_ATTEMPTS_EXCEEDED` without leaking OTP validity.
+     - Successful OTP entry resets `start_otp_failed_attempts = 0` and clears `start_otp_locked_until`.
+  4. **Time-To-Live (TTL) Expiry Enforcement**:
+     - Persists `start_otp_expires_at` (TIMESTAMPTZ).
+     - Start attempts after expiry are rejected with HTTP 400 `OTP_EXPIRED`.
+  5. **Passenger-Controlled OTP Rotation (`rotateStartOtp`)**:
+     - Exposed via `POST /rides/:id/rotate-otp` and `POST /bookings/:id/rotate-otp`.
+     - Permitted only for the booking owner (rider) or platform administrators. Captains and third parties receive HTTP 403 `UNAUTHORIZED_RIDE_ACTOR`.
+     - Prohibited once trip is `IN_PROGRESS` or terminal (`COMPLETED`, `CANCELLED`, `FAILED`).
+     - Enforces a 30-second rotation cooldown (`HTTP 429 RATE_LIMITED`) to prevent SMS/notification flooding.
+     - Generates a new cryptographically random 4-digit code distinct from the current OTP, sets a fresh 15-minute expiration window, clears any active verification lockout, and resets failed attempts.
+     - Logs an immutable audit event in `ride_state_events`.

@@ -51,6 +51,18 @@ export class Booking {
   @Column({ type: 'varchar', length: 4, nullable: true, name: 'start_otp' })
   startOtp?: string;
 
+  @Column({ type: 'timestamptz', nullable: true, name: 'start_otp_expires_at' })
+  startOtpExpiresAt?: Date | null;
+
+  @Column({ type: 'int', default: 0, name: 'start_otp_failed_attempts' })
+  startOtpFailedAttempts!: number;
+
+  @Column({ type: 'timestamptz', nullable: true, name: 'start_otp_locked_until' })
+  startOtpLockedUntil?: Date | null;
+
+  @Column({ type: 'timestamptz', nullable: true, name: 'start_otp_rotated_at' })
+  startOtpRotatedAt?: Date | null;
+
   @Column({ type: 'numeric', precision: 10, scale: 2, default: 0.0, name: 'fare_amount' })
   fareAmount!: number;
 

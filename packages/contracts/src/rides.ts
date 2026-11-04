@@ -223,3 +223,23 @@ export interface RideLedgerEntryDto {
   idempotencyKey: string;
   createdAt: string;
 }
+
+/**
+ * Response payload for rotating/regenerating ride start OTP (EV-045)
+ */
+export interface RotateStartOtpResponse {
+  bookingId: string;
+  bookingCode: string;
+  startOtp?: string; // Revealed only to authorized rider or admin
+  expiresAt: string; // ISO-8601 UTC
+  rotatedAt: string; // ISO-8601 UTC
+  remainingAttempts: number;
+}
+
+/**
+ * Ride start OTP verification payload (EV-045)
+ */
+export interface StartRideOtpVerificationDto {
+  startOtp: string;
+  metadata?: Record<string, unknown>;
+}

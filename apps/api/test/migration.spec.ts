@@ -10,6 +10,7 @@ import { CreateCaptainApplicationsAndReviewHistory1700000000009 } from '../src/d
 import { AddDriverComplianceAndDutyStatus1700000000010 } from '../src/database/migrations/1700000000010-AddDriverComplianceAndDutyStatus';
 import { CreateDispatchOffersTable1700000000020 } from '../src/database/migrations/1700000000020-CreateDispatchOffersTable';
 import { CreateDispatchOutboxEventsTable1700000000021 } from '../src/database/migrations/1700000000021-CreateDispatchOutboxEventsTable';
+import { AddRideOtpSafeguardsAndThrottling1700000000022 } from '../src/database/migrations/1700000000022-AddRideOtpSafeguardsAndThrottling';
 import { QueryRunner } from 'typeorm';
 
 describe('Database Migrations', () => {
@@ -401,6 +402,35 @@ describe('Database Migrations', () => {
 
       const allQueries = executedQueries.join(' ');
       expect(allQueries).toContain('DROP TABLE IF EXISTS "dispatch_outbox_events" CASCADE;');
+    });
+  });
+
+  describe('AddRideOtpSafeguardsAndThrottling1700000000022', () => {
+    let migration: AddRideOtpSafeguardsAndThrottling1700000000022;
+
+    beforeEach(() => {
+      migration = new AddRideOtpSafeguardsAndThrottling1700000000022();
+    });
+
+    it('should add start OTP expiration, throttling, and rotation columns in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('start_otp_expires_at');
+      expect(allQueries).toContain('start_otp_failed_attempts');
+      expect(allQueries).toContain('start_otp_locked_until');
+      expect(allQueries).toContain('start_otp_rotated_at');
+      expect(allQueries).toContain('UPDATE "bookings"');
+    });
+
+    it('should drop added OTP columns in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP COLUMN IF EXISTS "start_otp_rotated_at"');
+      expect(allQueries).toContain('DROP COLUMN IF EXISTS "start_otp_locked_until"');
+      expect(allQueries).toContain('DROP COLUMN IF EXISTS "start_otp_failed_attempts"');
+      expect(allQueries).toContain('DROP COLUMN IF EXISTS "start_otp_expires_at"');
     });
   });
 });

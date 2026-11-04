@@ -4,6 +4,8 @@ import {
   NotFoundException,
   ForbiddenException,
   ConflictException,
+  HttpException,
+  HttpStatus,
   Optional,
 } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
@@ -20,6 +22,7 @@ import {
   CancelRidePolicyResponse,
   RideIncidentDto,
   RideLedgerEntryDto,
+  RotateStartOtpResponse,
 } from '@ecoride/contracts';
 import { Booking } from '../../database/entities/booking.entity';
 import { RideQuote } from '../../database/entities/ride-quote.entity';
@@ -232,13 +235,15 @@ export class BookingsService {
           `INSERT INTO "bookings" (
              "id", "booking_code", "rider_id", "service_category", "status",
              "pickup_location", "dropoff_location",
-             "start_otp", "fare_amount", "quote_id", "fare_rule_id", "fare_rule_version",
+             "start_otp", "start_otp_expires_at", "start_otp_failed_attempts",
+             "fare_amount", "quote_id", "fare_rule_id", "fare_rule_version",
              "idempotency_key", "passenger_count", "created_at", "updated_at"
            )
            VALUES (
              $1, $2, $3, $4, 'CREATED',
              ST_SetSRID(ST_MakePoint($5, $6), 4326), ST_SetSRID(ST_MakePoint($7, $8), 4326),
-             $9, $10, $11, $12, $13,
+             $9, NOW() + INTERVAL '30 minutes', 0,
+             $10, $11, $12, $13,
              $14, $15, NOW(), NOW()
            )`,
           [
@@ -455,6 +460,15 @@ export class BookingsService {
       // 4. Validate DAG transition
       const legalNextStatuses = VALID_RIDE_TRANSITIONS[normalizedFromStatus] || [];
       if (!legalNextStatuses.includes(dto.targetStatus)) {
+        if (
+          dto.targetStatus === RideStatus.IN_PROGRESS &&
+          normalizedFromStatus === RideStatus.ASSIGNED
+        ) {
+          throw new BadRequestException({
+            code: ApiErrorCode.ILLEGAL_STATUS_TRANSITION,
+            message: `Illegal status transition from 'ASSIGNED' to 'IN_PROGRESS'. Trip cannot be started before captain marks arrival at pickup.`,
+          });
+        }
         throw new BadRequestException({
           code: ApiErrorCode.ILLEGAL_STATUS_TRANSITION,
           message: `Illegal status transition from '${booking.status}' to '${dto.targetStatus}'. Valid target statuses are: ${legalNextStatuses.join(', ') || 'none (terminal)'}.`,
@@ -559,18 +573,60 @@ export class BookingsService {
 
         case RideStatus.ARRIVED: {
           booking.arrivedAt = now;
+          // Refresh or extend OTP expiration window so rider has at least 15 minutes to board
+          const minExpiry = new Date(now.getTime() + 15 * 60 * 1000);
+          if (!booking.startOtpExpiresAt || new Date(booking.startOtpExpiresAt) < minExpiry) {
+            booking.startOtpExpiresAt = minExpiry;
+          }
           break;
         }
 
         case RideStatus.IN_PROGRESS: {
           // Enforce 4-digit start OTP check for captains and non-admin actors
           if (!['ADMIN', 'SAFETY_OFFICER', 'SYSTEM'].includes(effectiveActorRole)) {
-            if (!dto.startOtp || dto.startOtp !== booking.startOtp) {
+            // 1. Throttle / Lockout check
+            if (booking.startOtpLockedUntil && now < new Date(booking.startOtpLockedUntil)) {
+              const remainingSeconds = Math.ceil(
+                (new Date(booking.startOtpLockedUntil).getTime() - now.getTime()) / 1000,
+              );
               throw new BadRequestException({
-                code: ApiErrorCode.INVALID_START_OTP,
-                message: `Invalid 4-digit ride start OTP provided. Captain must enter the correct passenger OTP to start trip.`,
+                code: ApiErrorCode.OTP_ATTEMPTS_EXCEEDED,
+                message: `Too many failed OTP attempts. Start verification is locked for another ${remainingSeconds} seconds. Rider can rotate OTP to unlock immediately.`,
               });
             }
+
+            // 2. Expiration check
+            if (booking.startOtpExpiresAt && now > new Date(booking.startOtpExpiresAt)) {
+              throw new BadRequestException({
+                code: ApiErrorCode.OTP_EXPIRED,
+                message: `Rider start OTP has expired. Please ask the rider to rotate or generate a new OTP.`,
+              });
+            }
+
+            // 3. Match check & attempt tracking
+            if (!dto.startOtp || dto.startOtp !== booking.startOtp) {
+              booking.startOtpFailedAttempts = (booking.startOtpFailedAttempts || 0) + 1;
+              if (booking.startOtpFailedAttempts >= 3) {
+                // Lock out for 5 minutes
+                booking.startOtpLockedUntil = new Date(now.getTime() + 5 * 60 * 1000);
+                await manager.save(booking);
+                throw new BadRequestException({
+                  code: ApiErrorCode.OTP_ATTEMPTS_EXCEEDED,
+                  message: `Incorrect OTP entered 3 times. Verification locked for 5 minutes. Rider can rotate OTP to unlock immediately.`,
+                });
+              } else {
+                await manager.save(booking);
+                const remaining = 3 - booking.startOtpFailedAttempts;
+                throw new BadRequestException({
+                  code: ApiErrorCode.INVALID_START_OTP,
+                  message: `Invalid 4-digit ride start OTP provided. ${remaining} attempt(s) remaining.`,
+                });
+              }
+            }
+
+            // On success: reset failed attempts & lockout
+            booking.startOtpFailedAttempts = 0;
+            booking.startOtpLockedUntil = null;
           }
           booking.tripStartedAt = now;
           break;
@@ -791,6 +847,142 @@ export class BookingsService {
       targetStatus: RideStatus.IN_PROGRESS,
       startOtp: dto.startOtp,
       metadata: dto.metadata,
+    });
+  }
+
+  /**
+   * Rotates and regenerates the 4-digit rider start OTP (EV-045).
+   * Restricted to the rider who owns the ride or platform administrators.
+   * Clears any active OTP attempt locks, resets failed attempts,
+   * sets a fresh 15-minute expiration window, and enforces a 30-second rotation cooldown.
+   */
+  async rotateStartOtp(
+    bookingId: string,
+    actor?: CurrentActorPayload,
+    metadata?: Record<string, unknown>,
+  ): Promise<RotateStartOtpResponse> {
+    return await this.dataSource.transaction(async (manager: EntityManager) => {
+      // 1. Fetch booking with pessimistic write lock
+      const booking = await manager
+        .createQueryBuilder(Booking, 'b')
+        .setLock('pessimistic_write')
+        .where('b.id = :id', { id: bookingId })
+        .getOne();
+
+      if (!booking) {
+        throw new NotFoundException({
+          code: ApiErrorCode.NOT_FOUND,
+          message: `Booking with ID '${bookingId}' not found.`,
+        });
+      }
+
+      // 2. Terminal state check
+      const currentStatus = booking.status as RideStatus;
+      if (TERMINAL_RIDE_STATUSES.includes(currentStatus)) {
+        throw new ConflictException({
+          code: ApiErrorCode.RIDE_ALREADY_TERMINATED,
+          message: `Ride '${bookingId}' has already reached terminal status '${currentStatus}' and OTP cannot be rotated.`,
+        });
+      }
+
+      // Cannot rotate OTP if ride is already in progress
+      if (booking.status === RideStatus.IN_PROGRESS) {
+        throw new BadRequestException({
+          code: ApiErrorCode.ILLEGAL_STATUS_TRANSITION,
+          message: `Cannot rotate start OTP while trip is already IN_PROGRESS.`,
+        });
+      }
+
+      // 3. Authorization check: Only booking rider, admin, safety officer, or system can rotate OTP
+      const effectiveActorRole = (actor?.role || 'ANONYMOUS').toUpperCase();
+      const effectiveActorId = actor?.id || '00000000-0000-0000-0000-000000000000';
+      const isAdminOrOps = ['ADMIN', 'OPERATOR', 'DISPATCHER', 'SAFETY_OFFICER', 'SYSTEM'].includes(
+        effectiveActorRole,
+      );
+
+      if (effectiveActorRole === 'CAPTAIN') {
+        throw new ForbiddenException({
+          code: ApiErrorCode.UNAUTHORIZED_RIDE_ACTOR,
+          message: `Captains cannot regenerate rider OTP. Only the passenger or authorized support can rotate the OTP.`,
+        });
+      }
+
+      if (effectiveActorRole === 'RIDER') {
+        if (booking.riderId !== effectiveActorId) {
+          throw new ForbiddenException({
+            code: ApiErrorCode.UNAUTHORIZED_RIDE_ACTOR,
+            message: `Access denied: Booking belongs to another rider account. Cross-account OTP rotation is prohibited.`,
+          });
+        }
+      } else if (!isAdminOrOps) {
+        throw new ForbiddenException({
+          code: ApiErrorCode.UNAUTHORIZED_RIDE_ACTOR,
+          message: `Actor role '${effectiveActorRole}' is not authorized to rotate start OTP.`,
+        });
+      }
+
+      const now = new Date();
+
+      // 4. Rate-limit cooldown (30 seconds between rotations, bypassable only by ADMIN/SYSTEM)
+      if (booking.startOtpRotatedAt && !['ADMIN', 'SYSTEM'].includes(effectiveActorRole)) {
+        const elapsedMs = now.getTime() - new Date(booking.startOtpRotatedAt).getTime();
+        const cooldownMs = 30 * 1000;
+        if (elapsedMs < cooldownMs) {
+          const waitSeconds = Math.ceil((cooldownMs - elapsedMs) / 1000);
+          throw new HttpException(
+            {
+              code: ApiErrorCode.RATE_LIMITED,
+              message: `OTP rotation requested too quickly. Please wait ${waitSeconds} second(s) before generating a new OTP.`,
+            },
+            HttpStatus.TOO_MANY_REQUESTS,
+          );
+        }
+      }
+
+      // 5. Generate new distinct 4-digit OTP
+      let newOtp: string;
+      do {
+        newOtp = Math.floor(1000 + Math.random() * 9000).toString();
+      } while (newOtp === booking.startOtp);
+
+      booking.startOtp = newOtp;
+      booking.startOtpRotatedAt = now;
+      booking.startOtpExpiresAt = new Date(now.getTime() + 15 * 60 * 1000); // 15-minute TTL
+      booking.startOtpFailedAttempts = 0;
+      booking.startOtpLockedUntil = null;
+      booking.updatedAt = now;
+
+      await manager.save(booking);
+
+      // 6. Record immutable event in ride_state_events
+      const event = manager.create(RideStateEvent, {
+        id: randomUUID(),
+        bookingId: booking.id,
+        fromStatus: booking.status,
+        toStatus: booking.status,
+        actorId: effectiveActorId,
+        actorRole: effectiveActorRole,
+        metadata: {
+          ...(metadata || {}),
+          action: 'OTP_ROTATED',
+          rotatedAt: now.toISOString(),
+          expiresAt: booking.startOtpExpiresAt.toISOString(),
+          ipAddress: actor?.ipAddress,
+          correlationId: actor?.correlationId,
+        },
+      });
+      await manager.save(event);
+
+      const isRiderOrAdmin = effectiveActorRole === 'RIDER' || isAdminOrOps;
+
+      return {
+        bookingId: booking.id,
+        bookingCode: booking.bookingCode,
+        startOtp: isRiderOrAdmin ? newOtp : undefined,
+        expiresAt: booking.startOtpExpiresAt.toISOString(),
+        rotatedAt: booking.startOtpRotatedAt.toISOString(),
+        remainingAttempts: 3,
+      };
     });
   }
 
