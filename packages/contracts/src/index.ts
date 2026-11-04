@@ -16,3 +16,4 @@ export * from './zones';
 export * from './maps';
 export * from './fares';
 export * from './rides';
+export * from './captains';

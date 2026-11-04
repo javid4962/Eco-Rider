@@ -15,12 +15,16 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam } from '@ne
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentActor, CurrentActorPayload } from '../identity/current-actor.decorator';
 import { ComplianceService } from './compliance.service';
+import { CaptainAvailabilityService } from './captain-availability.service';
 import {
   ToggleDutyDto,
   UpdateComplianceStatusDto,
   ReverifyComplianceDto,
   QueryComplianceWarningsDto,
   RunExpiryScanDto,
+  CaptainLocationPingDto,
+  UpdateAvailabilityDto,
+  QueryAvailableCaptainsDto,
 } from './dto';
 import { PlatformRole } from '@ecoride/contracts';
 
@@ -29,7 +33,139 @@ import { PlatformRole } from '@ecoride/contracts';
 @UseGuards(JwtAuthGuard)
 @Controller('captains')
 export class ComplianceController {
-  constructor(private readonly complianceService: ComplianceService) {}
+  constructor(
+    private readonly complianceService: ComplianceService,
+    private readonly captainAvailabilityService: CaptainAvailabilityService,
+  ) {}
+
+  @Get('available')
+  @ApiOperation({
+    summary: 'Find available, location-fresh captains eligible for dispatch (EV-040)',
+    description:
+      'Proximity query that strictly filters out stale, offline, charging, maintenance, and low-battery captains.',
+  })
+  @ApiResponse({ status: 200, description: 'List of dispatch-eligible captains within radius' })
+  async findAvailableCaptains(@Query() query: QueryAvailableCaptainsDto) {
+    return this.captainAvailabilityService.findAvailableCaptainsForDispatch(query);
+  }
+
+  @Get('me/availability')
+  @ApiOperation({
+    summary: 'Get current captain availability status and location freshness (EV-040)',
+    description:
+      'Returns the captain availability state (OFFLINE, AVAILABLE, RESERVED, ON_TRIP, CHARGING, MAINTENANCE), location coordinates, and dispatch eligibility.',
+  })
+  @ApiResponse({ status: 200, description: 'Captain availability details' })
+  async getMyAvailability(@CurrentActor() actor: CurrentActorPayload) {
+    return this.captainAvailabilityService.getAvailability(actor, actor.id);
+  }
+
+  @Post('me/availability')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Update current captain availability state (EV-040)',
+    description:
+      'Transitions availability state among OFFLINE, AVAILABLE, RESERVED, ON_TRIP, CHARGING, and MAINTENANCE. When going AVAILABLE, verifies compliance and roadworthiness.',
+  })
+  @ApiResponse({ status: 200, description: 'Availability state updated successfully' })
+  @ApiResponse({ status: 422, description: 'Captain is ineligible to go AVAILABLE' })
+  async updateMyAvailability(
+    @CurrentActor() actor: CurrentActorPayload,
+    @Body() dto: UpdateAvailabilityDto,
+  ) {
+    return this.captainAvailabilityService.updateAvailability(actor, actor.id, dto);
+  }
+
+  @Post('me/location')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Record authenticated captain GPS location telemetry (EV-040)',
+    description:
+      'Ingests live location ping, verifies accuracy (<= 50m), updates PostgreSQL spatial index, and refreshes Redis telemetry TTL (30s freshness window).',
+  })
+  @ApiResponse({ status: 200, description: 'Location telemetry ingested successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid coordinates or unacceptable accuracy' })
+  async recordMyLocation(
+    @CurrentActor() actor: CurrentActorPayload,
+    @Body() dto: CaptainLocationPingDto,
+  ) {
+    return this.captainAvailabilityService.recordLocationPing(actor, actor.id, dto);
+  }
+
+  @Get('me/dispatch-eligibility')
+  @ApiOperation({
+    summary: 'Evaluate captain dispatch offer eligibility (EV-040)',
+    description:
+      'Validates that captain is AVAILABLE, location is fresh (<= 30s), accuracy is acceptable (<= 50m), and battery SoC is >= 20%. Stale/offline/charging captains return ineligibility reasons.',
+  })
+  @ApiResponse({ status: 200, description: 'Dispatch offer eligibility audit breakdown' })
+  async getMyDispatchEligibility(@CurrentActor() actor: CurrentActorPayload) {
+    return this.captainAvailabilityService.getDispatchEligibility(actor, actor.id);
+  }
+
+  @Get(':userId/availability')
+  @ApiOperation({
+    summary: 'Get captain availability by user UUID (EV-040)',
+    description: 'Enforces ownership check. Cross-captain access by other clients is forbidden.',
+  })
+  @ApiParam({ name: 'userId', type: 'string', description: 'Captain user UUID' })
+  @ApiResponse({ status: 200, description: 'Captain availability details' })
+  @ApiResponse({ status: 403, description: 'Forbidden: cannot view another captain state' })
+  async getCaptainAvailability(
+    @CurrentActor() actor: CurrentActorPayload,
+    @Param('userId', new ParseUUIDPipe()) userId: string,
+  ) {
+    return this.captainAvailabilityService.getAvailability(actor, userId);
+  }
+
+  @Post(':userId/availability')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Update captain availability by user UUID (EV-040)',
+    description: 'Enforces ownership check. Cross-captain editing by other clients is forbidden.',
+  })
+  @ApiParam({ name: 'userId', type: 'string', description: 'Captain user UUID' })
+  @ApiResponse({ status: 200, description: 'Availability state updated successfully' })
+  @ApiResponse({ status: 403, description: 'Forbidden: cannot edit another captain state' })
+  async updateCaptainAvailability(
+    @CurrentActor() actor: CurrentActorPayload,
+    @Param('userId', new ParseUUIDPipe()) userId: string,
+    @Body() dto: UpdateAvailabilityDto,
+  ) {
+    return this.captainAvailabilityService.updateAvailability(actor, userId, dto);
+  }
+
+  @Post(':userId/location')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Record captain location by user UUID (EV-040)',
+    description: 'Enforces ownership check. Clients cannot submit location for another captain.',
+  })
+  @ApiParam({ name: 'userId', type: 'string', description: 'Captain user UUID' })
+  @ApiResponse({ status: 200, description: 'Location telemetry ingested successfully' })
+  @ApiResponse({ status: 403, description: 'Forbidden: cannot edit another captain location' })
+  async recordCaptainLocation(
+    @CurrentActor() actor: CurrentActorPayload,
+    @Param('userId', new ParseUUIDPipe()) userId: string,
+    @Body() dto: CaptainLocationPingDto,
+  ) {
+    return this.captainAvailabilityService.recordLocationPing(actor, userId, dto);
+  }
+
+  @Get(':userId/dispatch-eligibility')
+  @ApiOperation({
+    summary: 'Evaluate captain dispatch offer eligibility by user UUID (EV-040)',
+    description: 'Enforces ownership check. Clients cannot inspect another captain eligibility.',
+  })
+  @ApiParam({ name: 'userId', type: 'string', description: 'Captain user UUID' })
+  @ApiResponse({ status: 200, description: 'Dispatch offer eligibility audit breakdown' })
+  @ApiResponse({ status: 403, description: 'Forbidden: cross-captain access' })
+  async getCaptainDispatchEligibility(
+    @CurrentActor() actor: CurrentActorPayload,
+    @Param('userId', new ParseUUIDPipe()) userId: string,
+  ) {
+    return this.captainAvailabilityService.getDispatchEligibility(actor, userId);
+  }
 
   @Get('me/compliance')
   @ApiOperation({

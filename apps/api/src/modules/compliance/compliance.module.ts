@@ -6,11 +6,14 @@ import {
   ComplianceWarning,
   Vehicle,
   Document,
+  CaptainLocationPing,
 } from '../../database/entities';
 import { IdentityModule } from '../identity/identity.module';
 import { ReleaseBoundariesModule } from '../release-boundaries/release-boundaries.module';
 import { AuthModule } from '../auth/auth.module';
+import { RedisModule } from '../redis/redis.module';
 import { ComplianceService } from './compliance.service';
+import { CaptainAvailabilityService } from './captain-availability.service';
 import { ComplianceController } from './compliance.controller';
 
 @Module({
@@ -21,13 +24,15 @@ import { ComplianceController } from './compliance.controller';
       ComplianceWarning,
       Vehicle,
       Document,
+      CaptainLocationPing,
     ]),
     IdentityModule,
     ReleaseBoundariesModule,
     AuthModule,
+    RedisModule,
   ],
   controllers: [ComplianceController],
-  providers: [ComplianceService],
-  exports: [ComplianceService],
+  providers: [ComplianceService, CaptainAvailabilityService],
+  exports: [ComplianceService, CaptainAvailabilityService],
 })
 export class ComplianceModule {}

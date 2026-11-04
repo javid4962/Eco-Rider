@@ -450,12 +450,8 @@ describe('Idempotent Rides and Cancellation Policies E2E (EV-039)', () => {
       expect(ledgerRes.status).toBe(200);
       expect(ledgerRes.body).toHaveLength(2);
 
-      const debit = ledgerRes.body.find(
-        (e: RideLedgerEntryDto) => e.entryType === 'DEBIT',
-      );
-      const credit = ledgerRes.body.find(
-        (e: RideLedgerEntryDto) => e.entryType === 'CREDIT',
-      );
+      const debit = ledgerRes.body.find((e: RideLedgerEntryDto) => e.entryType === 'DEBIT');
+      const credit = ledgerRes.body.find((e: RideLedgerEntryDto) => e.entryType === 'CREDIT');
 
       expect(debit).toBeDefined();
       expect(debit.accountId).toBe(`rider:${testRiderAlice.id}`);

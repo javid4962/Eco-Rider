@@ -970,3 +970,48 @@
      - `POST /v1/rides/:id/incidents`: Reports immutable incident in `ride_incidents` with unique `incidentCode` (`INC-XXXX-XXXXXX`).
      - `GET /v1/rides/:id/incidents`: Returns chronological list of all incidents recorded on the ride.
      - `GET /v1/rides/:id/ledger`: Returns double-entry accounting records linked to the ride.
+
+
+## ADR-0041: Captain Availability State Machine, Telemetry Freshness Windows, GPS Accuracy Bounds, and Proximity Dispatch Isolation (EV-040)
+
+- **Date**: 2026-03-11
+- **Status**: Accepted
+- **Context**:
+  In an EV-only commercial mobility platform operating in Andhra Pradesh, real-time dispatch matching requires high-confidence, server-authoritative captain availability and location freshness. Offering ride dispatches to captains who are offline, actively recharging their EV batteries, undergoing maintenance, or reporting degraded/stale GPS coordinates creates severe dispatch failures, rider wait times, and road stranding risks.
+  Per AGENTS.md:
+  1. Propulsion must be 100% Electric (`BATTERY_ELECTRIC`). Category availability must be enforced server-side.
+  2. Use the database as source of truth for bookings, driver/vehicle status, and audit history.
+  3. Do not expose other users' trips, locations, KYC files, or financial data.
+  4. Ticket EV-040 Scope: Support OFFLINE, AVAILABLE, RESERVED, ON_TRIP, CHARGING, and MAINTENANCE, with authenticated location updates, expiry, and accuracy checks.
+  5. Acceptance / Demonstrate: Stale/offline/charging captains cannot receive dispatch offers; clients cannot edit other captains' states.
+
+- **Decisions**:
+  1. **Six-State Captain Availability Lifecycle (`packages/contracts/src/captains.ts`)**:
+     - Standardized `CaptainAvailabilityStatus`:
+       - `OFFLINE`: Captain is off-duty.
+       - `AVAILABLE`: On-duty, verified KYC, active EV vehicle, roadworthy compliance, and ready for dispatch. Transition to `AVAILABLE` automatically synchronizes `duty_status = ONLINE` and requires positive statutory eligibility from `ComplianceService`.
+       - `RESERVED`: Held or matched for incoming ride assignment.
+       - `ON_TRIP`: Active ride journey in transit (`duty_status = ON_TRIP`).
+       - `CHARGING`: Dedicated operational state for battery swapping or depot DC fast charging (e.g. Visakhapatnam RTC complex hub). Prevents dispatch pings and false-positive idle alerts while retaining captain account session.
+       - `MAINTENANCE`: Vehicle mechanical check, brake test, tire pressure calibration, or battery diagnostics.
+     - Database check constraint `chk_driver_profiles_availability_status` enforces valid status values in `driver_profiles` table (`Migration 19`).
+  2. **Telemetry Freshness Window & Degradation Boundaries**:
+     - Freshness TTL (`LOCATION_FRESHNESS_TTL_SECONDS = 30`): Telemetry age is strictly calculated server-side as `now - location_updated_at`. If `age > 30s` or missing, `isLocationFresh = false` and captain is disqualified from dispatch offers (`LOCATION_STALE`).
+     - Maximum GPS Accuracy Tolerance (`MAX_LOCATION_ACCURACY_METERS = 50.0m`): GPS pings with accuracy radius exceeding 50m are rejected with HTTP 422 `LOCATION_ACCURACY_UNACCEPTABLE`.
+     - Minimum Battery SoC Threshold (`MIN_BATTERY_SOC_PERCENT = 20.0%`): Locations with battery SoC < 20% are rejected with HTTP 422 `BATTERY_SOC_INSUFFICIENT`, preventing low-battery dispatch stranding.
+  3. **Spatial Telemetry Ingestion & Audit Trail (`Migration 19`)**:
+     - `driver_profiles` expanded with PostGIS geometry `current_location` (`GEOMETRY(Point, 4326)`), `current_latitude`, `current_longitude`, `location_accuracy_meters`, `battery_soc_percent`, and `location_updated_at`.
+     - Added spatial GiST index `idx_driver_profiles_location_gist` and B-tree index `idx_driver_profiles_location_updated`.
+     - Created `captain_location_pings` table with foreign key cascade to record immutable time-series pings for route verification and dispute auditing.
+     - Telemetry cache synchronization: Active locations are cached in Redis under `captain:telemetry:{userId}` with 30s TTL, and indexed in geospatial set `captains:locations:geo` via `GEOADD`.
+  4. **Radial Proximity Dispatch Isolation (`GET /v1/captains/available`)**:
+     - Performs PostGIS spatial query (`ST_DWithin` and `ST_Distance`) filtering strictly on:
+       - `availability_status = 'AVAILABLE'`
+       - `location_updated_at >= NOW() - INTERVAL '30 seconds'`
+       - `location_accuracy_meters <= 50.0`
+       - `battery_soc_percent >= 20.0`
+     - Stale, offline, charging, and maintenance captains are completely omitted from radial results.
+  5. **Cross-Account Authorization & Client Tampering Safeguards**:
+     - All routes (`/captains/me/*` and `/captains/:userId/*`) enforce strict caller checks (`assertCanAccessCaptain`).
+     - If `actor.id !== targetUserId` and caller does not possess administrative or dispatcher roles (`ADMIN`, `OPERATOR`, `DISPATCHER`, `SUPER_ADMIN`), the request is rejected with HTTP 403 Forbidden.
+     - Clients cannot view or edit another captain's availability state, emit spoofed location telemetry, or inspect dispatch eligibility.

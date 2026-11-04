@@ -10,6 +10,7 @@
   },
   "collectCoverageFrom": ["src/**/*.(t|j)s"],
   "coverageDirectory": "./coverage",
-  "testEnvironment": "node"
+  "testEnvironment": "node",
+  "maxWorkers": 1
 }
 

@@ -12,7 +12,7 @@ import {
 } from 'typeorm';
 import { User } from './user.entity';
 import { Vehicle } from './vehicle.entity';
-import { DriverComplianceStatus, DutyStatus } from '@ecoride/contracts';
+import { DriverComplianceStatus, DutyStatus, CaptainAvailabilityStatus } from '@ecoride/contracts';
 
 export type VerificationStatus =
   'PENDING' | 'UNDER_REVIEW' | 'VERIFIED' | 'REJECTED' | 'SUSPENDED' | 'EXPIRED';
@@ -23,6 +23,10 @@ export type VerificationStatus =
   `"verification_status" IN ('PENDING', 'UNDER_REVIEW', 'VERIFIED', 'REJECTED', 'SUSPENDED', 'EXPIRED')`,
 )
 @Check('chk_driver_profiles_duty_status', `"duty_status" IN ('ONLINE', 'OFFLINE', 'ON_TRIP')`)
+@Check(
+  'chk_driver_profiles_availability_status',
+  `"availability_status" IN ('OFFLINE', 'AVAILABLE', 'RESERVED', 'ON_TRIP', 'CHARGING', 'MAINTENANCE')`,
+)
 export class DriverProfile {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
@@ -65,6 +69,56 @@ export class DriverProfile {
 
   @Column({ type: 'timestamptz', nullable: true, name: 'duty_last_toggled_at' })
   dutyLastToggledAt?: Date | null;
+
+  @Index('idx_driver_profiles_availability_status')
+  @Column({
+    type: 'varchar',
+    length: 30,
+    default: CaptainAvailabilityStatus.OFFLINE,
+    name: 'availability_status',
+  })
+  availabilityStatus!: CaptainAvailabilityStatus | string;
+
+  @Column({ type: 'double precision', nullable: true, name: 'current_latitude' })
+  currentLatitude?: number | null;
+
+  @Column({ type: 'double precision', nullable: true, name: 'current_longitude' })
+  currentLongitude?: number | null;
+
+  @Index('idx_driver_profiles_location_gist', { spatial: true })
+  @Column({
+    type: 'geometry',
+    spatialFeatureType: 'Point',
+    srid: 4326,
+    nullable: true,
+    name: 'current_location',
+  })
+  currentLocation?: string | null;
+
+  @Column({ type: 'double precision', nullable: true, name: 'location_accuracy_meters' })
+  locationAccuracyMeters?: number | null;
+
+  @Column({ type: 'double precision', nullable: true, name: 'location_heading_degrees' })
+  locationHeadingDegrees?: number | null;
+
+  @Column({ type: 'double precision', nullable: true, name: 'location_speed_kmph' })
+  locationSpeedKmph?: number | null;
+
+  @Column({ type: 'double precision', nullable: true, name: 'location_altitude_meters' })
+  locationAltitudeMeters?: number | null;
+
+  @Index('idx_driver_profiles_location_updated')
+  @Column({ type: 'timestamptz', nullable: true, name: 'location_updated_at' })
+  locationUpdatedAt?: Date | null;
+
+  @Column({ type: 'numeric', precision: 5, scale: 2, nullable: true, name: 'battery_soc_percent' })
+  batterySocPercent?: number | null;
+
+  @Column({ type: 'varchar', length: 255, nullable: true, name: 'status_reason' })
+  statusReason?: string | null;
+
+  @Column({ type: 'timestamptz', default: () => 'NOW()', name: 'last_status_changed_at' })
+  lastStatusChangedAt!: Date;
 
   @Column({ type: 'text', nullable: true, name: 'suspension_reason' })
   suspensionReason?: string | null;

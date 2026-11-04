@@ -55,9 +55,11 @@ describe('BookingsService - Idempotent Rides & Cancellation Policies (EV-039)', 
 
     mockDataSource = {
       manager: mockEntityManager,
-      transaction: jest.fn().mockImplementation(async (cb: (m: Record<string, jest.Mock>) => Promise<unknown>) => {
-        return cb(mockEntityManager);
-      }),
+      transaction: jest
+        .fn()
+        .mockImplementation(async (cb: (m: Record<string, jest.Mock>) => Promise<unknown>) => {
+          return cb(mockEntityManager);
+        }),
     };
 
     const module: TestingModule = await Test.createTestingModule({
