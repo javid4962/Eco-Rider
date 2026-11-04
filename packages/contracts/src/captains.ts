@@ -133,3 +133,72 @@ export interface AvailableCaptainSummaryDto {
   locationAgeSeconds: number;
   distanceMeters?: number | null;
 }
+
+/**
+ * Deterministic ranking strategies for nearby eligible captain offer dispatch (EV-042).
+ */
+export enum RankingStrategy {
+  BALANCED_FAIR = 'BALANCED_FAIR', // 50% proximity, 30% idle wait time, 10% rating, 10% SoC
+  FAIR_ROTATION = 'FAIR_ROTATION', // 60% idle wait time (FIFO rotation), 25% proximity, 10% rating, 5% SoC
+  PROXIMITY = 'PROXIMITY', // 85% proximity (lowest distance/ETA first), 5% idle, 5% rating, 5% SoC
+}
+
+/**
+ * Request payload to select nearby eligible captains with spatial and statutory filtering (EV-042).
+ */
+export interface SelectNearbyEligibleCaptainsRequest {
+  pickupLatitude: number;
+  pickupLongitude: number;
+  city: string;
+  serviceCategory?: string;
+  requestedSeats?: number;
+  radiusKm?: number;
+  rankingStrategy?: RankingStrategy | string;
+  dropoffLatitude?: number;
+  dropoffLongitude?: number;
+  maxCandidates?: number;
+}
+
+/**
+ * Rich summary DTO of an eligible candidate captain selected for dispatch (EV-042).
+ */
+export interface EligibleCaptainCandidateDto {
+  rank: number;
+  fairScore: number;
+  captainId: string;
+  userId: string;
+  name: string;
+  ratingAverage: number;
+  totalTrips: number;
+  idleMinutes: number;
+  vehicleId: string;
+  registrationNumber: string;
+  vehicleCategory: string;
+  serviceClass: string;
+  seatingCapacity: number;
+  latitude: number;
+  longitude: number;
+  distanceMeters: number;
+  estimatedEtaMinutes: number;
+  accuracyMeters: number;
+  batterySocPercent: number;
+  practicalRangeKm: number;
+  locationAgeSeconds: number;
+  zoneCode: string;
+}
+
+/**
+ * Authoritative response payload returning ranked eligible candidate captains (EV-042).
+ */
+export interface NearbyEligibleCaptainsResponse {
+  candidates: EligibleCaptainCandidateDto[];
+  totalCandidatesFound: number;
+  zone: {
+    id: string;
+    code: string;
+    name: string;
+  } | null;
+  rankingStrategy: string;
+  searchRadiusKm: number;
+  evaluatedAt: string;
+}

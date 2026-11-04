@@ -28,6 +28,7 @@ import {
   QueryAvailableCaptainsDto,
   EvaluateBatteryDispatchDto,
   CaptainBatterySyncDto,
+  SelectNearbyCaptainsDto,
 } from './dto';
 import { PlatformRole } from '@ecoride/contracts';
 
@@ -51,6 +52,35 @@ export class ComplianceController {
   @ApiResponse({ status: 200, description: 'List of dispatch-eligible captains within radius' })
   async findAvailableCaptains(@Query() query: QueryAvailableCaptainsDto) {
     return this.captainAvailabilityService.findAvailableCaptainsForDispatch(query);
+  }
+
+  @Post('nearby-eligible')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Select nearby eligible EV captains with fair offer ordering (EV-042)',
+    description:
+      'Evaluates PostGIS spatial filtering, transient Redis pre-filtering, zone geofence inclusion, BEV roadworthiness, driver KYC verification, location precision (<=50m), and fair ranking.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Ranked list of nearby eligible candidate captains',
+  })
+  async selectNearbyCaptainsPost(@Body() dto: SelectNearbyCaptainsDto) {
+    return this.captainAvailabilityService.selectNearbyEligibleCaptains(dto);
+  }
+
+  @Get('nearby-eligible')
+  @ApiOperation({
+    summary: 'Query nearby eligible EV captains via GET parameters (EV-042)',
+    description:
+      'Query version for riders and ops clients to preview nearby available EV captains matching category and location.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Ranked list of nearby eligible candidate captains',
+  })
+  async selectNearbyCaptainsGet(@Query() query: SelectNearbyCaptainsDto) {
+    return this.captainAvailabilityService.selectNearbyEligibleCaptains(query);
   }
 
   @Get('me/availability')

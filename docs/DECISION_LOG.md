@@ -1065,3 +1065,41 @@
      - Manual recovery API (`POST /v1/captains/me/battery/sync`): Allows captains to submit refreshed SoC and reset telemetry last ping after depot fast-charging or battery swapping.
   7. **Cross-Account Authorization & Privacy Protection**:
      - Enforced `assertCanAccessCaptain`: Captains can only evaluate or sync their own profile/vehicle. Cross-captain tampering or inspection by unauthorized clients returns HTTP 403 Forbidden.
+
+
+## ADR-0043: Nearby Eligible Captain Selection, PostGIS Spatial Boundary Containment, Transient Redis Pre-Filtering, and Anti-Starvation Fair Offer Ordering (EV-042)
+
+- **Date**: 2026-11-04
+- **Status**: Accepted
+- **Context**:
+  In an EV-only commercial mobility platform operating in Andhra Pradesh (Visakhapatnam pilot), real-time ride dispatch matching must determine candidate captains who are spatially nearby, currently available, and legally authorized to accept the dispatch.
+  Per AGENTS.md:
+  1. Propulsion must be 100% Electric (`BATTERY_ELECTRIC`). Category availability must be enforced server-side.
+  2. Use the database as source of truth for bookings, driver, and vehicle status.
+  3. Never include non-EV, suspended, incompatible, occupied, or outside-zone captains in candidate lists.
+  4. Prevent driver starvation through fair offer ordering while maintaining location precision controls.
+  5. Ticket EV-042 Scope: Spatial filtering through PostGIS plus transient Redis geo where useful, fair offer order, service/city validity, driver verification, and location precision controls.
+
+- **Decisions**:
+  1. **Dual-Tier Spatial Architecture (PostGIS Truth + Transient Redis Geo Index)**:
+     - **PostGIS Authoritative Filter**: Single source of truth evaluating polygonal geofence boundaries via `ST_Contains(z.boundary, dp.current_location)` and radial proximity via `ST_DWithin(dp.current_location::geography, ST_SetSRID(ST_Point(lon, lat), 4326)::geography, searchRadiusMeters)`.
+     - **Transient Redis Geo Index (`captains:locations:geo`)**: High-throughput transient spatial cache queried with `georadius` to prune candidate IDs during high ride concurrency.
+     - **Fault-Tolerant Fallback**: If Redis is offline, disconnected, or throws, the system seamlessly executes the authoritative PostGIS database query with zero service interruption.
+  2. **Multi-Factor Anti-Starvation Fair Offer Ordering (`RankingStrategy`)**:
+     - Standard proximity-only dispatch causes systemic driver starvation for captains waiting at transit depots, railway hubs, and designated charging queues.
+     - Introduced three deterministic scoring algorithms:
+       - `BALANCED_FAIR` (Default): $0.50 \times S_{\text{dist}} + 0.30 \times S_{\text{idle}} + 0.10 \times S_{\text{rating}} + 0.10 \times S_{\text{soc}}$
+       - `FAIR_ROTATION`: $0.60 \times S_{\text{idle}} + 0.25 \times S_{\text{dist}} + 0.10 \times S_{\text{rating}} + 0.05 \times S_{\text{soc}}$ (prioritizes longest idle waiting time to enforce FIFO queue fairness)
+       - `PROXIMITY`: $0.85 \times S_{\text{dist}} + 0.05 \times S_{\text{idle}} + 0.05 \times S_{\text{rating}} + 0.05 \times S_{\text{soc}}$ (prioritizes shortest pickup distance during severe ETA crunches)
+     - Normalization formulas:
+       - $S_{\text{dist}} = \max(0, 1 - \frac{d}{R_{\text{search}}})$
+       - $S_{\text{idle}} = \min(1, \frac{T_{\text{idle}}}{60})$
+       - $S_{\text{rating}} = \frac{\text{rating} - 1.0}{4.0}$
+       - $S_{\text{soc}} = \frac{\text{SoC}}{100}$
+  3. **Mandatory Exclusion Gates (Server-Side Enforced)**:
+     - **Non-EV Exclusion**: Vehicle propulsion strictly enforced as `BATTERY_ELECTRIC`. Non-electric vehicles (petrol, diesel, CNG, hybrid) are rejected. Green commercial plate (`green_plate_verified = true`), active registration (`is_active = true`), and unexpired fitness/insurance/tax certificates are required.
+     - **Driver Statutory Verification**: Captain KYC status must be `VERIFIED`. Andhra Pradesh green plate commercial permit must be verified (`green_plate_permit_verified = true`), and statutory safety training completed (`safety_training_completed = true`).
+     - **Duty & Availability Status**: Captain must have `duty_status = 'ONLINE'` and `availability_status = 'AVAILABLE'`. Captains who are `ON_TRIP`, `RESERVED`, `CHARGING`, `MAINTENANCE`, or `OFFLINE` are strictly excluded.
+     - **Spatial & Geofence Containment**: Both the pickup origin and the captain's current location must lie within active municipal service zones (`ST_Contains(zone.boundary, location)`). Rides outside service boundaries return error `OUTSIDE_OPERATIONAL_ZONE`.
+     - **Service Category & Seating Compatibility**: Category switches within the zone must be active (`is_active = true` and `category_switches[category] = true`). Vehicle approved seating must satisfy requested passenger seats ($C_{\text{vehicle}} \ge N_{\text{requested}}$).
+     - **Location Precision & Telemetry Freshness**: GPS horizontal accuracy radius must not exceed 50.0 meters. Location ping age must not exceed 30.0 seconds TTL. Vehicle battery SoC must be at least 20.0% reserve buffer.

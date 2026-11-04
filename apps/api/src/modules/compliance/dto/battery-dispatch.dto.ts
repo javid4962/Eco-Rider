@@ -212,4 +212,3 @@ export class CaptainBatterySyncDto implements CaptainBatterySyncRequest {
   @IsString()
   notes?: string;
 }
-
