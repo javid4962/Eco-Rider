@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import '../../../core/api/api_contracts.dart';
 import '../models/location_model.dart';
 
@@ -501,6 +502,153 @@ class MockRiderLocationApiClient implements RiderLocationApiClient {
             'Free cancellation within 3 minutes of captain assignment. ₹15.00 driver compensation fee applies thereafter.',
       ),
       evaluatedAt: DateTime.now(),
+    );
+  }
+}
+
+/// Production HTTP API Client connecting Rider app to the NestJS backend
+class HttpRiderLocationApiClient implements RiderLocationApiClient {
+  final String baseUrl;
+  final String? authToken;
+  final RiderLocationApiClient fallbackClient;
+  final HttpClient _httpClient;
+
+  HttpRiderLocationApiClient({
+    this.baseUrl = 'http://10.0.2.2:3000',
+    this.authToken,
+    RiderLocationApiClient? fallbackClient,
+    HttpClient? httpClient,
+  })  : fallbackClient = fallbackClient ?? MockRiderLocationApiClient(),
+        _httpClient = httpClient ?? HttpClient();
+
+  Future<Map<String, dynamic>?> _getJson(String path) async {
+    try {
+      final uri = Uri.parse('$baseUrl$path');
+      final req = await _httpClient.getUrl(uri).timeout(const Duration(seconds: 4));
+      req.headers.set(HttpHeaders.contentTypeHeader, 'application/json');
+      if (authToken != null) {
+        req.headers.set(HttpHeaders.authorizationHeader, 'Bearer $authToken');
+      }
+      final res = await req.close().timeout(const Duration(seconds: 4));
+      if (res.statusCode >= 200 && res.statusCode < 300) {
+        final body = await res.transform(utf8.decoder).join();
+        return jsonDecode(body) as Map<String, dynamic>;
+      }
+    } catch (_) {
+      // Fallback on network/socket error
+    }
+    return null;
+  }
+
+  Future<Map<String, dynamic>?> _postJson(String path, Map<String, dynamic> payload) async {
+    try {
+      final uri = Uri.parse('$baseUrl$path');
+      final req = await _httpClient.postUrl(uri).timeout(const Duration(seconds: 4));
+      req.headers.set(HttpHeaders.contentTypeHeader, 'application/json');
+      if (authToken != null) {
+        req.headers.set(HttpHeaders.authorizationHeader, 'Bearer $authToken');
+      }
+      req.write(jsonEncode(payload));
+      final res = await req.close().timeout(const Duration(seconds: 4));
+      if (res.statusCode >= 200 && res.statusCode < 300) {
+        final body = await res.transform(utf8.decoder).join();
+        return jsonDecode(body) as Map<String, dynamic>;
+      }
+    } catch (_) {
+      // Fallback on network/socket error
+    }
+    return null;
+  }
+
+  @override
+  Future<List<AddressSuggestionDto>> getAddressSuggestions(String query, {String? city}) async {
+    final queryParams = 'query=${Uri.encodeComponent(query)}${city != null ? '&city=${Uri.encodeComponent(city)}' : ''}';
+    final json = await _getJson('/maps/autocomplete?$queryParams');
+    if (json != null && json['suggestions'] is List) {
+      final list = json['suggestions'] as List;
+      return list.map((item) => AddressSuggestionDto.fromJson(item as Map<String, dynamic>)).toList();
+    }
+    return fallbackClient.getAddressSuggestions(query, city: city);
+  }
+
+  @override
+  Future<ReverseGeocodeDto> reverseGeocode(double latitude, double longitude) async {
+    final json = await _getJson('/maps/reverse-geocode?latitude=$latitude&longitude=$longitude');
+    if (json != null) {
+      return ReverseGeocodeDto.fromJson(json);
+    }
+    return fallbackClient.reverseGeocode(latitude, longitude);
+  }
+
+  @override
+  Future<VerifyLocationResultDto> verifyLocation({
+    required double latitude,
+    required double longitude,
+    required String city,
+    required String serviceCategory,
+  }) async {
+    final json = await _postJson('/quotes/verify-location', {
+      'latitude': latitude,
+      'longitude': longitude,
+      'city': city,
+      'serviceCategory': serviceCategory,
+    });
+    if (json != null) {
+      return VerifyLocationResultDto.fromJson(json);
+    }
+    return fallbackClient.verifyLocation(
+      latitude: latitude,
+      longitude: longitude,
+      city: city,
+      serviceCategory: serviceCategory,
+    );
+  }
+
+  @override
+  Future<QuoteResponse> calculateAuthoritativeQuote(QuoteRequest request) async {
+    final json = await _postJson('/quotes', request.toJson());
+    if (json != null) {
+      return QuoteResponse.fromJson(json);
+    }
+    return fallbackClient.calculateAuthoritativeQuote(request);
+  }
+
+  @override
+  Future<List<SavedPlaceItem>> getSavedPlaces(String userId) async {
+    final json = await _getJson('/riders/saved-places?userId=${Uri.encodeComponent(userId)}');
+    if (json != null && json['places'] is List) {
+      final list = json['places'] as List;
+      return list.map((item) => SavedPlaceItem.fromJson(item as Map<String, dynamic>)).toList();
+    }
+    return fallbackClient.getSavedPlaces(userId);
+  }
+
+  @override
+  Future<ServiceAvailabilityResponse> getServiceAvailability({
+    required double pickupLatitude,
+    required double pickupLongitude,
+    double? dropoffLatitude,
+    double? dropoffLongitude,
+    String city = 'Visakhapatnam',
+    bool simulateZeroDrivers = false,
+  }) async {
+    final params = StringBuffer(
+      'city=${Uri.encodeComponent(city)}&pickupLatitude=$pickupLatitude&pickupLongitude=$pickupLongitude',
+    );
+    if (dropoffLatitude != null && dropoffLongitude != null) {
+      params.write('&dropoffLatitude=$dropoffLatitude&dropoffLongitude=$dropoffLongitude');
+    }
+    final json = await _getJson('/quotes/service-availability?$params');
+    if (json != null) {
+      return ServiceAvailabilityResponse.fromJson(json);
+    }
+    return fallbackClient.getServiceAvailability(
+      pickupLatitude: pickupLatitude,
+      pickupLongitude: pickupLongitude,
+      dropoffLatitude: dropoffLatitude,
+      dropoffLongitude: dropoffLongitude,
+      city: city,
+      simulateZeroDrivers: simulateZeroDrivers,
     );
   }
 }
