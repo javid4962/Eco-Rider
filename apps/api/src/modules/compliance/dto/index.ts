@@ -6,3 +6,4 @@ export * from './run-expiry-scan.dto';
 export * from './captain-location-ping.dto';
 export * from './update-availability.dto';
 export * from './query-available-captains.dto';
+export * from './battery-dispatch.dto';

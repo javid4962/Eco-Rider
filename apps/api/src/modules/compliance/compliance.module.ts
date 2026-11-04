@@ -14,6 +14,7 @@ import { AuthModule } from '../auth/auth.module';
 import { RedisModule } from '../redis/redis.module';
 import { ComplianceService } from './compliance.service';
 import { CaptainAvailabilityService } from './captain-availability.service';
+import { BatteryDispatchService } from './battery-dispatch.service';
 import { ComplianceController } from './compliance.controller';
 
 @Module({
@@ -32,7 +33,7 @@ import { ComplianceController } from './compliance.controller';
     RedisModule,
   ],
   controllers: [ComplianceController],
-  providers: [ComplianceService, CaptainAvailabilityService],
-  exports: [ComplianceService, CaptainAvailabilityService],
+  providers: [ComplianceService, CaptainAvailabilityService, BatteryDispatchService],
+  exports: [ComplianceService, CaptainAvailabilityService, BatteryDispatchService],
 })
 export class ComplianceModule {}

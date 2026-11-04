@@ -16,6 +16,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentActor, CurrentActorPayload } from '../identity/current-actor.decorator';
 import { ComplianceService } from './compliance.service';
 import { CaptainAvailabilityService } from './captain-availability.service';
+import { BatteryDispatchService } from './battery-dispatch.service';
 import {
   ToggleDutyDto,
   UpdateComplianceStatusDto,
@@ -25,6 +26,8 @@ import {
   CaptainLocationPingDto,
   UpdateAvailabilityDto,
   QueryAvailableCaptainsDto,
+  EvaluateBatteryDispatchDto,
+  CaptainBatterySyncDto,
 } from './dto';
 import { PlatformRole } from '@ecoride/contracts';
 
@@ -36,6 +39,7 @@ export class ComplianceController {
   constructor(
     private readonly complianceService: ComplianceService,
     private readonly captainAvailabilityService: CaptainAvailabilityService,
+    private readonly batteryDispatchService: BatteryDispatchService,
   ) {}
 
   @Get('available')
@@ -165,6 +169,96 @@ export class ComplianceController {
     @Param('userId', new ParseUUIDPipe()) userId: string,
   ) {
     return this.captainAvailabilityService.getDispatchEligibility(actor, userId);
+  }
+
+  @Post('me/dispatch-eligibility/battery')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Evaluate current captain EV battery-aware dispatch eligibility for a trip (EV-041)',
+    description:
+      'Validates battery SoC, telemetry source and freshness, adequate range for pickup + journey + reserve margin + charging contingency, and BEV approval.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Detailed EV battery dispatch feasibility breakdown and recovery guide',
+  })
+  async evaluateMyBatteryDispatch(
+    @CurrentActor() actor: CurrentActorPayload,
+    @Body() dto: EvaluateBatteryDispatchDto,
+  ) {
+    return this.batteryDispatchService.evaluateDispatchEligibility(
+      { ...dto, captainId: actor.id },
+      actor,
+    );
+  }
+
+  @Post(':userId/dispatch-eligibility/battery')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Evaluate captain EV battery-aware dispatch eligibility by user UUID (EV-041)',
+    description:
+      'Enforces ownership check. Clients cannot inspect another captain battery dispatch feasibility.',
+  })
+  @ApiParam({ name: 'userId', type: 'string', description: 'Captain user UUID' })
+  @ApiResponse({ status: 200, description: 'Detailed EV battery dispatch feasibility breakdown' })
+  @ApiResponse({ status: 403, description: 'Forbidden: cross-captain access' })
+  async evaluateCaptainBatteryDispatch(
+    @CurrentActor() actor: CurrentActorPayload,
+    @Param('userId', new ParseUUIDPipe()) userId: string,
+    @Body() dto: EvaluateBatteryDispatchDto,
+  ) {
+    return this.batteryDispatchService.evaluateDispatchEligibility(
+      { ...dto, captainId: userId },
+      actor,
+    );
+  }
+
+  @Post('dispatch-eligibility/evaluate')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Evaluate arbitrary EV battery dispatch eligibility for dispatch engines (EV-041)',
+    description:
+      'Evaluates battery feasibility for either captainId or vehicleId for given trip coordinates.',
+  })
+  @ApiResponse({ status: 200, description: 'Evaluation result with distance and energy breakdown' })
+  async evaluateGeneralBatteryDispatch(
+    @CurrentActor() actor: CurrentActorPayload,
+    @Body() dto: EvaluateBatteryDispatchDto,
+  ) {
+    return this.batteryDispatchService.evaluateDispatchEligibility(dto, actor);
+  }
+
+  @Post('me/battery/sync')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Sync refreshed battery telemetry or report recharge/swap (EV-041 manual recovery)',
+    description:
+      'Used as part of manual recovery path after depot DC fast charging or battery swap to re-enable dispatch eligibility.',
+  })
+  @ApiResponse({ status: 200, description: 'Battery telemetry synced successfully' })
+  async syncMyBattery(
+    @CurrentActor() actor: CurrentActorPayload,
+    @Body() dto: CaptainBatterySyncDto,
+  ) {
+    return this.batteryDispatchService.syncCaptainBattery(actor, actor.id, dto);
+  }
+
+  @Post(':userId/battery/sync')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Sync captain battery telemetry by user UUID (EV-041 manual recovery)',
+    description:
+      'Enforces ownership check or admin role. Used to update battery state after maintenance or charging.',
+  })
+  @ApiParam({ name: 'userId', type: 'string', description: 'Captain user UUID' })
+  @ApiResponse({ status: 200, description: 'Battery telemetry synced successfully' })
+  @ApiResponse({ status: 403, description: 'Forbidden: cross-captain access' })
+  async syncCaptainBattery(
+    @CurrentActor() actor: CurrentActorPayload,
+    @Param('userId', new ParseUUIDPipe()) userId: string,
+    @Body() dto: CaptainBatterySyncDto,
+  ) {
+    return this.batteryDispatchService.syncCaptainBattery(actor, userId, dto);
   }
 
   @Get('me/compliance')

@@ -27,6 +27,13 @@ export interface AppConfig {
       dltPeId: string;
     };
   };
+  batteryDispatch: {
+    minReserveSocPercent: number;
+    minReserveRangeKm: number;
+    contingencyChargerDistanceKm: number;
+    telemetryMaxAgeSeconds: number;
+    maxPickupDistanceKm: number;
+  };
 }
 
 export const configuration = (): AppConfig => ({
@@ -57,5 +64,17 @@ export const configuration = (): AppConfig => ({
       maxRetries: parseInt(process.env.MSG91_MAX_RETRIES || '2', 10),
       dltPeId: process.env.MSG91_DLT_PE_ID || '1101550000000012345',
     },
+  },
+  batteryDispatch: {
+    minReserveSocPercent: parseFloat(process.env.EV_DISPATCH_MIN_RESERVE_SOC || '15.0'),
+    minReserveRangeKm: parseFloat(process.env.EV_DISPATCH_MIN_RESERVE_RANGE_KM || '8.0'),
+    contingencyChargerDistanceKm: parseFloat(
+      process.env.EV_DISPATCH_CONTINGENCY_CHARGER_KM || '5.0',
+    ),
+    telemetryMaxAgeSeconds: parseInt(
+      process.env.EV_DISPATCH_TELEMETRY_MAX_AGE_SECONDS || '120',
+      10,
+    ),
+    maxPickupDistanceKm: parseFloat(process.env.EV_DISPATCH_MAX_PICKUP_DISTANCE_KM || '15.0'),
   },
 });

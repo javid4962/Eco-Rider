@@ -29,6 +29,7 @@ import { CurrentActorPayload } from '../identity/current-actor.decorator';
 import { ComplianceService } from './compliance.service';
 import { RedisService } from '../redis/redis.service';
 import { CaptainLocationPingDto, UpdateAvailabilityDto, QueryAvailableCaptainsDto } from './dto';
+import { BatteryDispatchService } from './battery-dispatch.service';
 import { randomUUID } from 'crypto';
 
 @Injectable()
@@ -45,6 +46,8 @@ export class CaptainAvailabilityService {
     private readonly redisService?: RedisService,
     @InjectDataSource()
     private readonly dataSource?: DataSource,
+    @Optional()
+    private readonly batteryDispatchService?: BatteryDispatchService,
   ) {}
 
   /**
@@ -410,6 +413,53 @@ export class CaptainAvailabilityService {
       ineligibilityReasons.push(
         `Captain compliance is not VERIFIED (current status: ${driverProfile.verificationStatus}).`,
       );
+    }
+
+    // 6. Check EV vehicle roadworthiness & BEV propulsion (EV-041)
+    if (driverProfile.assignedVehicle) {
+      const v = driverProfile.assignedVehicle;
+      if (v.propulsionType !== 'BATTERY_ELECTRIC') {
+        ineligibilityReasons.push(
+          `Vehicle propulsion is not 100% Battery Electric (${v.propulsionType}). Non-BEVs cannot be dispatched.`,
+        );
+      }
+      if (v.verificationStatus !== 'VERIFIED') {
+        ineligibilityReasons.push(
+          `Vehicle verification status is '${v.verificationStatus}'. Only VERIFIED vehicles can receive dispatch offers.`,
+        );
+      }
+      if (!v.isActive) {
+        ineligibilityReasons.push('Vehicle is inactive or decommissioned in fleet inventory.');
+      }
+      if (!v.greenPlateVerified) {
+        ineligibilityReasons.push('Vehicle green commercial plate is not verified.');
+      }
+      if (!v.isRoadworthy) {
+        ineligibilityReasons.push(
+          'Vehicle statutory documents (insurance, fitness certificate, or permit) are expired or invalid.',
+        );
+      }
+
+      // Check battery telemetry freshness (EV-041)
+      const batteryPingAt = v.telemetryLastPingAt ?? driverProfile.locationUpdatedAt;
+      if (!batteryPingAt) {
+        ineligibilityReasons.push(
+          'No battery telemetry ping timestamp recorded. Range is unknown.',
+        );
+      } else {
+        const batteryAgeSeconds = Math.max(
+          0,
+          Math.floor((now.getTime() - new Date(batteryPingAt).getTime()) / 1000),
+        );
+        const maxAge = this.batteryDispatchService
+          ? this.batteryDispatchService.getPolicyConfig().telemetryMaxAgeSeconds
+          : 120;
+        if (batteryAgeSeconds > maxAge) {
+          ineligibilityReasons.push(
+            `Battery telemetry is stale (${batteryAgeSeconds}s old; maximum freshness allowed is ${maxAge}s).`,
+          );
+        }
+      }
     }
 
     const isEligibleForDispatch = ineligibilityReasons.length === 0;

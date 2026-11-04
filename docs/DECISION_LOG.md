@@ -1015,3 +1015,53 @@
      - All routes (`/captains/me/*` and `/captains/:userId/*`) enforce strict caller checks (`assertCanAccessCaptain`).
      - If `actor.id !== targetUserId` and caller does not possess administrative or dispatcher roles (`ADMIN`, `OPERATOR`, `DISPATCHER`, `SUPER_ADMIN`), the request is rejected with HTTP 403 Forbidden.
      - Clients cannot view or edit another captain's availability state, emit spoofed location telemetry, or inspect dispatch eligibility.
+
+
+## ADR-0042: EV Battery-Aware Dispatch Eligibility, Range Feasibility Evaluation, Telemetry Freshness Windows, and Documented Recovery Paths (EV-041)
+
+- **Date**: 2026-03-11
+- **Status**: Accepted
+- **Context**:
+  In an EV-only commercial mobility platform in Andhra Pradesh, real-time dispatch matching must guarantee that dispatched vehicles have sufficient practical battery energy and range to complete the transit to pickup, the customer journey, a mandatory safety reserve buffer, and travel to a verified public charging depot or swap hub. Dispatching captains with low battery, stale or unverified telemetry, or unapproved EV vehicles leads to mid-trip passenger stranding, traffic safety hazards, and violation of AP transport green-plate permits.
+  Per AGENTS.md:
+  1. Propulsion must be 100% Electric (`BATTERY_ELECTRIC`). Category availability must be enforced server-side.
+  2. Use the database as source of truth for driver/vehicle status and audit history.
+  3. Ticket EV-041 Scope: Validate SOC or practical range timestamp and source; ensure adequate distance to pickup, passenger journey, reserve margin and charging contingency. Keep policy thresholds configurable.
+  4. Acceptance / Demonstrate: Low battery, unknown stale range and unapproved EV are excluded, with a documented manual recovery path.
+
+- **Decisions**:
+  1. **Multi-Dimensional Energy Feasibility Calculation (`BatteryDispatchService`)**:
+     - Total Mission Distance: $D_{\text{required}} = D_{\text{pickup}} + D_{\text{journey}} + D_{\text{reserve}} + D_{\text{contingency}}$.
+     - Practical Range: $R_{\text{practical}} = \text{round}(R_{\text{rated}} \times (\text{SoC} / 100))$.
+     - Remaining Range: $R_{\text{remaining}} = R_{\text{practical}} - (D_{\text{pickup}} + D_{\text{journey}} + D_{\text{contingency}})$.
+     - Projected Post-Trip SoC: $\text{SoC}_{\text{post}} = \text{SoC} - ((D_{\text{pickup}} + D_{\text{journey}} + D_{\text{contingency}}) / R_{\text{rated}}) \times 100\%$.
+     - Candidate is excluded with `DISPATCH_BATTERY_INSUFFICIENT` if:
+       - Current SoC < configurable minimum reserve (default 15.0%).
+       - Practical range < required mission distance.
+       - Projected post-trip SoC < minimum reserve SoC.
+       - Transit distance to pickup > maximum pickup distance threshold (default 15.0 km).
+  2. **Telemetry Source & Freshness Validation**:
+     - Source-aware maximum age thresholds (`TELEMETRY_SOURCE_MAX_AGE_SECONDS`):
+       - `OBD_TELEMATICS`: 120 seconds (CAN bus dongle).
+       - `BMS_IOT_GATEWAY`: 120 seconds (direct battery hardware).
+       - `OEM_CLOUD_API`: 300 seconds (OEM cloud integrations).
+       - `MANUAL_TELEMETRY`: 600 seconds (calibrated manual declaration).
+     - Missing ping timestamp or telemetry age exceeding allowed TTL is excluded with `DISPATCH_RANGE_STALE_OR_UNKNOWN`.
+  3. **EV Regulatory & BEV Propulsion Enforcement**:
+     - Vehicle propulsion strictly enforced as `BATTERY_ELECTRIC`. Non-BEVs (ICE, hybrid, CNG, diesel, petrol) are rejected.
+     - Vehicle must have `verificationStatus = VERIFIED`, `isActive = true`, `greenPlateVerified = true`, and active insurance/fitness/permit dates (`isRoadworthy = true`).
+     - Non-compliant vehicles are excluded with `DISPATCH_VEHICLE_UNAPPROVED`.
+  4. **Server-Side Configurable Policy Thresholds (`BatteryDispatchPolicyConfig`)**:
+     - Configurable via `AppConfig` and environment variables (`EV_DISPATCH_MIN_RESERVE_SOC`, `EV_DISPATCH_MIN_RESERVE_RANGE_KM`, `EV_DISPATCH_CONTINGENCY_CHARGER_KM`, `EV_DISPATCH_TELEMETRY_MAX_AGE_SECONDS`, `EV_DISPATCH_MAX_PICKUP_DISTANCE_KM`).
+     - Request-level policy overrides supported for testing and municipal regulatory shifts.
+  5. **Verified Andhra Pradesh Pilot Charging Hubs (`AP_PILOT_CHARGING_DEPOTS`)**:
+     - Four verified pilot depots in Visakhapatnam: APSRTC Central Fast Charging Hub (Dwarka Nagar), Maddilapalem EV Swap Depot, Gajuwaka Industrial EV Hub, and Rushikonda IT SEZ Charging Point.
+     - Dynamic nearest-depot spatial resolution using Haversine calculation to determine actual charging contingency distance.
+  6. **Documented Manual Recovery Paths & Actionable Guidance**:
+     - Ineligible evaluation returns a structured `BatteryDispatchRecoveryGuide`:
+       - `LOW_BATTERY`: Navigation guidance to nearest depot, target SoC (>=80%), and resolution endpoint (`/v1/captains/me/battery/sync`).
+       - `STALE_OR_UNKNOWN_RANGE`: Hardware diagnostic steps for OBD-II / BMS IoT device and sync trigger.
+       - `UNAPPROVED_VEHICLE`: Green plate and statutory document upload instructions for fleet KYC review.
+     - Manual recovery API (`POST /v1/captains/me/battery/sync`): Allows captains to submit refreshed SoC and reset telemetry last ping after depot fast-charging or battery swapping.
+  7. **Cross-Account Authorization & Privacy Protection**:
+     - Enforced `assertCanAccessCaptain`: Captains can only evaluate or sync their own profile/vehicle. Cross-captain tampering or inspection by unauthorized clients returns HTTP 403 Forbidden.
