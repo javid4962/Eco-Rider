@@ -18,3 +18,4 @@ export * from './fares';
 export * from './rides';
 export * from './captains';
 export * from './battery-dispatch';
+export * from './dispatch-offers';

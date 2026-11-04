@@ -1103,3 +1103,34 @@
      - **Spatial & Geofence Containment**: Both the pickup origin and the captain's current location must lie within active municipal service zones (`ST_Contains(zone.boundary, location)`). Rides outside service boundaries return error `OUTSIDE_OPERATIONAL_ZONE`.
      - **Service Category & Seating Compatibility**: Category switches within the zone must be active (`is_active = true` and `category_switches[category] = true`). Vehicle approved seating must satisfy requested passenger seats ($C_{\text{vehicle}} \ge N_{\text{requested}}$).
      - **Location Precision & Telemetry Freshness**: GPS horizontal accuracy radius must not exceed 50.0 meters. Location ping age must not exceed 30.0 seconds TTL. Vehicle battery SoC must be at least 20.0% reserve buffer.
+
+
+## ADR-0044: Expiring Timed Dispatch Offers, PostgreSQL State Persistence, Redis Delayed Queue Scheduling, and Anti-Double-Assignment Redispatch Governance (EV-043)
+
+- **Date**: 2026-11-04
+- **Status**: Accepted
+- **Context**:
+  In an EV-only commercial mobility platform in Andhra Pradesh, real-time dispatch matching requires timed offers sent to eligible captains with bounded decision windows (e.g., 15 seconds). If a captain fails to respond or declines, the platform must deterministically re-offer the dispatch to the next highest-scoring candidate without leaving the passenger stranded or causing double assignment.
+  Per AGENTS.md:
+  1. Use the database as the definitive source of truth for bookings, driver assignments, and audit history.
+  2. Use transactions, row-level write locks (`SELECT FOR UPDATE`), and idempotency for concurrency and state transitions.
+  3. Ticket EV-043 Scope: Create timed offers, accept/decline/timeout endpoints, reliable queue jobs, and next-captain redispatch policy. Persist definitive offer state in PostgreSQL.
+  4. Acceptance / Demonstrate: Two accept attempts on an expired offer fail; queued retries do not double-assign.
+
+- **Decisions**:
+  1. **Definitive Offer State Persistence in PostgreSQL (`dispatch_offers`)**:
+     - Modeled `DispatchOffer` entity with `id`, `booking_id`, `captain_id`, `vehicle_id`, `offer_sequence`, `status` (`PENDING`, `ACCEPTED`, `DECLINED`, `TIMED_OUT`, `SUPERSEDED`, `CANCELLED`), `offered_at`, `expires_at`, `responded_at`, `decline_reason`, `timeout_job_id`, `offer_timeout_seconds`, and `metadata`.
+     - Added composite indexes: `(booking_id, offer_sequence)`, `(captain_id, status)`, `(status, expires_at)`.
+     - Managed via migration `1700000000020-CreateDispatchOffersTable.ts` with strict database check constraints.
+  2. **Reliable Dual-Tier Queue Scheduling (`DispatchOffersQueueService`)**:
+     - **Cluster Persistence**: Schedules timeout jobs in Redis delayed sorted set (`ZADD dispatch:offers:timeouts <expiresEpochMs> <offerId>`).
+     - **Low-Latency In-Memory Precision**: Schedules high-precision Node.js timers (`setTimeout`) with graceful cleanup and unref to avoid blocking process exits or Jest suites.
+     - **Periodic Database Sweeper**: Fallback worker querying PostgreSQL for overdue `PENDING` offers (`expires_at <= NOW()`), guaranteeing zero orphaned offers even through Redis network partitions or pod restarts.
+  3. **Strict Concurrency Protection & Anti-Double-Assignment**:
+     - All status transitions (`acceptOffer`, `declineOffer`, `timeoutOffer`) execute inside PostgreSQL ACID transactions with pessimistic write locks (`SELECT ... FOR UPDATE` on both `DispatchOffer` and `Booking`).
+     - **Expired Offer Rejection**: Clock check (`now > offer.expiresAt`) inside the transaction guarantees that a first accept on an expired offer atomically transitions status to `TIMED_OUT` and throws `DISPATCH_OFFER_EXPIRED`; subsequent attempts read the `TIMED_OUT` state and also fail immediately.
+     - **Anti-Double-Assignment**: If a ride is already assigned (`booking.status === 'ASSIGNED'`), any concurrent queue retry, delayed worker, or conflicting offer accept immediately detects the existing assignment, marks the offer as `SUPERSEDED`, and safely aborts with `BOOKING_ALREADY_ASSIGNED` without reassigning or redispatching.
+  4. **Next-Captain Redispatch Policy**:
+     - When an offer is explicitly declined or times out, the system queries remaining nearby eligible candidates, excluding previously offered captains.
+     - Automatically generates `offer_sequence = N + 1` for the next candidate.
+     - Enforces `MAX_REDISPATCH_ATTEMPTS = 3`: If all candidates decline or time out, the booking transitions to `FAILED` with `failureReason = 'NO_CAPTAINS_ACCEPTED'` and records an immutable `RideStateEvent`.

@@ -8,6 +8,7 @@ import { CreateDocumentsSchema1700000000007 } from '../src/database/migrations/1
 import { ExpandVehiclesTableWithEVCompliance1700000000008 } from '../src/database/migrations/1700000000008-ExpandVehiclesTableWithEVCompliance';
 import { CreateCaptainApplicationsAndReviewHistory1700000000009 } from '../src/database/migrations/1700000000009-CreateCaptainApplicationsAndReviewHistory';
 import { AddDriverComplianceAndDutyStatus1700000000010 } from '../src/database/migrations/1700000000010-AddDriverComplianceAndDutyStatus';
+import { CreateDispatchOffersTable1700000000020 } from '../src/database/migrations/1700000000020-CreateDispatchOffersTable';
 import { QueryRunner } from 'typeorm';
 
 describe('Database Migrations', () => {
@@ -347,6 +348,33 @@ describe('Database Migrations', () => {
       );
       expect(allQueries).toContain('DROP INDEX IF EXISTS "idx_driver_profiles_duty_status"');
       expect(allQueries).toContain('DROP COLUMN IF EXISTS "license_expiry_date"');
+    });
+  });
+
+  describe('CreateDispatchOffersTable1700000000020', () => {
+    let migration: CreateDispatchOffersTable1700000000020;
+
+    beforeEach(() => {
+      migration = new CreateDispatchOffersTable1700000000020();
+    });
+
+    it('should create dispatch_offers table, check constraint, and composite indexes in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "dispatch_offers"');
+      expect(allQueries).toContain('chk_dispatch_offers_status');
+      expect(allQueries).toContain('idx_dispatch_offers_booking_id');
+      expect(allQueries).toContain('idx_dispatch_offers_booking_seq');
+      expect(allQueries).toContain('idx_dispatch_offers_captain_status');
+      expect(allQueries).toContain('idx_dispatch_offers_status_expires');
+    });
+
+    it('should drop dispatch_offers table in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "dispatch_offers" CASCADE;');
     });
   });
 });
