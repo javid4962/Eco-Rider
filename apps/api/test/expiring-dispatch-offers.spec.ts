@@ -513,9 +513,10 @@ describe('DispatchOffersService — Expiring Dispatch Offers & Concurrency Prote
       } catch (err: unknown) {
         const error = err as ConflictException;
         const response = error.getResponse() as Record<string, unknown>;
-        expect([ApiErrorCode.RIDE_ALREADY_TAKEN, ApiErrorCode.BOOKING_ALREADY_ASSIGNED]).toContain(
-          response.code,
-        );
+        expect([
+          ApiErrorCode.RIDE_ALREADY_TAKEN,
+          ApiErrorCode.BOOKING_ALREADY_ASSIGNED,
+        ]).toContain(response.code);
       }
 
       // Offer for Captain 2 is marked SUPERSEDED
