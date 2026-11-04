@@ -25,6 +25,8 @@ import { MapsModule } from './modules/maps/maps.module';
 import { FareRulesModule } from './modules/fare-rules/fare-rules.module';
 import { BookingsModule } from './modules/bookings/bookings.module';
 import { DispatchModule } from './modules/dispatch/dispatch.module';
+import { PaymentsModule } from './modules/payments/payments.module';
+import { SettlementModule } from './modules/settlement/settlement.module';
 import { CorrelationIdMiddleware } from './common/middleware/correlation-id.middleware';
 import { AuthMiddleware } from './modules/auth/middleware/auth.middleware';
 
@@ -58,6 +60,8 @@ import { AuthMiddleware } from './modules/auth/middleware/auth.middleware';
     FareRulesModule,
     BookingsModule,
     DispatchModule,
+    PaymentsModule,
+    SettlementModule,
   ],
 })
 export class AppModule implements NestModule {

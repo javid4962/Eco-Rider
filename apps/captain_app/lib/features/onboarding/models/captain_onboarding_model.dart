@@ -174,6 +174,8 @@ class CaptainDraftData {
     };
   }
 
+  Map<String, dynamic> toJson() => toDraftJson();
+
   factory CaptainDraftData.fromJson(Map<String, dynamic> json) {
     return CaptainDraftData(
       id: json['id'] as String?,

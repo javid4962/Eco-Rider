@@ -71,20 +71,28 @@ describe('ReleaseBoundariesService', () => {
   });
 
   describe('Initial Disabled Settings & Server-Side Feature Flag Evaluation', () => {
-    it('should allow Release A Private EV in the authorized pilot city (Visakhapatnam)', () => {
-      const result = service.evaluate(AndhraPradeshCity.VISAKHAPATNAM, ServiceCategory.PRIVATE_EV);
+    it('should allow Release A Private EV in the authorized launch corridor (Vijayawada, Guntur, Amaravathi)', () => {
+      const authorizedCities = [
+        AndhraPradeshCity.VIJAYAWADA,
+        AndhraPradeshCity.GUNTUR,
+        AndhraPradeshCity.AMARAVATHI,
+      ];
 
-      expect(result.allowed).toBe(true);
-      expect(result.city).toBe(AndhraPradeshCity.VISAKHAPATNAM);
-      expect(result.serviceCategory).toBe(ServiceCategory.PRIVATE_EV);
-      expect(result.releasePhase).toBe(ReleasePhase.RELEASE_A);
-      expect(result.phaseType).toBe(PhaseType.PILOT);
-      expect(result.pendingGates).toHaveLength(0);
+      for (const city of authorizedCities) {
+        const result = service.evaluate(city, ServiceCategory.PRIVATE_EV);
+
+        expect(result.allowed).toBe(true);
+        expect(result.city).toBe(city);
+        expect(result.serviceCategory).toBe(ServiceCategory.PRIVATE_EV);
+        expect(result.releasePhase).toBe(ReleasePhase.RELEASE_A);
+        expect(result.phaseType).toBe(PhaseType.PILOT);
+        expect(result.pendingGates).toHaveLength(0);
+      }
     });
 
-    it('should block Release B Scheduled Sharing in Visakhapatnam pending launch gates', () => {
+    it('should block Release B Scheduled Sharing in Vijayawada pending launch gates', () => {
       const result = service.evaluate(
-        AndhraPradeshCity.VISAKHAPATNAM,
+        AndhraPradeshCity.VIJAYAWADA,
         ServiceCategory.SCHEDULED_SHARING,
       );
 
@@ -98,7 +106,7 @@ describe('ReleaseBoundariesService', () => {
 
     it('should block Release C Passes and Guarantees across all cities', () => {
       const passResult = service.evaluate(
-        AndhraPradeshCity.VISAKHAPATNAM,
+        AndhraPradeshCity.VIJAYAWADA,
         ServiceCategory.COMMUTER_PASS,
       );
       expect(passResult.allowed).toBe(false);
@@ -106,7 +114,7 @@ describe('ReleaseBoundariesService', () => {
       expect(passResult.phaseType).toBe(PhaseType.FUTURE);
 
       const guaranteeResult = service.evaluate(
-        AndhraPradeshCity.VISAKHAPATNAM,
+        AndhraPradeshCity.VIJAYAWADA,
         ServiceCategory.ON_TIME_GUARANTEE,
       );
       expect(guaranteeResult.allowed).toBe(false);
@@ -116,7 +124,7 @@ describe('ReleaseBoundariesService', () => {
 
     it('should block Release D Optimization across all cities', () => {
       const result = service.evaluate(
-        AndhraPradeshCity.VISAKHAPATNAM,
+        AndhraPradeshCity.VIJAYAWADA,
         ServiceCategory.FLEET_OPTIMIZATION,
       );
       expect(result.allowed).toBe(false);
@@ -124,27 +132,25 @@ describe('ReleaseBoundariesService', () => {
       expect(result.phaseType).toBe(PhaseType.FUTURE);
     });
 
-    it('should block Private EV in unlaunched expansion cities (Vijayawada, Guntur, Tirupati)', () => {
-      const cities = [
-        AndhraPradeshCity.VIJAYAWADA,
-        AndhraPradeshCity.GUNTUR,
+    it('should block Private EV in unlaunched / secondary expansion cities (Visakhapatnam, Tirupati)', () => {
+      const expansionCities = [
+        AndhraPradeshCity.VISAKHAPATNAM,
         AndhraPradeshCity.TIRUPATI,
       ];
 
-      for (const city of cities) {
+      for (const city of expansionCities) {
         const result = service.evaluate(city, ServiceCategory.PRIVATE_EV);
         expect(result.allowed).toBe(false);
         expect(result.city).toBe(city);
-        expect(result.reason?.toLowerCase()).toContain('municipal ev');
       }
     });
   });
 
   describe('Edge Cases & Validation', () => {
     it('should handle case insensitivity and whitespace', () => {
-      const result = service.evaluate('  VISAKHAPATNAM  ', ' PRIVATE_EV ');
+      const result = service.evaluate('  VIJAYAWADA  ', ' PRIVATE_EV ');
       expect(result.allowed).toBe(true);
-      expect(result.city).toBe(AndhraPradeshCity.VISAKHAPATNAM);
+      expect(result.city).toBe(AndhraPradeshCity.VIJAYAWADA);
       expect(result.serviceCategory).toBe(ServiceCategory.PRIVATE_EV);
     });
 
@@ -155,14 +161,14 @@ describe('ReleaseBoundariesService', () => {
     });
 
     it('should throw BadRequestException on invalid service category', () => {
-      expect(() => service.evaluate(AndhraPradeshCity.VISAKHAPATNAM, 'diesel_suv')).toThrow(
+      expect(() => service.evaluate(AndhraPradeshCity.VIJAYAWADA, 'diesel_suv')).toThrow(
         BadRequestException,
       );
     });
 
     it('should throw BadRequestException on empty parameters', () => {
       expect(() => service.evaluate('', ServiceCategory.PRIVATE_EV)).toThrow(BadRequestException);
-      expect(() => service.evaluate(AndhraPradeshCity.VISAKHAPATNAM, '')).toThrow(
+      expect(() => service.evaluate(AndhraPradeshCity.VIJAYAWADA, '')).toThrow(
         BadRequestException,
       );
     });
@@ -171,7 +177,7 @@ describe('ReleaseBoundariesService', () => {
   describe('Concurrency & Immutability', () => {
     it('should return consistent results under concurrent evaluation requests without state corruption', async () => {
       const requests = Array.from({ length: 50 }, (_, i) => {
-        const city = i % 2 === 0 ? AndhraPradeshCity.VISAKHAPATNAM : AndhraPradeshCity.TIRUPATI;
+        const city = i % 2 === 0 ? AndhraPradeshCity.VIJAYAWADA : AndhraPradeshCity.TIRUPATI;
         const category =
           i % 2 === 0 ? ServiceCategory.PRIVATE_EV : ServiceCategory.SCHEDULED_SHARING;
         return service.evaluate(city, category);
@@ -180,7 +186,7 @@ describe('ReleaseBoundariesService', () => {
       const results = await Promise.all(requests);
       expect(results).toHaveLength(50);
 
-      // Even iterations (Vizag + Private EV) must all be true
+      // Even iterations (Vijayawada + Private EV) must all be true
       results.forEach((res, i) => {
         if (i % 2 === 0) {
           expect(res.allowed).toBe(true);

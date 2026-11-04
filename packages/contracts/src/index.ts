@@ -19,3 +19,5 @@ export * from './rides';
 export * from './captains';
 export * from './battery-dispatch';
 export * from './dispatch-offers';
+export * from './payments';
+export * from './settlement';

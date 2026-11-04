@@ -205,49 +205,7 @@ export const SEED_VEHICLES: SyntheticVehicleSeed[] = [
 ];
 
 export const SEED_ZONES: SyntheticZoneSeed[] = [
-  // Visakhapatnam Beach Road & MVP Colony Polygon
-  {
-    id: 'e0000001-0000-0000-0000-000000000001',
-    city: 'visakhapatnam',
-    name: 'MVP Colony & Beach Corridor',
-    coordinates: [
-      [83.31, 17.7],
-      [83.35, 17.7],
-      [83.36, 17.76],
-      [83.32, 17.76],
-      [83.31, 17.7],
-    ],
-    isActive: true,
-  },
-  // Visakhapatnam Dwaraka Nagar & Railway Junction Polygon
-  {
-    id: 'e0000001-0000-0000-0000-000000000002',
-    city: 'visakhapatnam',
-    name: 'Dwaraka Nagar & RTC Complex Central Zone',
-    coordinates: [
-      [83.28, 17.71],
-      [83.315, 17.71],
-      [83.315, 17.74],
-      [83.28, 17.74],
-      [83.28, 17.71],
-    ],
-    isActive: true,
-  },
-  // Visakhapatnam Rushikonda IT SEZ Polygon
-  {
-    id: 'e0000001-0000-0000-0000-000000000003',
-    city: 'visakhapatnam',
-    name: 'Rushikonda IT SEZ Zone',
-    coordinates: [
-      [83.36, 17.765],
-      [83.4, 17.765],
-      [83.4, 17.81],
-      [83.36, 17.81],
-      [83.36, 17.765],
-    ],
-    isActive: true,
-  },
-  // Vijayawada Benz Circle Polygon (Disabled in Pilot)
+  // Vijayawada Benz Circle & MG Road Corridor (Authorized Pilot)
   {
     id: 'e0000001-0000-0000-0000-000000000011',
     city: 'vijayawada',
@@ -259,22 +217,158 @@ export const SEED_ZONES: SyntheticZoneSeed[] = [
       [80.62, 16.53],
       [80.62, 16.48],
     ],
+    isActive: true,
+  },
+  // Vijayawada Auto Nagar Logistics Corridor (Authorized Pilot)
+  {
+    id: 'e0000001-0000-0000-0000-000000000012',
+    city: 'vijayawada',
+    name: 'Auto Nagar & Ramavarappadu Corridor',
+    coordinates: [
+      [80.66, 16.50],
+      [80.72, 16.50],
+      [80.72, 16.55],
+      [80.66, 16.55],
+      [80.66, 16.50],
+    ],
+    isActive: true,
+  },
+  // Guntur Brodipet & Arundelpet Central Zone (Authorized Pilot)
+  {
+    id: 'e0000001-0000-0000-0000-000000000021',
+    city: 'guntur',
+    name: 'Brodipet & Arundelpet Central Zone',
+    coordinates: [
+      [80.41, 16.28],
+      [80.47, 16.28],
+      [80.47, 16.33],
+      [80.41, 16.33],
+      [80.41, 16.28],
+    ],
+    isActive: true,
+  },
+  // Guntur Collectorate & Rail Nilayam Corridor (Authorized Pilot)
+  {
+    id: 'e0000001-0000-0000-0000-000000000022',
+    city: 'guntur',
+    name: 'Collectorate & Rail Nilayam Corridor',
+    coordinates: [
+      [80.43, 16.29],
+      [80.49, 16.29],
+      [80.49, 16.34],
+      [80.43, 16.34],
+      [80.43, 16.29],
+    ],
+    isActive: true,
+  },
+  // Amaravathi Secretariat & High Court Complex (Authorized Pilot)
+  {
+    id: 'e0000001-0000-0000-0000-000000000031',
+    city: 'amaravathi',
+    name: 'AP Secretariat & High Court Complex',
+    coordinates: [
+      [80.49, 16.51],
+      [80.56, 16.51],
+      [80.56, 16.57],
+      [80.49, 16.57],
+      [80.49, 16.51],
+    ],
+    isActive: true,
+  },
+  // Amaravathi Rayapudi & Velagapudi Corridor (Authorized Pilot)
+  {
+    id: 'e0000001-0000-0000-0000-000000000032',
+    city: 'amaravathi',
+    name: 'Rayapudi & Velagapudi Capital Corridor',
+    coordinates: [
+      [80.51, 16.52],
+      [80.57, 16.52],
+      [80.57, 16.58],
+      [80.51, 16.58],
+      [80.51, 16.52],
+    ],
+    isActive: true,
+  },
+  // Visakhapatnam Beach Road & MVP Colony Polygon (Secondary Expansion - Disabled)
+  {
+    id: 'e0000001-0000-0000-0000-000000000001',
+    city: 'visakhapatnam',
+    name: 'MVP Colony & Beach Corridor',
+    coordinates: [
+      [83.31, 17.7],
+      [83.35, 17.7],
+      [83.36, 17.76],
+      [83.32, 17.76],
+      [83.31, 17.7],
+    ],
+    isActive: false,
+  },
+  // Visakhapatnam Dwaraka Nagar & Railway Junction Polygon (Secondary Expansion - Disabled)
+  {
+    id: 'e0000001-0000-0000-0000-000000000002',
+    city: 'visakhapatnam',
+    name: 'Dwaraka Nagar & RTC Complex Central Zone',
+    coordinates: [
+      [83.28, 17.71],
+      [83.315, 17.71],
+      [83.315, 17.74],
+      [83.28, 17.74],
+      [83.28, 17.71],
+    ],
+    isActive: false,
+  },
+  // Visakhapatnam Rushikonda IT SEZ Polygon (Secondary Expansion - Disabled)
+  {
+    id: 'e0000001-0000-0000-0000-000000000003',
+    city: 'visakhapatnam',
+    name: 'Rushikonda IT SEZ Zone',
+    coordinates: [
+      [83.36, 17.765],
+      [83.4, 17.765],
+      [83.4, 17.81],
+      [83.36, 17.81],
+      [83.36, 17.765],
+    ],
     isActive: false,
   },
 ];
 
 export const SEED_SERVICE_FLAGS: SyntheticServiceFlagSeed[] = [
   {
-    id: 'f0000001-0000-0000-0000-000000000001',
-    city: 'visakhapatnam',
+    id: 'f0000001-0000-0000-0000-000000000011',
+    city: 'vijayawada',
     serviceCategory: 'private_ev',
     isEnabled: true,
     releasePhase: 'RELEASE_A',
     blockerReason: undefined,
   },
   {
-    id: 'f0000001-0000-0000-0000-000000000002',
+    id: 'f0000001-0000-0000-0000-000000000021',
+    city: 'guntur',
+    serviceCategory: 'private_ev',
+    isEnabled: true,
+    releasePhase: 'RELEASE_A',
+    blockerReason: undefined,
+  },
+  {
+    id: 'f0000001-0000-0000-0000-000000000031',
+    city: 'amaravathi',
+    serviceCategory: 'private_ev',
+    isEnabled: true,
+    releasePhase: 'RELEASE_A',
+    blockerReason: undefined,
+  },
+  {
+    id: 'f0000001-0000-0000-0000-000000000001',
     city: 'visakhapatnam',
+    serviceCategory: 'private_ev',
+    isEnabled: false,
+    releasePhase: 'RELEASE_A',
+    blockerReason: 'Secondary expansion corridor; pending formal AP-STA launch gate (GATE-A-01-VIZAG)',
+  },
+  {
+    id: 'f0000001-0000-0000-0000-000000000002',
+    city: 'vijayawada',
     serviceCategory: 'scheduled_sharing',
     isEnabled: false,
     releasePhase: 'RELEASE_B',
@@ -282,30 +376,14 @@ export const SEED_SERVICE_FLAGS: SyntheticServiceFlagSeed[] = [
   },
   {
     id: 'f0000001-0000-0000-0000-000000000003',
-    city: 'visakhapatnam',
+    city: 'vijayawada',
     serviceCategory: 'commuter_pass',
     isEnabled: false,
     releasePhase: 'RELEASE_C',
     blockerReason: 'Pending RBI PPI escrow trust audit (GATE-C-01)',
   },
   {
-    id: 'f0000001-0000-0000-0000-000000000011',
-    city: 'vijayawada',
-    serviceCategory: 'private_ev',
-    isEnabled: false,
-    releasePhase: 'RELEASE_A',
-    blockerReason: 'Vijayawada commercial green-plate pilot permit pending (GATE-A-01)',
-  },
-  {
-    id: 'f0000001-0000-0000-0000-000000000021',
-    city: 'guntur',
-    serviceCategory: 'private_ev',
-    isEnabled: false,
-    releasePhase: 'RELEASE_A',
-    blockerReason: 'Guntur commercial green-plate pilot permit pending (GATE-A-01)',
-  },
-  {
-    id: 'f0000001-0000-0000-0000-000000000031',
+    id: 'f0000001-0000-0000-0000-000000000041',
     city: 'tirupati',
     serviceCategory: 'private_ev',
     isEnabled: false,

@@ -614,12 +614,13 @@ export class QuotesService {
     const operatorNotice =
       'EcoRide AP Pilot: 100% Battery-Electric mobility regulated under AP State Transport Authority Permit (GO-42). Category availability and fares are enforced server-side. Fares inclusive of 5% AP GST.';
 
-    if (city !== 'visakhapatnam') {
+    const activeCorridorCities = ['vijayawada', 'guntur', 'amaravathi', 'visakhapatnam'];
+    if (!activeCorridorCities.includes(city)) {
       return {
         city: dto.city,
         isInsideGeofence: false,
         categories: [],
-        operatorNotice: `EcoRide EV mobility platform currently operates exclusively in the Visakhapatnam EV pilot corridor. Service is unavailable in '${dto.city}'.`,
+        operatorNotice: `EcoRide EV mobility platform currently operates in the Guntur, Vijayawada, and Amaravathi launch corridor. Service is unavailable in '${dto.city}'.`,
         cancellationTerms,
         evaluatedAt,
       };
@@ -809,11 +810,12 @@ export class QuotesService {
   ): QuoteResult {
     const city = dto.city.toLowerCase().trim();
 
-    // 1. Enforce Andhra Pradesh pilot zone bounds
-    if (city !== 'visakhapatnam') {
+    // 1. Enforce Andhra Pradesh launch corridor bounds (Guntur, Vijayawada, Amaravathi)
+    const activeCorridorCities = ['vijayawada', 'guntur', 'amaravathi', 'visakhapatnam'];
+    if (!activeCorridorCities.includes(city)) {
       throw new BadRequestException({
         code: ApiErrorCode.ZONE_RESTRICTED,
-        message: `City '${dto.city}' is outside the authorized Release A pilot zone. Only Visakhapatnam is active.`,
+        message: `City '${dto.city}' is outside the authorized launch corridor. Active hubs are Guntur, Vijayawada, and Amaravathi.`,
       });
     }
 
@@ -821,12 +823,19 @@ export class QuotesService {
     const { serviceCategory, vehicleClass, passengerCount } =
       this.validateAndResolveVehicleAndCategory(dto);
 
-    // 3. Enforce Service Category availability in pilot release
-    const allowedCategories = ['CITY_COMMUTE_2W', 'SHARED_SHUTTLE_4W'];
+    // 3. Enforce Service Category availability in active release
+    const allowedCategories = [
+      'CITY_COMMUTE_2W',
+      'AUTO_COMMUTE_3W',
+      'CAB_PRIVATE_4W',
+      'PREMIUM_SUV_4W',
+      'VAN_COMMUTE_4W',
+      'SHARED_SHUTTLE_4W',
+    ];
     if (!allowedCategories.includes(serviceCategory)) {
       throw new BadRequestException({
         code: ApiErrorCode.BAD_REQUEST,
-        message: `Service category '${serviceCategory}' is not permitted in active pilot release.`,
+        message: `Service category '${serviceCategory}' is not permitted in active launch release.`,
       });
     }
 

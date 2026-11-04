@@ -26,7 +26,7 @@
     "test:watch": "pnpm --filter api test:watch",
     "test:cov": "pnpm --filter api test:cov",
     "scan:secrets": "node apps/api/node_modules/ts-node/dist/bin.js scripts/scan-secrets.ts",
-    "scan:deps": "pnpm audit --audit-level=critical || exit 0",
+    "scan:deps": "pnpm audit --audit-level=critical",
     "infra:up": "docker compose -f infrastructure/docker-compose.dev.yml up -d",
     "infra:down": "docker compose -f infrastructure/docker-compose.dev.yml down",
     "infra:status": "docker compose -f infrastructure/docker-compose.dev.yml ps",

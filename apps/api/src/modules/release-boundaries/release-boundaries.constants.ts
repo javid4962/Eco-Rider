@@ -18,7 +18,7 @@ export type CityServiceSettingsMap = Record<
 >;
 
 /**
- * Authoritative Scope Matrix separating Pilot (Release A) from Future phases (B, C, D)
+ * Authoritative Scope Matrix separating Pilot/Launch (Release A) from Future phases (B, C, D)
  * and establishing clear launch gates per category.
  */
 export const RELEASE_SCOPE_MATRIX: ReleaseBoundaryScope[] = [
@@ -28,13 +28,13 @@ export const RELEASE_SCOPE_MATRIX: ReleaseBoundaryScope[] = [
     phaseType: PhaseType.PILOT,
     categories: [ServiceCategory.PRIVATE_EV],
     description:
-      'Point-to-point on-demand commercial electric rides (e-Bikes, e-Autos, e-Cabs) in authorized pilot urban zones.',
+      'Point-to-point on-demand commercial electric rides (e-Bikes, e-Autos, e-Cabs) in authorized capital corridor urban zones.',
     launchGates: [
       {
         id: 'GATE-A-01',
-        name: 'AP Transport EV Pilot Authorization',
+        name: 'AP Transport EV Launch Corridor Authorization',
         description:
-          'Regulatory clearance from AP State Transport Department for commercial green-plate EV rides.',
+          'Regulatory clearance from AP State Transport Department for commercial green-plate EV rides in Guntur, Vijayawada, and Amaravathi.',
         isSatisfied: true,
         mandatoryForLaunch: true,
       },
@@ -68,23 +68,23 @@ export const RELEASE_SCOPE_MATRIX: ReleaseBoundaryScope[] = [
         id: 'GATE-B-01',
         name: 'Corridor EV Fleet Density',
         description:
-          'Minimum of 50 active commercial EVs in pilot corridors (e.g. Visakhapatnam-Anakapalle, Vijayawada-Guntur).',
+          'Minimum of 50 active commercial EVs in pilot corridors (e.g. Vijayawada-Guntur-Amaravathi corridor).',
         isSatisfied: false,
         mandatoryForLaunch: true,
       },
       {
         id: 'GATE-B-02',
-        name: 'Seat Concurrency Lock Verification',
+        name: 'Seat Concurrency Lock Proof',
         description:
-          'Real database-backed concurrency tests proving zero double-booking on simultaneous seat checkout.',
+          'Verified zero-overbooking concurrent seat reservation tests with database row-level locking.',
         isSatisfied: false,
         mandatoryForLaunch: true,
       },
       {
         id: 'GATE-B-03',
-        name: 'Municipal Virtual Stop Approvals',
+        name: 'Virtual EV Stop Approvals',
         description:
-          'Designated safe EV boarding/alighting points approved by local urban development authorities.',
+          'City planning agency and AP-STA sign-off on designated virtual pickup/drop bays.',
         isSatisfied: false,
         mandatoryForLaunch: true,
       },
@@ -92,31 +92,31 @@ export const RELEASE_SCOPE_MATRIX: ReleaseBoundaryScope[] = [
   },
   {
     releasePhase: ReleasePhase.RELEASE_C,
-    displayName: 'Release C - Passes & Guarantees',
+    displayName: 'Release C - Passes & On-Time Arrival Guarantee',
     phaseType: PhaseType.FUTURE,
     categories: [ServiceCategory.COMMUTER_PASS, ServiceCategory.ON_TIME_GUARANTEE],
     description:
-      'Prepaid recurring commute passes and SLA-backed punctuality guarantees with automatic delay credits.',
+      'Prepaid subscription passes and SLA-backed on-time arrival guarantee with automated financial delay credit.',
     launchGates: [
       {
         id: 'GATE-C-01',
-        name: 'Regulatory Advance Funds Escrow',
+        name: 'Escrow Trust Account Setup',
         description:
-          'Bank escrow trust mechanism compliant with prepaid payment instruments (PPI) regulations.',
+          'Regulatory escrow trust account for prepaid rider funds per RBI Prepaid Payment Instruments guidelines.',
         isSatisfied: false,
         mandatoryForLaunch: true,
       },
       {
         id: 'GATE-C-02',
-        name: '60-Day Route Reliability Telemetry',
+        name: 'Route Reliability Telemetry Baseline',
         description:
-          'Historical GPS and trip completion data showing >= 95% on-time arrival rate before offering guarantees.',
+          'At least 60 days of historical route telemetry demonstrating >= 95% on-time captain arrival rate.',
         isSatisfied: false,
         mandatoryForLaunch: true,
       },
       {
         id: 'GATE-C-03',
-        name: 'Automated SLA Refund Ledger',
+        name: 'Automated SLA Delay Credit Ledger',
         description:
           'Idempotent financial ledger for automated credit issuance upon driver tardiness exceeding 10 minutes.',
         isSatisfied: false,
@@ -161,46 +161,16 @@ export const RELEASE_SCOPE_MATRIX: ReleaseBoundaryScope[] = [
 ];
 
 /**
- * Initial Disabled Settings by City and Service
- * Follows Rule 3: Keep uncertain service types disabled by default.
- * Only Release A in the pilot city (Visakhapatnam) is enabled initially.
+ * Initial Settings by City and Service
+ * Follows Rule 3: Keep unapproved regulated service types disabled by default.
+ * In accordance with owner-approved 2026 scope, Guntur, Vijayawada, and Amaravathi
+ * are the active launch corridor hubs for Release A Private EV.
  */
 export const INITIAL_CITY_SERVICE_SETTINGS: CityServiceSettingsMap = {
-  [AndhraPradeshCity.VISAKHAPATNAM]: {
+  [AndhraPradeshCity.VIJAYAWADA]: {
     [ServiceCategory.PRIVATE_EV]: {
       enabled: true,
       releasePhase: ReleasePhase.RELEASE_A,
-    },
-    [ServiceCategory.SCHEDULED_SHARING]: {
-      enabled: false,
-      releasePhase: ReleasePhase.RELEASE_B,
-      blocker:
-        'Launch Gate Pending: Corridor commercial fleet density and seat lock concurrency verification required.',
-    },
-    [ServiceCategory.COMMUTER_PASS]: {
-      enabled: false,
-      releasePhase: ReleasePhase.RELEASE_C,
-      blocker:
-        'Launch Gate Pending: Escrow account compliance and prepaid pass entitlement rules required.',
-    },
-    [ServiceCategory.ON_TIME_GUARANTEE]: {
-      enabled: false,
-      releasePhase: ReleasePhase.RELEASE_C,
-      blocker: 'Launch Gate Pending: 60-day historical route punctuality baseline >= 95% required.',
-    },
-    [ServiceCategory.FLEET_OPTIMIZATION]: {
-      enabled: false,
-      releasePhase: ReleasePhase.RELEASE_D,
-      blocker:
-        'Launch Gate Pending: CPO charging station API integration and battery telemetry required.',
-    },
-  },
-  [AndhraPradeshCity.VIJAYAWADA]: {
-    [ServiceCategory.PRIVATE_EV]: {
-      enabled: false,
-      releasePhase: ReleasePhase.RELEASE_A,
-      blocker:
-        'Launch Gate Pending: Vijayawada municipal EV pilot permit and charging infrastructure readiness required.',
     },
     [ServiceCategory.SCHEDULED_SHARING]: {
       enabled: false,
@@ -226,9 +196,62 @@ export const INITIAL_CITY_SERVICE_SETTINGS: CityServiceSettingsMap = {
   },
   [AndhraPradeshCity.GUNTUR]: {
     [ServiceCategory.PRIVATE_EV]: {
+      enabled: true,
+      releasePhase: ReleasePhase.RELEASE_A,
+    },
+    [ServiceCategory.SCHEDULED_SHARING]: {
+      enabled: false,
+      releasePhase: ReleasePhase.RELEASE_B,
+      blocker: 'Launch Gate Pending: Corridor fleet density and virtual stop approvals required.',
+    },
+    [ServiceCategory.COMMUTER_PASS]: {
+      enabled: false,
+      releasePhase: ReleasePhase.RELEASE_C,
+      blocker: 'Launch Gate Pending: Escrow account compliance required.',
+    },
+    [ServiceCategory.ON_TIME_GUARANTEE]: {
+      enabled: false,
+      releasePhase: ReleasePhase.RELEASE_C,
+      blocker: 'Launch Gate Pending: Historical route punctuality telemetry required.',
+    },
+    [ServiceCategory.FLEET_OPTIMIZATION]: {
+      enabled: false,
+      releasePhase: ReleasePhase.RELEASE_D,
+      blocker: 'Launch Gate Pending: Charging depot API integration required.',
+    },
+  },
+  [AndhraPradeshCity.AMARAVATHI]: {
+    [ServiceCategory.PRIVATE_EV]: {
+      enabled: true,
+      releasePhase: ReleasePhase.RELEASE_A,
+    },
+    [ServiceCategory.SCHEDULED_SHARING]: {
+      enabled: false,
+      releasePhase: ReleasePhase.RELEASE_B,
+      blocker: 'Launch Gate Pending: Capital corridor density required.',
+    },
+    [ServiceCategory.COMMUTER_PASS]: {
+      enabled: false,
+      releasePhase: ReleasePhase.RELEASE_C,
+      blocker: 'Launch Gate Pending: Escrow account compliance required.',
+    },
+    [ServiceCategory.ON_TIME_GUARANTEE]: {
+      enabled: false,
+      releasePhase: ReleasePhase.RELEASE_C,
+      blocker: 'Launch Gate Pending: Historical route punctuality telemetry required.',
+    },
+    [ServiceCategory.FLEET_OPTIMIZATION]: {
+      enabled: false,
+      releasePhase: ReleasePhase.RELEASE_D,
+      blocker: 'Launch Gate Pending: Charging depot API integration required.',
+    },
+  },
+  [AndhraPradeshCity.VISAKHAPATNAM]: {
+    [ServiceCategory.PRIVATE_EV]: {
       enabled: false,
       releasePhase: ReleasePhase.RELEASE_A,
-      blocker: 'Launch Gate Pending: Municipal EV permit approval required.',
+      blocker:
+        'De-prioritized: Guntur, Vijayawada, and Amaravathi constitute the official active launch corridor.',
     },
     [ServiceCategory.SCHEDULED_SHARING]: {
       enabled: false,
@@ -255,7 +278,7 @@ export const INITIAL_CITY_SERVICE_SETTINGS: CityServiceSettingsMap = {
     [ServiceCategory.PRIVATE_EV]: {
       enabled: false,
       releasePhase: ReleasePhase.RELEASE_A,
-      blocker: 'Launch Gate Pending: Municipal EV permit approval required.',
+      blocker: 'Launch Gate Pending: Secondary expansion phase approval required.',
     },
     [ServiceCategory.SCHEDULED_SHARING]: {
       enabled: false,

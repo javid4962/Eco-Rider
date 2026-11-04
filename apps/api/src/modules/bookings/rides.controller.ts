@@ -8,10 +8,20 @@ import {
   HttpCode,
   HttpStatus,
   ParseUUIDPipe,
+  Optional,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiHeader, ApiParam } from '@nestjs/swagger';
 import { BookingsService } from './bookings.service';
+import {
+  InTripService,
+  InTripTelemetryResponse,
+  MarkDropoffArrivalResponse,
+  FinalizeRideCompletionResponse,
+} from './in-trip.service';
 import { CreateBookingFromQuoteDto } from './dto/create-booking-from-quote.dto';
+import { InTripTelemetryDto, MarkDropoffArrivalDto } from './dto/in-trip-telemetry.dto';
+import { FinalizeRideCompletionDto } from './dto/finalize-ride.dto';
 import {
   CancelRideDto,
   StartRideDto,
@@ -33,7 +43,11 @@ import {
 @ApiTags('Rides')
 @Controller('rides')
 export class RidesController {
-  constructor(private readonly bookingsService: BookingsService) {}
+  constructor(
+    private readonly bookingsService: BookingsService,
+    @Optional()
+    private readonly inTripService?: InTripService,
+  ) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -297,5 +311,75 @@ export class RidesController {
     @CurrentActor() actor?: CurrentActorPayload,
   ): Promise<RideTimelineResponse> {
     return this.bookingsService.getBookingEvents(id, actor);
+  }
+
+  @Post(':id/telemetry')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Stream live in-trip GPS telemetry, update captain location, and verify route (EV-046)',
+    description:
+      'Ingests authenticated captain GPS coordinates, validates freshness (threshold <= 30s), checks route deviation, and recalculates live ETA.',
+  })
+  @ApiParam({ name: 'id', type: 'string', description: 'Ride booking UUID' })
+  @ApiResponse({ status: 200, description: 'Telemetry accepted and metrics recalculated' })
+  @ApiResponse({ status: 400, description: 'Stale GPS fix (>30s) or invalid coordinates' })
+  @ApiResponse({ status: 403, description: 'Unauthorized actor or non-assigned captain' })
+  @ApiResponse({ status: 404, description: 'Ride not found' })
+  @ApiResponse({ status: 409, description: 'Ride is not active' })
+  async recordTelemetry(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: InTripTelemetryDto,
+    @CurrentActor() actor?: CurrentActorPayload,
+  ): Promise<InTripTelemetryResponse> {
+    if (!this.inTripService) {
+      throw new ServiceUnavailableException('In-trip tracking service is not configured');
+    }
+    return this.inTripService.recordInTripTelemetry(id, actor, dto);
+  }
+
+  @Post(':id/arrived-dropoff')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Mark arrival at dropoff destination (EV-047)',
+    description:
+      'Records dropoff arrival timestamp and validates captain proximity to destination coordinates.',
+  })
+  @ApiParam({ name: 'id', type: 'string', description: 'Ride booking UUID' })
+  @ApiResponse({ status: 200, description: 'Dropoff arrival marked successfully' })
+  @ApiResponse({ status: 400, description: 'Ride is not in IN_PROGRESS status' })
+  @ApiResponse({ status: 403, description: 'Unauthorized actor or non-assigned captain' })
+  @ApiResponse({ status: 404, description: 'Ride not found' })
+  async markDropoffArrival(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: MarkDropoffArrivalDto,
+    @CurrentActor() actor?: CurrentActorPayload,
+  ): Promise<MarkDropoffArrivalResponse> {
+    if (!this.inTripService) {
+      throw new ServiceUnavailableException('In-trip tracking service is not configured');
+    }
+    return this.inTripService.markDropoffArrival(id, actor, dto);
+  }
+
+  @Post(':id/complete')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Finalize trip completion, calculate metered fare, and commit ledger entries (EV-048)',
+    description:
+      'Executes terminal COMPLETED transition inside an ACID transaction, creates balanced double-entry ledger records (Rider debit, Captain credit 80%, Platform credit 20%), resets captain duty to AVAILABLE, and appends an outbox event.',
+  })
+  @ApiParam({ name: 'id', type: 'string', description: 'Ride booking UUID' })
+  @ApiResponse({ status: 200, description: 'Ride completed and ledger settled successfully' })
+  @ApiResponse({ status: 400, description: 'Ride is not in IN_PROGRESS status' })
+  @ApiResponse({ status: 403, description: 'Unauthorized actor or non-assigned captain' })
+  @ApiResponse({ status: 404, description: 'Ride not found' })
+  async completeRide(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: FinalizeRideCompletionDto,
+    @CurrentActor() actor?: CurrentActorPayload,
+  ): Promise<FinalizeRideCompletionResponse> {
+    if (!this.inTripService) {
+      throw new ServiceUnavailableException('In-trip tracking service is not configured');
+    }
+    return this.inTripService.finalizeRideCompletion(id, actor, dto);
   }
 }

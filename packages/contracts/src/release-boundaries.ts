@@ -23,6 +23,7 @@ export enum AndhraPradeshCity {
   VIJAYAWADA = 'vijayawada',
   GUNTUR = 'guntur',
   TIRUPATI = 'tirupati',
+  AMARAVATHI = 'amaravathi',
 }
 
 export interface LaunchGate {

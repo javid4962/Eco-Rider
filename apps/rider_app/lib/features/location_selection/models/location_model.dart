@@ -110,6 +110,30 @@ class SavedPlaceItem {
     this.addressType = 'BOTH',
   });
 
+  factory SavedPlaceItem.fromJson(Map<String, dynamic> json) {
+    return SavedPlaceItem(
+      id: json['id'] as String? ?? '',
+      label: json['label'] as String? ?? json['name'] as String? ?? '',
+      addressLine: json['addressLine'] as String? ?? json['address'] as String? ?? '',
+      landmark: json['landmark'] as String?,
+      latitude: (json['latitude'] as num?)?.toDouble() ?? 0.0,
+      longitude: (json['longitude'] as num?)?.toDouble() ?? 0.0,
+      addressType: json['addressType'] as String? ?? 'BOTH',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'label': label,
+      'addressLine': addressLine,
+      if (landmark != null) 'landmark': landmark,
+      'latitude': latitude,
+      'longitude': longitude,
+      'addressType': addressType,
+    };
+  }
+
   bool get isHome => label.toLowerCase() == 'home';
   bool get isWork => label.toLowerCase() == 'work';
 

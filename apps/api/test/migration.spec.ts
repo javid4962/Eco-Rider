@@ -11,6 +11,8 @@ import { AddDriverComplianceAndDutyStatus1700000000010 } from '../src/database/m
 import { CreateDispatchOffersTable1700000000020 } from '../src/database/migrations/1700000000020-CreateDispatchOffersTable';
 import { CreateDispatchOutboxEventsTable1700000000021 } from '../src/database/migrations/1700000000021-CreateDispatchOutboxEventsTable';
 import { AddRideOtpSafeguardsAndThrottling1700000000022 } from '../src/database/migrations/1700000000022-AddRideOtpSafeguardsAndThrottling';
+import { CreatePaymentsAndInvoicesSchema1700000000023 } from '../src/database/migrations/1700000000023-CreatePaymentsAndInvoicesSchema';
+import { CreatePayoutBatchesAndItemsSchema1700000000024 } from '../src/database/migrations/1700000000024-CreatePayoutBatchesAndItemsSchema';
 import { QueryRunner } from 'typeorm';
 
 describe('Database Migrations', () => {
@@ -431,6 +433,63 @@ describe('Database Migrations', () => {
       expect(allQueries).toContain('DROP COLUMN IF EXISTS "start_otp_locked_until"');
       expect(allQueries).toContain('DROP COLUMN IF EXISTS "start_otp_failed_attempts"');
       expect(allQueries).toContain('DROP COLUMN IF EXISTS "start_otp_expires_at"');
+    });
+  });
+
+  describe('CreatePaymentsAndInvoicesSchema1700000000023', () => {
+    let migration: CreatePaymentsAndInvoicesSchema1700000000023;
+
+    beforeEach(() => {
+      migration = new CreatePaymentsAndInvoicesSchema1700000000023();
+    });
+
+    it('should create payment_records and tax_invoices tables and indices in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "payment_records"');
+      expect(allQueries).toContain('idx_payment_records_booking');
+      expect(allQueries).toContain('idx_payment_records_order');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "tax_invoices"');
+      expect(allQueries).toContain('idx_tax_invoices_number');
+      expect(allQueries).toContain('idx_tax_invoices_booking');
+    });
+
+    it('should drop tax_invoices and payment_records tables in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "tax_invoices" CASCADE;');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "payment_records" CASCADE;');
+    });
+  });
+
+  describe('CreatePayoutBatchesAndItemsSchema1700000000024', () => {
+    let migration: CreatePayoutBatchesAndItemsSchema1700000000024;
+
+    beforeEach(() => {
+      migration = new CreatePayoutBatchesAndItemsSchema1700000000024();
+    });
+
+    it('should create payout_batches and payout_items tables and indices in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "payout_batches"');
+      expect(allQueries).toContain('idx_payout_batches_number');
+      expect(allQueries).toContain('idx_payout_batches_status');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "payout_items"');
+      expect(allQueries).toContain('idx_payout_items_batch');
+      expect(allQueries).toContain('idx_payout_items_recipient');
+      expect(allQueries).toContain('idx_payout_items_idempotency');
+    });
+
+    it('should drop payout_items and payout_batches tables in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "payout_items" CASCADE;');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "payout_batches" CASCADE;');
     });
   });
 });

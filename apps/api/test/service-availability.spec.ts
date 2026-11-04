@@ -48,7 +48,7 @@ describe('Service Availability & Pricing API (EV-037 Unit Specs)', () => {
 
       expect(res.isInsideGeofence).toBe(false);
       expect(res.categories).toEqual([]);
-      expect(res.operatorNotice).toContain('exclusively in the Visakhapatnam EV pilot corridor');
+      expect(res.operatorNotice).toContain('Guntur, Vijayawada, and Amaravathi launch corridor');
     });
 
     it('should return empty categories when coordinates are outside authorized polygonal zones', async () => {

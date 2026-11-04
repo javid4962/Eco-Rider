@@ -63,15 +63,18 @@ describe('Synthetic Seed Data & Resettable Seed Service (EV-012)', () => {
       expect(totalDebits).toEqual(totalCredits);
     });
 
-    it('should respect gated launch rules: only Visakhapatnam private EV is enabled', () => {
-      const vizagPrivateEv = SEED_SERVICE_FLAGS.find(
-        (f) => f.city === 'visakhapatnam' && f.serviceCategory === 'private_ev',
-      );
-      expect(vizagPrivateEv).toBeDefined();
-      expect(vizagPrivateEv?.isEnabled).toBe(true);
+    it('should respect gated launch rules: only authorized launch corridor private EV is enabled', () => {
+      const authorizedCorridor = ['vijayawada', 'guntur', 'amaravathi'];
+      for (const city of authorizedCorridor) {
+        const flag = SEED_SERVICE_FLAGS.find(
+          (f) => f.city === city && f.serviceCategory === 'private_ev',
+        );
+        expect(flag).toBeDefined();
+        expect(flag?.isEnabled).toBe(true);
+      }
 
       const otherFlags = SEED_SERVICE_FLAGS.filter(
-        (f) => !(f.city === 'visakhapatnam' && f.serviceCategory === 'private_ev'),
+        (f) => !(authorizedCorridor.includes(f.city) && f.serviceCategory === 'private_ev'),
       );
       for (const flag of otherFlags) {
         expect(flag.isEnabled).toBe(false);

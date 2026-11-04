@@ -2,6 +2,8 @@
 // Handles phone auth, application draft synchronization, document uploads, and submission.
 
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 import '../models/captain_onboarding_model.dart';
 
 abstract class CaptainOnboardingApiClient {
@@ -168,5 +170,148 @@ class MockCaptainOnboardingApiClient implements CaptainOnboardingApiClient {
   @override
   Future<List<Map<String, dynamic>>> getReviewHistory() async {
     return List.from(reviewHistory);
+  }
+}
+
+/// Production HTTP API Client connecting Captain app to the NestJS backend
+class HttpCaptainOnboardingApiClient implements CaptainOnboardingApiClient {
+  final String baseUrl;
+  final String? authToken;
+  final CaptainOnboardingApiClient fallbackClient;
+  final HttpClient _httpClient;
+
+  HttpCaptainOnboardingApiClient({
+    this.baseUrl = 'http://10.0.2.2:3000',
+    this.authToken,
+    CaptainOnboardingApiClient? fallbackClient,
+    HttpClient? httpClient,
+  })  : fallbackClient = fallbackClient ?? MockCaptainOnboardingApiClient(),
+        _httpClient = httpClient ?? HttpClient();
+
+  Future<Map<String, dynamic>?> _postJson(String path, Map<String, dynamic> payload) async {
+    try {
+      final uri = Uri.parse('$baseUrl$path');
+      final req = await _httpClient.postUrl(uri).timeout(const Duration(seconds: 4));
+      req.headers.set(HttpHeaders.contentTypeHeader, 'application/json');
+      if (authToken != null) {
+        req.headers.set(HttpHeaders.authorizationHeader, 'Bearer $authToken');
+      }
+      req.write(jsonEncode(payload));
+      final res = await req.close().timeout(const Duration(seconds: 4));
+      if (res.statusCode >= 200 && res.statusCode < 300) {
+        final body = await res.transform(utf8.decoder).join();
+        return jsonDecode(body) as Map<String, dynamic>;
+      }
+    } catch (_) {
+      // Fallback on network/socket error
+    }
+    return null;
+  }
+
+  Future<Map<String, dynamic>?> _getJson(String path) async {
+    try {
+      final uri = Uri.parse('$baseUrl$path');
+      final req = await _httpClient.getUrl(uri).timeout(const Duration(seconds: 4));
+      req.headers.set(HttpHeaders.contentTypeHeader, 'application/json');
+      if (authToken != null) {
+        req.headers.set(HttpHeaders.authorizationHeader, 'Bearer $authToken');
+      }
+      final res = await req.close().timeout(const Duration(seconds: 4));
+      if (res.statusCode >= 200 && res.statusCode < 300) {
+        final body = await res.transform(utf8.decoder).join();
+        return jsonDecode(body) as Map<String, dynamic>;
+      }
+    } catch (_) {
+      // Fallback on network/socket error
+    }
+    return null;
+  }
+
+  @override
+  Future<Map<String, dynamic>> sendOtp(String phone, {String purpose = 'LOGIN'}) async {
+    final res = await _postJson('/auth/otp/send', {
+      'phone': phone,
+      'purpose': purpose,
+    });
+    if (res != null) {
+      return res;
+    }
+    return fallbackClient.sendOtp(phone, purpose: purpose);
+  }
+
+  @override
+  Future<Map<String, dynamic>> verifyOtp(String phone, String code, {String purpose = 'LOGIN'}) async {
+    final res = await _postJson('/auth/otp/verify', {
+      'phone': phone,
+      'code': code,
+      'purpose': purpose,
+    });
+    if (res != null) {
+      return res;
+    }
+    return fallbackClient.verifyOtp(phone, code, purpose: purpose);
+  }
+
+  @override
+  Future<CaptainDraftData> getDraft() async {
+    final res = await _getJson('/captain-applications/draft');
+    if (res != null) {
+      return CaptainDraftData.fromJson(res);
+    }
+    return fallbackClient.getDraft();
+  }
+
+  @override
+  Future<CaptainDraftData> updateDraft(CaptainDraftData draft) async {
+    final res = await _postJson('/captain-applications/draft', draft.toDraftJson());
+    if (res != null) {
+      return CaptainDraftData.fromJson(res);
+    }
+    return fallbackClient.updateDraft(draft);
+  }
+
+  @override
+  Future<Map<String, dynamic>> uploadDocument(
+    String docType,
+    String filename,
+    String contentBase64, {
+    bool simulateInterruption = false,
+    bool simulateSlowNetwork = false,
+  }) async {
+    final res = await _postJson('/documents/upload', {
+      'documentType': docType,
+      'filename': filename,
+      'contentBase64': contentBase64,
+    });
+    if (res != null) {
+      return res;
+    }
+    return fallbackClient.uploadDocument(
+      docType,
+      filename,
+      contentBase64,
+      simulateInterruption: simulateInterruption,
+      simulateSlowNetwork: simulateSlowNetwork,
+    );
+  }
+
+  @override
+  Future<CaptainDraftData> submitApplication({String? notes}) async {
+    final res = await _postJson('/captain-applications/submit', {
+      if (notes != null) 'notes': notes,
+    });
+    if (res != null) {
+      return CaptainDraftData.fromJson(res);
+    }
+    return fallbackClient.submitApplication(notes: notes);
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getReviewHistory() async {
+    final res = await _getJson('/captain-applications/history');
+    if (res != null && res['history'] is List) {
+      return List<Map<String, dynamic>>.from(res['history'] as List);
+    }
+    return fallbackClient.getReviewHistory();
   }
 }

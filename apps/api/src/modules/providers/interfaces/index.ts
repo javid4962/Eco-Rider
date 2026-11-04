@@ -3,3 +3,5 @@ export * from './otp-provider.interface';
 export * from './payments-provider.interface';
 export * from './sms-provider.interface';
 export * from './push-provider.interface';
+export * from './kyc-provider.interface';
+export * from './whatsapp-provider.interface';

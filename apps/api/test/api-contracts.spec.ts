@@ -159,12 +159,12 @@ describe('API Contracts, Error Envelopes, and Conventions', () => {
     it('should reject unauthorized city outside pilot with ZONE_RESTRICTED', () => {
       expect(() => {
         service.calculateQuote({
-          city: 'vijayawada',
+          city: 'hyderabad',
           serviceCategory: 'CITY_COMMUTE_2W',
-          pickupLatitude: 16.5062,
-          pickupLongitude: 80.648,
-          dropoffLatitude: 16.52,
-          dropoffLongitude: 80.65,
+          pickupLatitude: 17.385,
+          pickupLongitude: 78.4867,
+          dropoffLatitude: 17.4,
+          dropoffLongitude: 78.5,
         });
       }).toThrow(BadRequestException);
     });
