@@ -27,6 +27,9 @@ import { BookingsModule } from './modules/bookings/bookings.module';
 import { DispatchModule } from './modules/dispatch/dispatch.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { SettlementModule } from './modules/settlement/settlement.module';
+import { CorridorsModule } from './modules/corridors/corridors.module';
+import { CommuterPassesModule } from './modules/commuter-passes/commuter-passes.module';
+import { CorporateModule } from './modules/corporate/corporate.module';
 import { CorrelationIdMiddleware } from './common/middleware/correlation-id.middleware';
 import { AuthMiddleware } from './modules/auth/middleware/auth.middleware';
 
@@ -62,6 +65,9 @@ import { AuthMiddleware } from './modules/auth/middleware/auth.middleware';
     DispatchModule,
     PaymentsModule,
     SettlementModule,
+    CorridorsModule,
+    CommuterPassesModule,
+    CorporateModule,
   ],
 })
 export class AppModule implements NestModule {

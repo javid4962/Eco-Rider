@@ -3,7 +3,6 @@
 // saved places shortcuts, and "Set Pin on Map" option.
 
 import 'package:flutter/material.dart';
-import '../../../core/api/api_contracts.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../controllers/location_selection_controller.dart';
 import '../models/location_model.dart';

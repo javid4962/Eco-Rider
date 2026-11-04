@@ -7,7 +7,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:rider_app/core/localization/app_localizations.dart';
 import 'package:rider_app/core/localization/locale_controller.dart';
 import 'package:rider_app/features/location_selection/controllers/location_selection_controller.dart';
-import 'package:rider_app/features/location_selection/models/location_model.dart';
 import 'package:rider_app/features/location_selection/screens/rider_map_home_screen.dart';
 import 'package:rider_app/features/location_selection/services/rider_location_api_client.dart';
 

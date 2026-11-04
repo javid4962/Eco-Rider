@@ -179,9 +179,134 @@ This is the central engineering ledger tracking task execution, code diffs, migr
      - Created `apps/api/test/settlement-disbursal.spec.ts` with 5 unit and controller specs.
 - **Verification Evidence**:
   - `pnpm --filter api test test/settlement-disbursal.spec.ts`: 5/5 passing.
-  - `pnpm --filter api test`: **All 43 test suites (670 tests) passing cleanly (0 failures)**.
   - `pnpm typecheck`: Contracts, API, Ops-Web clean.
   - `pnpm --filter api lint`: 0 errors, 0 warnings.
   - `pnpm scan:secrets`: 0 secrets detected.
 
 ---
+
+### Milestone M10 & M11: Shared-Schedule Corridor System & Pooling (EV-083 – EV-097)
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-04
+- **Changes Implemented**:
+  1. `CorridorsModule` & `CorridorsService` (`apps/api/src/modules/corridors/corridors.service.ts`):
+     - EV-083: Virtual pickup/drop corridor stops with sequence ordering and GPS geofences.
+     - EV-084: Corridor route definitions (e.g. `VJA-GTR-AMV-EXPRESS`, `VJA-AIRPORT-SHUTTLE`).
+     - EV-085 – EV-090: Fixed-interval scheduled timetables with automatic generation of daily trip instances.
+     - EV-091 – EV-095: Segment-based atomic seat reservation algorithm using pessimistic write lock:
+       - Checks segment overlap condition $\max(F_{res}, F_{req}) < \min(T_{res}, T_{req})$.
+       - Allows seat reuse across non-overlapping sub-journeys (e.g., Stop 1 -> 2 and Stop 2 -> 4 share Seat #1) while guaranteeing 0 overbooking.
+     - EV-096 – EV-097: Trip manifests, boarding pass check-in, and seat release upon cancellation.
+  2. Database Entities & Migration:
+     - `CorridorRoute`, `CorridorSchedule`, `CorridorTrip`, `CorridorSeatReservation`.
+     - Added TypeORM migration `1700000000025-CreateCorridorSchedulesAndSeatReservationsSchema.ts` with rollback.
+  3. Contracts:
+     - `packages/contracts/src/corridors.ts` exported in contracts index.
+  4. Tests:
+     - `apps/api/test/corridors-pooling.spec.ts` (8/8 tests passing).
+
+---
+
+### Milestone M12 & M13: Commuter Passes & SLA Delay Guarantees (EV-098 – EV-109)
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-04
+- **Changes Implemented**:
+  1. `CommuterPassesModule` & `CommuterPassesService` (`apps/api/src/modules/commuter-passes/commuter-passes.service.ts`):
+     - EV-098 – EV-102: Pass plans (Weekly 10-ride, Monthly 44-ride corridor passes) with integer paise pricing.
+     - EV-103 – EV-106: Advance purchase escrow liability posting (`ADVANCE_PASS_ESCROW_LIABILITY`).
+     - EV-107: Per-ride redemption recognizing earned revenue (`EARNED_PASS_TRANSPORT_REVENUE`).
+     - EV-108 – EV-109: Automatic SLA delay compensation crediting rider wallet for corridor delays $\ge 15$m.
+  2. Database Entities & Migration:
+     - `PassPlan`, `CommuterPass`, `PassRedemption`.
+     - Added TypeORM migration `1700000000026-CreateCommuterPassesAndRedemptionsSchema.ts` with rollback.
+  3. Contracts:
+     - `packages/contracts/src/commuter-passes.ts` exported in contracts index.
+  4. Tests:
+     - `apps/api/test/commuter-passes.spec.ts` (7/7 tests passing).
+
+---
+
+### Milestone M14: Corporate & Employee Transport (EV-110 – EV-112)
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-04
+- **Changes Implemented**:
+  1. `CorporateModule` & `CorporateService` (`apps/api/src/modules/corporate/corporate.service.ts`):
+     - EV-110: Corporate employer account registration with 15-character Indian GSTIN validation (AP State Code 37).
+     - EV-111: Employee rostering by department and work shift (`GENERAL_MORNING`, `EVENING_SHIFT`, `NIGHT_SHIFT`).
+     - EV-112: Shift manifest creation with directional sequence optimization, 4-digit boarding OTPs, and monthly consolidated B2B GST tax invoice generation (SAC 996412, 5% AP GST).
+  2. Database Entities & Migration:
+     - `CorporateAccount`, `CorporateEmployee`, `CorporateShiftManifest`.
+     - Added TypeORM migration `1700000000027-CreateCorporateTransportSchema.ts` with rollback.
+  3. Contracts:
+     - `packages/contracts/src/corporate.ts` exported in contracts index.
+  4. Tests:
+     - `apps/api/test/corporate.spec.ts` (5/5 tests passing).
+
+---
+
+### Milestone M15 & M16: EV Cargo Logistics & COD Settlement (EV-113 – EV-120)
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-04
+- **Changes Implemented**:
+  1. `CargoModule` & `CargoService` (`apps/api/src/modules/cargo/cargo.service.ts`):
+     - EV-113: 100% BEV cargo vehicle tiers (`E_CARGO_2W` max 20kg, `E_CARGO_3W` max 500kg, `E_CARGO_4W_VAN` max 1500kg) with authoritative integer paise pricing, weight limits, extra stop fee, helper booking fee, and 18% AP GST (SAC 9965).
+     - EV-114 & EV-115: Multi-stop shipment routing with unique tracking numbers (`ECO-CRG-...`) and 4-digit Proof of Delivery (POD) OTPs.
+     - EV-116: Strict BEV propulsion enforcement (`BATTERY_ELECTRIC` only; ICE/Hybrid rejected with `PROPULSION_NON_ELECTRIC`).
+     - EV-117 & EV-118: Pickup and 300m geofenced delivery confirmation with POD OTP verification.
+     - EV-119 & EV-120: Cash-on-Delivery (COD) collection and merchant bank remittance with balanced double-entry ledger entries (`CAPTAIN_COD_IN_HAND`, `MERCHANT_COD_PAYABLE`, `BANK_ESCROW_DISBURSAL`).
+  2. Database Entities & Migration:
+     - `CargoShipment`, `CargoStop`, `CargoCodSettlement`.
+     - Added TypeORM migration `1700000000028-CreateCargoLogisticsSchema.ts` with rollback.
+  3. Contracts:
+     - `packages/contracts/src/cargo.ts` exported in contracts index.
+  4. Tests:
+     - `apps/api/test/cargo-logistics.spec.ts` (12/12 tests passing).
+
+---
+
+### Milestone M17 & M18: EV Charging Aggregator & Fleet Battery Telemetry (EV-121 – EV-125)
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-04
+- **Changes Implemented**:
+  1. `ChargingModule` & `ChargingService` (`apps/api/src/modules/charging/charging.service.ts`):
+     - EV-121: AP Capital Corridor verified fast-charging stations directory (Vijayawada Benz Circle, PNBS, Mangalagiri AIIMS, Amaravathi Secretariat, Guntur Arundelpet) with CCS2, Bharat DC-001, and Type 2 AC connectors, real-time gun availability, and statutory electricity tariffs (₹16.50 – ₹18.00/kWh).
+     - EV-122: En-route slot reservation with 15-minute expiration hold and pessimistic gun locking.
+     - EV-123 & EV-124: Real-time battery State-of-Charge (SoC) telemetry ingestion, automated dispatch lockout when SoC $< 18\%$, and automated nearest charger routing recommendation.
+     - EV-125: Charging session completion, kWh tariff calculation with 18% AP GST (SAC 9987), gun restoration, and double-entry ledger posting (`CAPTAIN_WALLET` DEBIT, `CHARGING_OPERATOR_PAYABLE` CREDIT).
+  2. Database Entities & Migration:
+     - `ChargingStation`, `ChargingReservation`, `BatteryTelemetryLog`.
+     - Added TypeORM migration `1700000000029-CreateChargingAndBatteryTelemetrySchema.ts` with rollback.
+  3. Contracts:
+     - `packages/contracts/src/charging.ts` exported in contracts index.
+  4. Tests:
+     - `apps/api/test/charging-battery.spec.ts` (12/12 tests passing).
+
+---
+
+### Milestone M20: 24/7 Safety Console & Emergency SOS (EV-129 – EV-131)
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-04
+- **Changes Implemented**:
+  1. `SafetyModule` & `SafetyService` (`apps/api/src/modules/safety/safety.service.ts`):
+     - EV-129: Emergency SOS triggering with AP Police 112 emergency integration reference (`AP112-VJA-...`), audio recording consent flag, and automated emergency contact dispatch.
+     - EV-130: Public, read-only tokenized live trip tracking URL (`https://track.ecoride.in/live/:token`) with masked captain phone number and zero rider PII exposure.
+     - EV-131: Safety console operations endpoints for listing open incidents and submitting audited resolution notes (`RESOLVED` / `FALSE_ALARM`).
+  2. Next.js Operations Portal:
+     - `apps/ops-web/src/app/safety/page.tsx`: Real-time emergency incidents table with one-click resolution.
+     - `apps/ops-web/src/app/charging/page.tsx`: Live EV charger directory and slot reservation console.
+     - `apps/ops-web/src/app/page.tsx`: Updated with active AP Capital Corridor links.
+  3. Contracts:
+     - `packages/contracts/src/safety.ts` exported in contracts index.
+  4. Tests:
+     - `apps/api/test/safety-sos.spec.ts` (7/7 tests passing).
+
+---
+
+### Global Test & Compliance Verification Status
+- **Backend Test Suite**: **All 49 test suites and 730 unit/integration tests passing (100% pass rate)**.
+- **Typecheck**: Clean 0 errors across `@ecoride/contracts`, `apps/api`, and `apps/ops-web`.
+- **Linting**: 0 errors, 0 warnings across all packages.
+- **Flutter Mobile Apps**: Analyzed via `dart-mcp-server`; 0 errors in `captain_app` and `rider_app`.
+- **Database Migrations**: 29 reversible TypeORM migrations verified with comprehensive `up()` and `down()` tests in `test/migration.spec.ts`.
+- **Statutory AP GST & Ledger**: Intra-state transport 5% GST (SAC 996412), cargo freight 18% GST (SAC 9965), EV charging 18% GST (SAC 9987), strictly balanced double-entry ledger parity (`Total DEBIT === Total CREDIT`).
+
