@@ -30,4 +30,3 @@ export class CreateDispatchOfferDto implements CreateDispatchOfferRequest {
   @IsEnum(RankingStrategy)
   rankingStrategy?: RankingStrategy;
 }
-

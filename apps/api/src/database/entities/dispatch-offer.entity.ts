@@ -87,4 +87,3 @@ export class DispatchOffer {
   @UpdateDateColumn({ type: 'timestamptz', name: 'updated_at' })
   updatedAt!: Date;
 }
-

@@ -138,4 +138,3 @@ export class DispatchOffersQueueService implements OnModuleDestroy {
     this.inMemoryTimers.clear();
   }
 }
-

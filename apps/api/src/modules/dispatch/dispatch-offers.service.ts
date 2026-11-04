@@ -22,11 +22,16 @@ import {
   RideStatus,
   RideActorRole,
   RankingStrategy,
+  CaptainAvailabilityStatus,
+  DutyStatus,
+  OutboxEventStatus,
+  DispatchOutboxEventDto,
 } from '@ecoride/contracts';
 import { DispatchOffer } from '../../database/entities/dispatch-offer.entity';
 import { Booking } from '../../database/entities/booking.entity';
 import { DriverProfile } from '../../database/entities/driver-profile.entity';
 import { RideStateEvent } from '../../database/entities/ride-state-event.entity';
+import { DispatchOutboxEvent } from '../../database/entities/dispatch-outbox-event.entity';
 import { CaptainAvailabilityService } from '../compliance/captain-availability.service';
 import { DispatchOffersQueueService } from './dispatch-offers-queue.service';
 import { CreateDispatchOfferDto, DeclineDispatchOfferDto, TimeoutDispatchOfferDto } from './dto';
@@ -87,7 +92,7 @@ export class DispatchOffersService implements OnModuleInit {
       // Check if booking is already assigned or terminated
       if (booking.status === RideStatus.ASSIGNED || booking.captainId) {
         throw new ConflictException({
-          code: ApiErrorCode.BOOKING_ALREADY_ASSIGNED,
+          code: ApiErrorCode.RIDE_ALREADY_TAKEN,
           message: `Booking '${bookingId}' is already assigned to a captain.`,
         });
       }
@@ -282,17 +287,28 @@ export class DispatchOffersService implements OnModuleInit {
       }
 
       // 2. Verify actor authorization (only offered captain or admin/system)
+      // 2. Fetch and lock driver profile to verify authorization and availability
       const isCaptain = actor.role === 'CAPTAIN';
       const isAdminOrSystem = actor.role === 'ADMIN' || actor.role === 'SYSTEM';
+
+      const driver = await manager.findOne(DriverProfile, {
+        where: { id: offer.captainId },
+        lock: { mode: 'pessimistic_write' },
+      });
+
+      if (!driver) {
+        throw new NotFoundException({
+          code: ApiErrorCode.NOT_FOUND,
+          message: `Captain profile '${offer.captainId}' not found.`,
+        });
+      }
 
       if (!isAdminOrSystem) {
         if (
           !isCaptain ||
           (actor.id !== offer.captainId && actor.id !== '00000000-0000-0000-0000-000000000000')
         ) {
-          // Check if driver profile matches actor user ID
-          const driver = await manager.findOne(DriverProfile, { where: { id: offer.captainId } });
-          if (!driver || driver.userId !== actor.id) {
+          if (driver.userId !== actor.id) {
             throw new ForbiddenException({
               code: ApiErrorCode.UNAUTHORIZED_RIDE_ACTOR,
               message: `Captain '${actor.id}' is not authorized to accept offer '${offerId}' dispatched to '${offer.captainId}'.`,
@@ -336,8 +352,8 @@ export class DispatchOffersService implements OnModuleInit {
         await manager.save(DispatchOffer, offer);
 
         throw new ConflictException({
-          code: ApiErrorCode.BOOKING_ALREADY_ASSIGNED,
-          message: `Booking '${booking.id}' is already assigned to captain '${booking.captainId}'. Offer '${offerId}' superseded.`,
+          code: ApiErrorCode.RIDE_ALREADY_TAKEN,
+          message: `This ride has already been accepted by another captain. Offer '${offerId}' superseded.`,
         });
       }
 
@@ -395,7 +411,16 @@ export class DispatchOffersService implements OnModuleInit {
         });
       }
 
-      // 6. Acceptance Transition
+      // 6. Captain Availability CAS Guard: Captain must currently be AVAILABLE
+      const currentAvailability = driver.availabilityStatus || CaptainAvailabilityStatus.AVAILABLE;
+      if (currentAvailability !== CaptainAvailabilityStatus.AVAILABLE) {
+        throw new ConflictException({
+          code: ApiErrorCode.CAPTAIN_NOT_AVAILABLE,
+          message: `Captain '${offer.captainId}' is not available to accept this ride (current status: '${currentAvailability}').`,
+        });
+      }
+
+      // 7. Atomic Dual-Reservation: Reserve Ride and Captain Together in One Transaction (EV-044)
       offer.status = DispatchOfferStatus.ACCEPTED;
       offer.respondedAt = now;
       if (idempotencyKey) {
@@ -410,18 +435,11 @@ export class DispatchOffersService implements OnModuleInit {
       booking.assignedAt = now;
       await manager.save(Booking, booking);
 
-      // Update Captain Duty & Availability Status to ON_TRIP
-      await manager
-        .createQueryBuilder()
-        .update(DriverProfile)
-        .set({
-          availabilityStatus: 'ON_TRIP',
-          dutyStatus: 'ONLINE',
-          lastStatusChangedAt: now,
-        })
-        .where('id = :captainId', { captainId: offer.captainId })
-        .execute();
-
+      // Transition captain to ON_TRIP
+      driver.availabilityStatus = CaptainAvailabilityStatus.ON_TRIP;
+      driver.dutyStatus = DutyStatus.ONLINE;
+      driver.lastStatusChangedAt = now;
+      await manager.save(DriverProfile, driver);
       // Record immutable RideStateEvent
       const event = manager.create(RideStateEvent, {
         bookingId: booking.id,
@@ -438,6 +456,27 @@ export class DispatchOffersService implements OnModuleInit {
         },
       });
       await manager.save(RideStateEvent, event);
+
+      // Append Transactional Outbox Event (EV-044)
+      const outboxEvent = manager.create(DispatchOutboxEvent, {
+        aggregateType: 'RIDE',
+        aggregateId: booking.id,
+        eventType: 'RIDE_ASSIGNED',
+        payload: {
+          bookingId: booking.id,
+          bookingCode: booking.bookingCode,
+          captainId: offer.captainId,
+          vehicleId: offer.vehicleId,
+          serviceCategory: booking.serviceCategory,
+          fareAmount: booking.fareAmount,
+          assignedAt: now.toISOString(),
+          offerId: offer.id,
+          offerSequence: offer.offerSequence,
+        },
+        status: OutboxEventStatus.PENDING,
+        retryCount: 0,
+      });
+      const savedOutboxEvent = await manager.save(DispatchOutboxEvent, outboxEvent);
 
       // Cancel scheduled timeout in queue service
       await this.queueService.cancelOfferTimeout(offer.id);
@@ -459,6 +498,7 @@ export class DispatchOffersService implements OnModuleInit {
         assignedCaptainId: booking.captainId,
         assignedVehicleId: booking.vehicleId,
         assignedAt: now.toISOString(),
+        assignedOutboxEventId: savedOutboxEvent.id,
       };
     });
   }
@@ -495,7 +535,17 @@ export class DispatchOffersService implements OnModuleInit {
           !isCaptain ||
           (actor.id !== offer.captainId && actor.id !== '00000000-0000-0000-0000-000000000000')
         ) {
-          const driver = await manager.findOne(DriverProfile, { where: { id: offer.captainId } });
+          const driver = await manager.findOne(DriverProfile, {
+            where: { id: offer.captainId },
+            lock: { mode: 'pessimistic_write' },
+          });
+
+          if (!driver) {
+            throw new NotFoundException({
+              code: ApiErrorCode.NOT_FOUND,
+              message: `Captain profile '${offer.captainId}' not found.`,
+            });
+          }
           if (!driver || driver.userId !== actor.id) {
             throw new ForbiddenException({
               code: ApiErrorCode.UNAUTHORIZED_RIDE_ACTOR,
@@ -980,6 +1030,61 @@ export class DispatchOffersService implements OnModuleInit {
       metadata: offer.metadata || {},
       createdAt: (offer.createdAt || new Date()).toISOString(),
       updatedAt: (offer.updatedAt || new Date()).toISOString(),
+    };
+  }
+
+  /**
+   * Fetch pending dispatch outbox events for publishing to message broker / SSE (EV-044).
+   */
+  async getPendingOutboxEvents(limit = 50): Promise<DispatchOutboxEventDto[]> {
+    const repo = this.dataSource.getRepository(DispatchOutboxEvent);
+    const events = await repo.find({
+      where: { status: OutboxEventStatus.PENDING },
+      order: { createdAt: 'ASC' },
+      take: limit,
+    });
+    return events.map((e) => this.toOutboxDto(e));
+  }
+
+  /**
+   * Mark an outbox event as PUBLISHED upon successful message broker acknowledgement.
+   */
+  async markOutboxEventPublished(id: string): Promise<void> {
+    const repo = this.dataSource.getRepository(DispatchOutboxEvent);
+    await repo.update(id, {
+      status: OutboxEventStatus.PUBLISHED,
+      processedAt: new Date(),
+    });
+  }
+
+  /**
+   * Mark an outbox event as FAILED with error details and increment retry count.
+   */
+  async markOutboxEventFailed(id: string, errorMessage: string): Promise<void> {
+    await this.dataSource.transaction(async (manager: EntityManager) => {
+      const event = await manager.findOne(DispatchOutboxEvent, { where: { id } });
+      if (event) {
+        event.status = OutboxEventStatus.FAILED;
+        event.errorMessage = errorMessage;
+        event.retryCount = (event.retryCount || 0) + 1;
+        event.processedAt = new Date();
+        await manager.save(DispatchOutboxEvent, event);
+      }
+    });
+  }
+
+  private toOutboxDto(event: DispatchOutboxEvent): DispatchOutboxEventDto {
+    return {
+      id: event.id,
+      aggregateType: event.aggregateType,
+      aggregateId: event.aggregateId,
+      eventType: event.eventType,
+      payload: event.payload,
+      status: event.status,
+      retryCount: event.retryCount,
+      errorMessage: event.errorMessage,
+      createdAt: (event.createdAt || new Date()).toISOString(),
+      processedAt: event.processedAt ? event.processedAt.toISOString() : null,
     };
   }
 }

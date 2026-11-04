@@ -22,4 +22,3 @@ export class DeclineDispatchOfferDto implements DeclineDispatchOfferRequest {
   @MaxLength(255)
   notes?: string;
 }
-

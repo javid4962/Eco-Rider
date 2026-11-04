@@ -88,11 +88,31 @@ export interface AcceptDispatchOfferResponse {
   assignedCaptainId: string;
   assignedVehicleId: string;
   assignedAt: string; // ISO-8601 UTC
+  assignedOutboxEventId?: string;
 }
 
 /**
  * Response payload upon offer decline, including redispatch status.
  */
+export enum OutboxEventStatus {
+  PENDING = 'PENDING',
+  PUBLISHED = 'PUBLISHED',
+  FAILED = 'FAILED',
+}
+
+export interface DispatchOutboxEventDto {
+  id: string;
+  aggregateType: string;
+  aggregateId: string;
+  eventType: string;
+  payload: Record<string, unknown>;
+  status: OutboxEventStatus | string;
+  retryCount: number;
+  errorMessage?: string | null;
+  createdAt: string; // ISO-8601 UTC
+  processedAt?: string | null; // ISO-8601 UTC
+}
+
 export interface DeclineDispatchOfferResponse {
   offer: DispatchOfferDto;
   redispatched: boolean;
@@ -122,4 +142,3 @@ export interface DispatchOffersSummaryResponse {
   totalOffersCount: number;
   offers: DispatchOfferDto[];
 }
-

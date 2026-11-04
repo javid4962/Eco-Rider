@@ -27,3 +27,4 @@ export * from './ride-state-event.entity';
 export * from './ride-incident.entity';
 export * from './captain-location-ping.entity';
 export * from './dispatch-offer.entity';
+export * from './dispatch-outbox-event.entity';

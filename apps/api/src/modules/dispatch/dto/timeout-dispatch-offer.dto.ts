@@ -22,4 +22,3 @@ export class TimeoutDispatchOfferDto implements TimeoutDispatchOfferRequest {
   @MaxLength(255)
   reason?: string;
 }
-

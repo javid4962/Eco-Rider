@@ -1134,3 +1134,45 @@
      - When an offer is explicitly declined or times out, the system queries remaining nearby eligible candidates, excluding previously offered captains.
      - Automatically generates `offer_sequence = N + 1` for the next candidate.
      - Enforces `MAX_REDISPATCH_ATTEMPTS = 3`: If all candidates decline or time out, the booking transitions to `FAILED` with `failureReason = 'NO_CAPTAINS_ACCEPTED'` and records an immutable `RideStateEvent`.
+
+
+## ADR-0045: Atomic First-Winner Ride & Captain Dual-Reservation, Compare-and-Swap (CAS) Protection, and Transactional Outbox Pattern (EV-044)
+
+- **Date**: 2026-11-04
+- **Status**: Accepted
+- **Context**:
+  In a high-throughput, EV-only mobility network in Andhra Pradesh, when a ride is offered concurrently to multiple captains (or when delayed redispatch events collide with incoming accept attempts), multiple captains may submit accept requests simultaneously.
+  Without strict transaction serialization and dual-entity locking:
+  1. Multiple captains could be assigned to the same ride (double assignment).
+  2. Multiple captains could transition to `ON_TRIP` while only one captain actually won the ride, locking out available drivers from the regional fleet.
+  3. An outbox event or external notification could be published without an underlying database commit (dual-write inconsistency), leading to phantom dispatch alerts.
+  4. Competing captains who lose the race must receive a distinct, stable domain error (`RIDE_ALREADY_TAKEN`, HTTP 409) rather than a generic server error, allowing client applications to dismiss the dispatch modal cleanly.
+
+- **Decisions**:
+  1. **Atomic Dual-Reservation in One Transaction (`DispatchOffersService.acceptOffer`)**:
+     - Locks the target `Booking` and the claiming `DriverProfile` simultaneously using pessimistic write locks (`SELECT ... FOR UPDATE`).
+     - **Captain Availability CAS Guard**: Confirms `driver.availabilityStatus === 'AVAILABLE'`. If the captain is on a break, charging, offline, or already on trip, the accept fails with `CAPTAIN_NOT_AVAILABLE` (HTTP 409).
+     - **Ride Claim CAS Guard**: Confirms `booking.status IN ('REQUESTED', 'DISPATCHING')` and `booking.captainId IS NULL`.
+     - In the same ACID transaction:
+       - Transitions `Booking` to `ASSIGNED`, setting `captainId`, `vehicleId`, and `assignedAt`.
+       - Transitions `DriverProfile` to `availabilityStatus = 'ON_TRIP'` and `dutyStatus = 'ONLINE'`.
+       - Transitions winning `DispatchOffer` to `ACCEPTED`, recording `respondedAt` and `idempotencyKey`.
+       - Records immutable `RideStateEvent` (`fromStatus = DISPATCHING`, `toStatus = ASSIGNED`, `actorRole = CAPTAIN`).
+       - Supersedes all other pending offers for this booking (`status = 'SUPERSEDED'`).
+  2. **Distinct First-Winner Conflict Code (`RIDE_ALREADY_TAKEN`)**:
+     - When competing captains attempt to accept an already claimed ride (`booking.status === 'ASSIGNED'` or `booking.captainId !== offer.captainId`), the service marks the losing offer `SUPERSEDED` and raises `ConflictException` with code `ApiErrorCode.RIDE_ALREADY_TAKEN` (HTTP 409).
+     - Provides clean UI ergonomics for mobile clients, differentiating between an offer expiration (`DISPATCH_OFFER_EXPIRED`), a cancelled ride (`RIDE_ALREADY_TERMINATED`), and a race loss (`RIDE_ALREADY_TAKEN`).
+     - Idempotent retries by the winning captain (`booking.captainId === offer.captainId && offer.status === 'ACCEPTED'`) succeed idempotently with HTTP 200 without creating duplicate events.
+  3. **Transactional Outbox Pattern (`dispatch_outbox_events`)**:
+     - Created `DispatchOutboxEvent` table (`1700000000021-CreateDispatchOutboxEventsTable.ts`) with `id`, `aggregate_type`, `aggregate_id`, `event_type`, `payload` (JSONB), `status` (`PENDING`, `PUBLISHED`, `FAILED`), `retry_count`, and timestamps.
+     - Appends the `RIDE_ASSIGNED` outbox event in the exact same database transaction as the booking and captain reservations.
+     - Guarantees zero dual-write inconsistency: if the transaction commits, the event is guaranteed to be saved for message broker / WebSocket delivery; if the transaction aborts, no phantom event exists.
+     - Added service lifecycle management methods (`getPendingOutboxEvents`, `markOutboxEventPublished`, `markOutboxEventFailed`).
+  4. **Concurrency Acceptance Proof (50 Parallel Requests)**:
+     - Executed 50 simultaneous competing accept requests (`Promise.allSettled`) against a single booking.
+     - Verified:
+       - Exactly 1 captain wins (HTTP 200, status `ASSIGNED`).
+       - Exactly 49 competing captains fail with `ApiErrorCode.RIDE_ALREADY_TAKEN` (HTTP 409).
+       - Exactly 1 captain is transitioned to `ON_TRIP`.
+       - Exactly 49 captains remain strictly in `AVAILABLE` status with zero duplicated captain reservations.
+       - Exactly 1 outbox event persisted in `dispatch_outbox_events`.

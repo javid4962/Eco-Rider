@@ -21,4 +21,3 @@ export class AcceptDispatchOfferDto implements AcceptDispatchOfferRequest {
   @MaxLength(255)
   notes?: string;
 }
-

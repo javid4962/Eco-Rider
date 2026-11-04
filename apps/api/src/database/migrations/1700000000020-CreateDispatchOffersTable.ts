@@ -55,4 +55,3 @@ export class CreateDispatchOffersTable1700000000020 implements MigrationInterfac
     await queryRunner.query(`DROP TABLE IF EXISTS "dispatch_offers" CASCADE;`);
   }
 }
-

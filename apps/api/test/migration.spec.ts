@@ -9,6 +9,7 @@ import { ExpandVehiclesTableWithEVCompliance1700000000008 } from '../src/databas
 import { CreateCaptainApplicationsAndReviewHistory1700000000009 } from '../src/database/migrations/1700000000009-CreateCaptainApplicationsAndReviewHistory';
 import { AddDriverComplianceAndDutyStatus1700000000010 } from '../src/database/migrations/1700000000010-AddDriverComplianceAndDutyStatus';
 import { CreateDispatchOffersTable1700000000020 } from '../src/database/migrations/1700000000020-CreateDispatchOffersTable';
+import { CreateDispatchOutboxEventsTable1700000000021 } from '../src/database/migrations/1700000000021-CreateDispatchOutboxEventsTable';
 import { QueryRunner } from 'typeorm';
 
 describe('Database Migrations', () => {
@@ -375,6 +376,31 @@ describe('Database Migrations', () => {
 
       const allQueries = executedQueries.join(' ');
       expect(allQueries).toContain('DROP TABLE IF EXISTS "dispatch_offers" CASCADE;');
+    });
+  });
+
+  describe('CreateDispatchOutboxEventsTable1700000000021', () => {
+    let migration: CreateDispatchOutboxEventsTable1700000000021;
+
+    beforeEach(() => {
+      migration = new CreateDispatchOutboxEventsTable1700000000021();
+    });
+
+    it('should create dispatch_outbox_events table, check constraint, and composite indexes in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "dispatch_outbox_events"');
+      expect(allQueries).toContain('chk_dispatch_outbox_events_status');
+      expect(allQueries).toContain('idx_dispatch_outbox_events_aggregate');
+      expect(allQueries).toContain('idx_dispatch_outbox_events_status_created');
+    });
+
+    it('should drop dispatch_outbox_events table in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "dispatch_outbox_events" CASCADE;');
     });
   });
 });
