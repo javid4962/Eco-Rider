@@ -239,10 +239,11 @@ describe('Milestone M14: Corporate & Employee Transport (EV-110 – EV-112)', ()
       expect(manifest.employees[0].boardingOtp).toHaveLength(4);
 
       // Board employee 1 with valid OTP
+      const targetEmployee = manifest.employees.find((e) => e.employeeId === employeeId1)!;
       const boardResult = await corporateService.boardEmployee(
         manifest.id,
         employeeId1,
-        manifest.employees[0].boardingOtp,
+        targetEmployee.boardingOtp,
       );
 
       expect(boardResult.success).toBe(true);

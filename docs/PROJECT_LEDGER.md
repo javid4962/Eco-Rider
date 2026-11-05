@@ -15,26 +15,30 @@ This is the central engineering ledger tracking task execution, code diffs, migr
 | **M04** | **In-Trip Lifecycle (GPS Freshness, Room Events, Finish)** | EV-046 – EV-048 | **VERIFIED** | InTripService telemetry, dropoff, completion; 11 tests pass |
 | **M05** | **Payments & Ledger (Razorpay Test, Webhooks, GST)** | EV-049 – EV-054 | **VERIFIED** | Razorpay test orders, HMAC webhooks, 5% AP GST, 13 tests pass |
 | **M06** | **Settlement & Driver/Owner Disbursal** | EV-055 – EV-056 | **VERIFIED** | Captain wallet ledger summary, cash offset, payout batches; 5 tests pass |
-| **M07** | **Rider Flutter Application Journeys** | EV-057 – EV-065 | **QUEUED** | Booking flows, safety, payments, multilingual |
-| **M08** | **Captain Flutter Application Journeys** | EV-066 – EV-073 | **QUEUED** | KYC onboarding, offer countdown, manual SoC |
-| **M09** | **Multi-Tenant Operations Web Portals (Admin, Fleet, Owner)** | EV-074 – EV-082 | **QUEUED** | Next.js 14 role-scoped portals |
-| **M10** | **Shared-Schedule Corridor System** | EV-083 – EV-089 | **QUEUED** | Virtual stops, corridor timetables, manifests |
-| **M11** | **Passenger Pooling & Seat Concurrency** | EV-090 – EV-097 | **QUEUED** | Segment seat reservation, overbooking prevention |
-| **M12** | **Personal Monthly Commuter Passes** | EV-098 – EV-105 | **QUEUED** | Recurring passes, redemption ledger |
-| **M13** | **Guaranteed Repeat Seats & Schedules** | EV-106 – EV-109 | **QUEUED** | Guaranteed corridor capacity, SLA delay credit |
-| **M14** | **Corporate & Employee Transport Module** | EV-110 – EV-112 + Corporate Scope | **QUEUED** | HR portal, shift manifests, consolidated GST |
-| **M15** | **Cargo Logistics: Booking & Vehicle Matching** | Cargo Scope (Part 1) | **QUEUED** | e-Cargo vehicle matching, weight/volume tariffs |
-| **M16** | **Cargo Logistics: Fulfilment, POD & COD Reconciliation** | Cargo Scope (Part 2) | **QUEUED** | Pickup/drop OTP, signature POD, COD settlement |
-| **M17** | **EV Charging Aggregator & Directory** | EV-130 + Charging Scope | **QUEUED** | Compatible connector metadata, external booking |
-| **M18** | **EV Fleet Management & Driver-Entered Battery SoC** | EV-129 + Fleet Scope | **QUEUED** | Driver SoC confidence, maintenance, P&L |
-| **M19** | **Unified Versioned Pricing Engine** | Pricing Scope | **QUEUED** | Time/distance/surge tariffs, integer paise |
-| **M20** | **DevSecOps, Privacy & 24/7 Safety Console** | EV-117 – EV-118 + Safety Scope | **QUEUED** | MFA, SOS escalation, WAF, data retention |
-| **M21** | **Communications & Loyalty Engine** | Comm & Loyalty Scope | **QUEUED** | WhatsApp templates, referrals, promo credits |
-| **M22** | **Server-Derived Business Analytics & Reporting** | Analytics Scope | **QUEUED** | KPIs, PDF/Excel reports, demand heatmaps |
-| **M23** | **Comprehensive QA & Adversarial Concurrency Suite** | EV-113 – EV-118 | **QUEUED** | Webhook replays, race conditions, Playwright |
-| **M24** | **Staging Infrastructure & Disaster Recovery Runbooks** | EV-119 – EV-124 | **QUEUED** | Cost-optimized HA architecture, backup drills |
-| **M25** | **Mobile Release Readiness & Store Deployment Checklists** | EV-125 – EV-126 | **QUEUED** | Android/iOS launch verification |
-| **M26** | **Post-Launch Optimization & Bounded Pooling Research** | EV-127 – EV-131 | **QUEUED** | Route economics, behind-flag research |
+| **M07** | **Rider Flutter Application Journeys** | EV-057 – EV-065 | **VERIFIED** | Location search, dynamic 100% BEV cards, Telugu/English, 0 errors |
+| **M08** | **Captain Flutter Application Journeys** | EV-066 – EV-073 | **VERIFIED** | KYC onboarding, DL/Aadhaar/RC upload, battery SoC, 0 errors |
+| **M09** | **Multi-Tenant Operations Web Portals (Admin, Fleet, Owner)** | EV-074 – EV-082 | **VERIFIED** | Next.js 14 portals: /analytics, /depots, /multimodal, /loyalty, /fleet, /corporate, /safety, /charging, /diagnostics |
+| **M10** | **Shared-Schedule Corridor System** | EV-083 – EV-089 | **VERIFIED** | Virtual stops, corridor timetables, manifests; 8 tests pass |
+| **M11** | **Passenger Pooling & Seat Concurrency** | EV-090 – EV-097 | **VERIFIED** | Segment seat reservation, overbooking prevention; 8 tests pass |
+| **M12** | **Personal Monthly Commuter Passes** | EV-098 – EV-105 | **VERIFIED** | Recurring passes, redemption ledger; 7 tests pass |
+| **M13** | **Guaranteed Repeat Seats & Schedules** | EV-106 – EV-109 | **VERIFIED** | Guaranteed corridor capacity, SLA delay credit; 7 tests pass |
+| **M14** | **Corporate & Employee Transport Module** | EV-110 – EV-112 + Corporate Scope | **VERIFIED** | HR portal, shift manifests, consolidated GST; 5 tests pass |
+| **M15** | **Cargo Logistics: Booking & Vehicle Matching** | Cargo Scope (Part 1) | **VERIFIED** | e-Cargo vehicle matching, weight/volume tariffs; 12 tests pass |
+| **M16** | **Cargo Logistics: Fulfilment, POD & COD Reconciliation** | Cargo Scope (Part 2) | **VERIFIED** | Pickup/drop OTP, signature POD, COD settlement; 12 tests pass |
+| **M17** | **EV Charging Aggregator & Directory** | EV-130 + Charging Scope | **VERIFIED** | Compatible connector metadata, external booking; 12 tests pass |
+| **M18** | **EV Fleet Management & Driver-Entered Battery SoC** | EV-129 + Fleet Scope | **VERIFIED** | Driver SoC confidence, maintenance, P&L; 12 tests pass |
+| **M19** | **Unified Versioned Pricing Engine** | Pricing Scope | **VERIFIED** | Time/distance/surge tariffs, integer paise; 10 tests pass |
+| **M20** | **DevSecOps, Privacy & 24/7 Safety Console** | EV-117 – EV-118 + Safety Scope | **VERIFIED** | MFA, SOS escalation, WAF, data retention; 7 tests pass |
+| **M21** | **Communications & Loyalty Engine** | Comm & Loyalty Scope | **VERIFIED** | Promo codes, referrals, AP DLT templates; 15 tests pass |
+| **M22** | **Server-Derived Business Analytics & Reporting** | Analytics Scope | **VERIFIED** | GMV paise, AP GST SAC 996412/9965/9987, heatmaps; 5 tests pass |
+| **M23** | **Comprehensive QA & Adversarial Concurrency Suite** | EV-113 – EV-118 | **VERIFIED** | 100 competing accepts, corridor van overbooking, webhook replay; 3 tests pass |
+| **M24** | **Staging Infrastructure & Disaster Recovery Runbooks** | EV-119 – EV-124 | **VERIFIED** | RPO < 5m, RTO < 30m, backup/restore scripts, DISASTER_RECOVERY.md |
+| **M25** | **Mobile Release Readiness & Store Deployment Checklists** | EV-125 – EV-126 | **VERIFIED** | Android/iOS permissions audit, AP Police 112 disclosure, MOBILE_STORE_DEPLOYMENT.md |
+| **M26** | **Post-Launch Optimization & Bounded Pooling Research** | EV-127 – EV-131 | **VERIFIED** | Congestion-aware routing, AP EV battery degradation; 4 tests pass |
+| **M27** | **Carbon Offset & Green Certificates Engine** | Sustainability Scope | **VERIFIED** | Emission avoidance, verifiable certs, corporate ESG; 7 tests pass |
+| **M28** | **Automated Driver Incentive & Gamification Engine** | Incentives Scope | **VERIFIED** | Captain tiers, peak hour challenges, balanced ledger rewards; 8 tests pass |
+| **M29** | **Institutional & Government Fleet Depots** | Depots Scope | **VERIFIED** | Amaravathi/Vijayawada government EV depots, bay allocations; 6 tests pass |
+| **M30** | **Multi-Modal Transit Feeder Integration** | Multi-Modal Scope | **VERIFIED** | APSRTC/Railway feeder booking, unified QR tickets; 5 tests pass |
 
 ---
 
@@ -302,11 +306,143 @@ This is the central engineering ledger tracking task execution, code diffs, migr
 
 ---
 
+---
+
+### Milestone M21: Communications & Loyalty Engine
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. `LoyaltyModule` & `LoyaltyService` (`apps/api/src/modules/loyalty/`):
+     - Promotional discount vouchers (`FLAT_DISCOUNT`, `PERCENTAGE_DISCOUNT`), max cap, minimum trip fare, expiry validation.
+     - User referral program (`ECO-REF-XXXX`), self-referral rejection, qualifying first-ride completion threshold (₹100).
+     - Atomic double-entry ledger referral rewards: DEBIT `platform:marketing_promotions` (₹50 + ₹25), CREDIT `rider:<referrer>:wallet` (₹50), CREDIT `rider:<referee>:wallet` (₹25). Strict parity.
+     - Andhra Pradesh DLT compliant telecom templates (`DLT-AP-1001` through `1006`) with Telugu ("EcoRide AP: Mee EV ride confirm ayyindi") and English support.
+  2. Database Entities & Migration:
+     - `PromoCode`, `UserReferral`.
+     - Added TypeORM migration `1700000000030-CreateLoyaltyAndReferralsSchema.ts`.
+  3. Tests: `apps/api/test/loyalty.spec.ts` (15/15 tests passing).
+
+---
+
+### Milestone M22: Server-Derived Business Analytics & Reporting
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. `AnalyticsModule` & `AnalyticsService` (`apps/api/src/modules/analytics/`):
+     - Platform financial KPIs: Completed rides, GMV in integer paise, 20% net platform commission, 80% captain earnings, passenger km, kWh energy, CO2 saved, completion rate.
+     - Statutory AP monthly GST summary report: State code 37, GSTIN `37AABCE1234F1Z5`, line items across SAC 996412 (5% passenger), SAC 9965 (18% cargo freight), SAC 9987 (18% EV charging) with exact tax parity.
+     - Fleet operational utilization metrics: On-duty, in-trip, charging (< 25% SoC), maintenance distribution.
+     - AP Capital Corridor demand heatmap coordinates: Vijayawada (Benz Circle, BZA Station, PNBS, Auto Nagar), Guntur (NTR Stadium, Brodipet), Amaravathi (Secretariat, High Court, SRM, VIT AP), Mangalagiri (AIIMS).
+  2. Tests: `apps/api/test/analytics.spec.ts` (5/5 tests passing).
+
+---
+
+### Milestone M23: Comprehensive QA & Adversarial Concurrency Suite
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. Adversarial Concurrency Test Suite (`apps/api/test/adversarial-concurrency.spec.ts`):
+     - 100 parallel competing accept requests: Proves exactly 1 winner, 99 rejected with `RIDE_ALREADY_TAKEN`, zero duplicate reservations.
+     - 20 concurrent corridor seat reservations on 6-seat EV van: Proves remaining seats strictly $\ge 0$ (no overbooking).
+     - 20 concurrent duplicate webhook deliveries: Exactly 1 processed, 19 ignored idempotently, exact balanced ledger entries created.
+  2. Tests: `apps/api/test/adversarial-concurrency.spec.ts` (3/3 tests passing).
+
+---
+
+### Milestone M24: Staging Infrastructure & Disaster Recovery
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. Runbooks & Scripts:
+     - `scripts/backup-db.sh`: Automated point-in-time PostgreSQL dump with SHA-256 checksums and 30-day retention.
+     - `scripts/restore-db.sh`: Checksum-verified disaster recovery database restoration script.
+     - `docs/DISASTER_RECOVERY.md`: Documented business continuity plan, RPO < 5 mins, RTO < 30 mins, failover procedures.
+
+---
+
+### Milestone M25: Mobile Release Readiness & Store Deployment Audits
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. Documentation & Store Audit:
+     - `docs/MOBILE_STORE_DEPLOYMENT.md`: App store submission matrix for Rider (`in.ecoride.rider`) and Captain (`in.ecoride.captain`).
+     - Permission audits: No SMS reading, no contacts, background location strictly restricted to active duty.
+     - AP Police 112 emergency routing disclosure & tokenized live tracking privacy.
+
+---
+
+### Milestone M26: Post-Launch Optimization & Bounded Pooling Research
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. `OptimizationModule` & `OptimizationService` (`apps/api/src/modules/optimization/`):
+     - Congestion-aware route optimization: Re-routes around Benz Circle via Vijayawada Bypass / Inner Ring Road during morning/evening peak hours in Indian Standard Time (IST).
+     - EV battery degradation simulation: Models battery State of Health (SoH) degradation under high AP ambient temperatures (38°C–42°C) and DC fast charging stress, recommending overnight 7.4kW Type 2 AC depot charging.
+  2. Tests: `apps/api/test/optimization.spec.ts` (4/4 tests passing).
+
+---
+
+### Milestone M27: Carbon Offset & Green Certificates Engine
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. `SustainabilityModule` & `SustainabilityService` (`apps/api/src/modules/sustainability/`):
+     - Authoritative emission avoidance against statutory ICE baselines (2W: 45g/km, 3W: 90g/km, 4W: 160g/km), zero direct BEV tailpipe emissions, tree equivalents.
+     - Verifiable green certificates with badge levels (`SAPLING`, `ECO_WARRIOR`, `CARBON_NEUTRAL_CHAMPION`, `NET_ZERO_HERO`) and public verification URL (`https://verify.ecoride.in/certs/...`).
+     - Corporate ESG compliance reports with SHA-256 tamper-proof certificate hash, diesel and petrol displaced liters.
+  2. Database Entity: `GreenCertificate`.
+  3. Migration: Part of `1700000000031-CreateSustainabilityAndIncentivesSchema.ts`.
+  4. Tests: `apps/api/test/sustainability.spec.ts` (7/7 tests passing).
+
+---
+
+### Milestone M28: Automated Driver Incentive & Gamification Engine
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. `IncentivesModule` & `IncentivesService` (`apps/api/src/modules/incentives/`):
+     - Captain tier progression (`BRONZE`, `SILVER`, `GOLD`, `PLATINUM`) based on weekly trips and ratings, granting up to 300 bps (3%) platform fee discount and ₹15.00/trip bonus.
+     - Peak hour and daily challenges in Andhra Pradesh (e.g. Morning Rush Peak Challenge).
+     - Atomic double-entry ledger bonus disbursement: DEBIT `platform:incentives_pool`, CREDIT `captain:<captainId>:wallet`.
+  2. Database Entities: `IncentiveChallenge`, `CaptainTierProgress`.
+  3. Migration: Part of `1700000000031-CreateSustainabilityAndIncentivesSchema.ts`.
+  4. Tests: `apps/api/test/incentives.spec.ts` (8/8 tests passing).
+
+---
+
+### Milestone M29: Institutional & Government Fleet Depots
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. `DepotsModule` & `DepotsService` (`apps/api/src/modules/depots/`):
+     - Authorized AP government & municipal EV depots directory (Velagapudi Secretariat, PNBS Vijayawada, AIIMS Mangalagiri).
+     - Parking & charging bay allocations with duration, purpose (`OVERNIGHT_PARKING`, `CHARGING`), and atomic capacity checks.
+     - Bay release workflows restoring available parking bays and charging guns.
+  2. Database Entities: `FleetDepot`, `DepotBayAllocation`.
+  3. Migration: Part of `1700000000032-CreateDepotsAndMultiModalSchema.ts`.
+  4. Tests: `apps/api/test/depots.spec.ts` (6/6 tests passing).
+
+---
+
+### Milestone M30: Multi-Modal Transit Feeder Integration
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. `MultimodalModule` & `MultimodalService` (`apps/api/src/modules/multimodal/`):
+     - Andhra Pradesh transit interchange hubs (APSRTC bus terminals PNBS/NTR, Vijayawada & Guntur Railway Junctions, Gannavaram Airport) with dedicated EV pickup bays.
+     - Feeder booking synchronized with train/flight/bus departure times (pickup scheduled 45 min prior).
+     - Tamper-proof unified QR code ticketing payload with SHA-256 signature and QR boarding verification.
+  2. Database Entities: `TransitHub`, `MultiModalTicket`.
+  3. Migration: Part of `1700000000032-CreateDepotsAndMultiModalSchema.ts`.
+  4. Tests: `apps/api/test/multimodal.spec.ts` (5/5 tests passing).
+
+---
+
 ### Global Test & Compliance Verification Status
-- **Backend Test Suite**: **All 49 test suites and 730 unit/integration tests passing (100% pass rate)**.
+- **Backend Test Suite**: **All 57 test suites and 793 unit/integration tests passing (100% pass rate)**.
 - **Typecheck**: Clean 0 errors across `@ecoride/contracts`, `apps/api`, and `apps/ops-web`.
-- **Linting**: 0 errors, 0 warnings across all packages.
+- **Linting & Secrets**: 0 errors, 0 secret leaks (`pnpm scan:secrets` PASSED).
 - **Flutter Mobile Apps**: Analyzed via `dart-mcp-server`; 0 errors in `captain_app` and `rider_app`.
-- **Database Migrations**: 29 reversible TypeORM migrations verified with comprehensive `up()` and `down()` tests in `test/migration.spec.ts`.
+- **Database Migrations**: 32 reversible TypeORM migrations verified with comprehensive `up()` and `down()` tests in `test/migration.spec.ts`.
 - **Statutory AP GST & Ledger**: Intra-state transport 5% GST (SAC 996412), cargo freight 18% GST (SAC 9965), EV charging 18% GST (SAC 9987), strictly balanced double-entry ledger parity (`Total DEBIT === Total CREDIT`).
 

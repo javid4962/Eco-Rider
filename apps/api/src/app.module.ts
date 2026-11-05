@@ -30,6 +30,16 @@ import { SettlementModule } from './modules/settlement/settlement.module';
 import { CorridorsModule } from './modules/corridors/corridors.module';
 import { CommuterPassesModule } from './modules/commuter-passes/commuter-passes.module';
 import { CorporateModule } from './modules/corporate/corporate.module';
+import { CargoModule } from './modules/cargo/cargo.module';
+import { ChargingModule } from './modules/charging/charging.module';
+import { SafetyModule } from './modules/safety/safety.module';
+import { LoyaltyModule } from './modules/loyalty/loyalty.module';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
+import { SustainabilityModule } from './modules/sustainability/sustainability.module';
+import { IncentivesModule } from './modules/incentives/incentives.module';
+import { DepotsModule } from './modules/depots/depots.module';
+import { MultimodalModule } from './modules/multimodal/multimodal.module';
+import { OptimizationModule } from './modules/optimization/optimization.module';
 import { CorrelationIdMiddleware } from './common/middleware/correlation-id.middleware';
 import { AuthMiddleware } from './modules/auth/middleware/auth.middleware';
 
@@ -68,6 +78,16 @@ import { AuthMiddleware } from './modules/auth/middleware/auth.middleware';
     CorridorsModule,
     CommuterPassesModule,
     CorporateModule,
+    CargoModule,
+    ChargingModule,
+    SafetyModule,
+    LoyaltyModule,
+    AnalyticsModule,
+    SustainabilityModule,
+    IncentivesModule,
+    DepotsModule,
+    MultimodalModule,
+    OptimizationModule,
   ],
 })
 export class AppModule implements NestModule {

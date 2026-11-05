@@ -16,6 +16,11 @@ import { CreatePayoutBatchesAndItemsSchema1700000000024 } from '../src/database/
 import { CreateCorridorSchedulesAndSeatReservationsSchema1700000000025 } from '../src/database/migrations/1700000000025-CreateCorridorSchedulesAndSeatReservationsSchema';
 import { CreateCommuterPassesAndRedemptionsSchema1700000000026 } from '../src/database/migrations/1700000000026-CreateCommuterPassesAndRedemptionsSchema';
 import { CreateCorporateTransportSchema1700000000027 } from '../src/database/migrations/1700000000027-CreateCorporateTransportSchema';
+import { CreateCargoLogisticsSchema1700000000028 } from '../src/database/migrations/1700000000028-CreateCargoLogisticsSchema';
+import { CreateChargingAndBatteryTelemetrySchema1700000000029 } from '../src/database/migrations/1700000000029-CreateChargingAndBatteryTelemetrySchema';
+import { CreateLoyaltyAndReferralsSchema1700000000030 } from '../src/database/migrations/1700000000030-CreateLoyaltyAndReferralsSchema';
+import { CreateSustainabilityAndIncentivesSchema1700000000031 } from '../src/database/migrations/1700000000031-CreateSustainabilityAndIncentivesSchema';
+import { CreateDepotsAndMultiModalSchema1700000000032 } from '../src/database/migrations/1700000000032-CreateDepotsAndMultiModalSchema';
 import { QueryRunner } from 'typeorm';
 
 describe('Database Migrations', () => {
@@ -582,6 +587,142 @@ describe('Database Migrations', () => {
       expect(allQueries).toContain('DROP TABLE IF EXISTS "corporate_shift_manifests" CASCADE;');
       expect(allQueries).toContain('DROP TABLE IF EXISTS "corporate_employees" CASCADE;');
       expect(allQueries).toContain('DROP TABLE IF EXISTS "corporate_accounts" CASCADE;');
+    });
+  });
+
+  describe('CreateCargoLogisticsSchema1700000000028', () => {
+    let migration: CreateCargoLogisticsSchema1700000000028;
+
+    beforeEach(() => {
+      migration = new CreateCargoLogisticsSchema1700000000028();
+    });
+
+    it('should create cargo shipments, stops, and cod settlements in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "cargo_shipments"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "cargo_stops"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "cargo_cod_settlements"');
+    });
+
+    it('should drop cargo tables in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "cargo_cod_settlements"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "cargo_stops"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "cargo_shipments"');
+    });
+  });
+
+  describe('CreateChargingAndBatteryTelemetrySchema1700000000029', () => {
+    let migration: CreateChargingAndBatteryTelemetrySchema1700000000029;
+
+    beforeEach(() => {
+      migration = new CreateChargingAndBatteryTelemetrySchema1700000000029();
+    });
+
+    it('should create charging stations, reservations, and telemetry logs in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "charging_stations"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "charging_reservations"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "battery_telemetry_logs"');
+    });
+
+    it('should drop charging tables in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "battery_telemetry_logs"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "charging_reservations"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "charging_stations"');
+    });
+  });
+
+  describe('CreateLoyaltyAndReferralsSchema1700000000030', () => {
+    let migration: CreateLoyaltyAndReferralsSchema1700000000030;
+
+    beforeEach(() => {
+      migration = new CreateLoyaltyAndReferralsSchema1700000000030();
+    });
+
+    it('should create promo codes and user referrals in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "promo_codes"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "user_referrals"');
+      expect(allQueries).toContain('idx_promo_codes_code');
+      expect(allQueries).toContain('idx_user_referrals_code');
+    });
+
+    it('should drop promo and referral tables in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "user_referrals"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "promo_codes"');
+    });
+  });
+
+  describe('CreateSustainabilityAndIncentivesSchema1700000000031', () => {
+    let migration: CreateSustainabilityAndIncentivesSchema1700000000031;
+
+    beforeEach(() => {
+      migration = new CreateSustainabilityAndIncentivesSchema1700000000031();
+    });
+
+    it('should create green certificates, incentive challenges, and captain tier progress in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "green_certificates"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "incentive_challenges"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "captain_tier_progress"');
+      expect(allQueries).toContain('idx_green_certs_recipient');
+      expect(allQueries).toContain('idx_challenges_active');
+    });
+
+    it('should drop sustainability and incentive tables in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "captain_tier_progress"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "incentive_challenges"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "green_certificates"');
+    });
+  });
+
+  describe('CreateDepotsAndMultiModalSchema1700000000032', () => {
+    let migration: CreateDepotsAndMultiModalSchema1700000000032;
+
+    beforeEach(() => {
+      migration = new CreateDepotsAndMultiModalSchema1700000000032();
+    });
+
+    it('should create fleet depots, bay allocations, transit hubs, and multimodal tickets in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "fleet_depots"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "depot_bay_allocations"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "transit_hubs"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "multi_modal_tickets"');
+      expect(allQueries).toContain('idx_fleet_depots_city');
+      expect(allQueries).toContain('idx_transit_hubs_city');
+    });
+
+    it('should drop depots and multimodal tables in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "multi_modal_tickets"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "transit_hubs"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "depot_bay_allocations"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "fleet_depots"');
     });
   });
 });

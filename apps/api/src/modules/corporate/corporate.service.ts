@@ -3,7 +3,6 @@ import {
   Logger,
   NotFoundException,
   BadRequestException,
-  ForbiddenException,
   ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -133,7 +132,7 @@ export class CorporateService {
    * EV-112: Create optimized shift pickup manifest with sequence and boarding OTPs.
    */
   async createShiftManifest(
-    actor: CurrentActorPayload | undefined,
+    _actor: CurrentActorPayload | undefined,
     dto: CreateShiftManifestDto,
   ): Promise<CorporateShiftManifestDto> {
     const account = await this.accountRepo.findOne({ where: { id: dto.corporateAccountId } });
