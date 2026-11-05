@@ -26,6 +26,16 @@ import { CreateBmsTelemetryAndFleetOwnerSchema1700000000034 } from '../src/datab
 import { CreateOutstationAndCampusShuttleSchema1700000000035 } from '../src/database/migrations/1700000000035-CreateOutstationAndCampusShuttleSchema';
 import { CreateDisputesAndDemandForecastSchema1700000000036 } from '../src/database/migrations/1700000000036-CreateDisputesAndDemandForecastSchema';
 import { CreateRegulatoryAuditAndVoiceSchema1700000000037 } from '../src/database/migrations/1700000000037-CreateRegulatoryAuditAndVoiceSchema';
+import { CreateEmergencyRescueAndSmartChargingSchema1700000000038 } from '../src/database/migrations/1700000000038-CreateEmergencyRescueAndSmartChargingSchema';
+import { CreateDriverFatigueAndCarbonTokensSchema1700000000039 } from '../src/database/migrations/1700000000039-CreateDriverFatigueAndCarbonTokensSchema';
+import { CreateFreightManifestAndHighwayTollSchema1700000000040 } from '../src/database/migrations/1700000000040-CreateFreightManifestAndHighwayTollSchema';
+import { CreateCorporateSubsidyAndColdChainSchema1700000000041 } from '../src/database/migrations/1700000000041-CreateCorporateSubsidyAndColdChainSchema';
+import { CreateDriverMicrofinanceAndWeatherPricingSchema1700000000042 } from '../src/database/migrations/1700000000042-CreateDriverMicrofinanceAndWeatherPricingSchema';
+import { CreateBatteryDegradationAndMicroGeofenceSchema1700000000043 } from '../src/database/migrations/1700000000043-CreateBatteryDegradationAndMicroGeofenceSchema';
+import { CreateMultiPartySplitAndSpeedGovernorSchema1700000000044 } from '../src/database/migrations/1700000000044-CreateMultiPartySplitAndSpeedGovernorSchema';
+import { CreateScope3EsgAndCaptainWelfareSchema1700000000045 } from '../src/database/migrations/1700000000045-CreateScope3EsgAndCaptainWelfareSchema';
+import { CreateTransitNfcAndFleetMaintenanceSchema1700000000046 } from '../src/database/migrations/1700000000046-CreateTransitNfcAndFleetMaintenanceSchema';
+import { CreateInteractiveVoiceAndDrReplicationSchema1700000000047 } from '../src/database/migrations/1700000000047-CreateInteractiveVoiceAndDrReplicationSchema';
 import { QueryRunner } from 'typeorm';
 
 describe('Database Migrations', () => {
@@ -871,6 +881,284 @@ describe('Database Migrations', () => {
       const allQueries = executedQueries.join(' ');
       expect(allQueries).toContain('DROP TABLE IF EXISTS "captain_voice_preferences"');
       expect(allQueries).toContain('DROP TABLE IF EXISTS "regulatory_audit_logs"');
+    });
+  });
+
+  describe('CreateEmergencyRescueAndSmartChargingSchema1700000000038', () => {
+    let migration: CreateEmergencyRescueAndSmartChargingSchema1700000000038;
+
+    beforeEach(() => {
+      migration = new CreateEmergencyRescueAndSmartChargingSchema1700000000038();
+    });
+
+    it('should create rescue units, rescue requests, transformer loads, and smart charging profiles in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "rescue_units"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "rescue_requests"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "transformer_station_loads"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "smart_charging_profiles"');
+      expect(allQueries).toContain('UQ_rescue_units_code');
+      expect(allQueries).toContain('UQ_rescue_requests_ticket');
+    });
+
+    it('should drop emergency rescue and smart charging tables in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "smart_charging_profiles"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "transformer_station_loads"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "rescue_requests"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "rescue_units"');
+    });
+  });
+
+  describe('CreateDriverFatigueAndCarbonTokensSchema1700000000039', () => {
+    let migration: CreateDriverFatigueAndCarbonTokensSchema1700000000039;
+
+    beforeEach(() => {
+      migration = new CreateDriverFatigueAndCarbonTokensSchema1700000000039();
+    });
+
+    it('should create driver duty logs, carbon wallets, and reward redemptions in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "driver_duty_logs"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "carbon_token_wallets"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "carbon_reward_redemptions"');
+      expect(allQueries).toContain('UQ_carbon_token_wallets_user');
+      expect(allQueries).toContain('UQ_carbon_reward_redemptions_code');
+    });
+
+    it('should drop driver fatigue and carbon tokens tables in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "carbon_reward_redemptions"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "carbon_token_wallets"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "driver_duty_logs"');
+    });
+  });
+
+  describe('CreateFreightManifestAndHighwayTollSchema1700000000040', () => {
+    let migration: CreateFreightManifestAndHighwayTollSchema1700000000040;
+
+    beforeEach(() => {
+      migration = new CreateFreightManifestAndHighwayTollSchema1700000000040();
+    });
+
+    it('should create freight manifests, toll plazas, and toll crossings in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "freight_manifests"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "toll_plazas"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "toll_crossings"');
+      expect(allQueries).toContain('UQ_freight_manifests_number');
+      expect(allQueries).toContain('UQ_toll_plazas_code');
+      expect(allQueries).toContain('UQ_toll_crossings_fastag');
+    });
+
+    it('should drop freight manifests and highway toll tables in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "toll_crossings"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "toll_plazas"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "freight_manifests"');
+    });
+  });
+
+  describe('CreateCorporateSubsidyAndColdChainSchema1700000000041', () => {
+    let migration: CreateCorporateSubsidyAndColdChainSchema1700000000041;
+
+    beforeEach(() => {
+      migration = new CreateCorporateSubsidyAndColdChainSchema1700000000041();
+    });
+
+    it('should create corporate subsidy policies, claims, cold chain shipments, and logs in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "corporate_subsidy_policies"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "employee_subsidy_claims"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "cold_chain_shipments"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "cold_chain_telemetry_logs"');
+      expect(allQueries).toContain('UQ_cold_chain_shipments_consignment');
+    });
+
+    it('should drop corporate subsidy and cold chain tables in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "cold_chain_telemetry_logs"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "cold_chain_shipments"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "employee_subsidy_claims"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "corporate_subsidy_policies"');
+    });
+  });
+
+  describe('CreateDriverMicrofinanceAndWeatherPricingSchema1700000000042', () => {
+    let migration: CreateDriverMicrofinanceAndWeatherPricingSchema1700000000042;
+
+    beforeEach(() => {
+      migration = new CreateDriverMicrofinanceAndWeatherPricingSchema1700000000042();
+    });
+
+    it('should create captain emi plans, deduction records, and weather logs in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "captain_emi_plans"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "emi_deduction_records"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "weather_condition_logs"');
+      expect(allQueries).toContain('UQ_captain_emi_plans_loan');
+    });
+
+    it('should drop driver microfinance and weather logs tables in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "weather_condition_logs"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "emi_deduction_records"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "captain_emi_plans"');
+    });
+  });
+
+  describe('CreateBatteryDegradationAndMicroGeofenceSchema1700000000043', () => {
+    let migration: CreateBatteryDegradationAndMicroGeofenceSchema1700000000043;
+
+    beforeEach(() => {
+      migration = new CreateBatteryDegradationAndMicroGeofenceSchema1700000000043();
+    });
+
+    it('should create battery degradation, BESS repurposing, and municipal geofence tables in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "battery_degradation_records"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "bess_repurposing_orders"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "municipal_micro_geofences"');
+      expect(allQueries).toContain('UQ_bess_repurposing_orders_num');
+    });
+
+    it('should drop battery degradation and micro geofence tables in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "municipal_micro_geofences"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "bess_repurposing_orders"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "battery_degradation_records"');
+    });
+  });
+
+  describe('CreateMultiPartySplitAndSpeedGovernorSchema1700000000044', () => {
+    let migration: CreateMultiPartySplitAndSpeedGovernorSchema1700000000044;
+
+    beforeEach(() => {
+      migration = new CreateMultiPartySplitAndSpeedGovernorSchema1700000000044();
+    });
+
+    it('should create split payout batches, items, and speed zones in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "split_payout_batches"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "split_payout_items"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "speed_limit_zones"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "speed_violation_incidents"');
+      expect(allQueries).toContain('UQ_speed_limit_zones_code');
+    });
+
+    it('should drop split payout and speed governor tables in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "speed_violation_incidents"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "speed_limit_zones"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "split_payout_items"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "split_payout_batches"');
+    });
+  });
+
+  describe('CreateScope3EsgAndCaptainWelfareSchema1700000000045', () => {
+    let migration: CreateScope3EsgAndCaptainWelfareSchema1700000000045;
+
+    beforeEach(() => {
+      migration = new CreateScope3EsgAndCaptainWelfareSchema1700000000045();
+    });
+
+    it('should create scope3 reports, welfare ledger, and medical claims in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "corporate_scope3_reports"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "captain_welfare_ledger"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "medical_claims"');
+      expect(allQueries).toContain('UQ_medical_claims_num');
+    });
+
+    it('should drop scope3 and welfare tables in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "medical_claims"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "captain_welfare_ledger"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "corporate_scope3_reports"');
+    });
+  });
+
+  describe('CreateTransitNfcAndFleetMaintenanceSchema1700000000046', () => {
+    let migration: CreateTransitNfcAndFleetMaintenanceSchema1700000000046;
+
+    beforeEach(() => {
+      migration = new CreateTransitNfcAndFleetMaintenanceSchema1700000000046();
+    });
+
+    it('should create smart cards, tap transactions, and maintenance orders in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "transit_smart_cards"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "nfc_tap_transactions"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "fleet_maintenance_orders"');
+      expect(allQueries).toContain('UQ_transit_smart_cards_uid');
+    });
+
+    it('should drop transit nfc and fleet maintenance tables in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "fleet_maintenance_orders"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "nfc_tap_transactions"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "transit_smart_cards"');
+    });
+  });
+
+  describe('CreateInteractiveVoiceAndDrReplicationSchema1700000000047', () => {
+    let migration: CreateInteractiveVoiceAndDrReplicationSchema1700000000047;
+
+    beforeEach(() => {
+      migration = new CreateInteractiveVoiceAndDrReplicationSchema1700000000047();
+    });
+
+    it('should create IVR voice sessions and DR replication health tables in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "ivr_voice_sessions"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "dr_replication_health"');
+      expect(allQueries).toContain('UQ_ivr_voice_sessions_num');
+    });
+
+    it('should drop IVR voice and DR replication tables in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "dr_replication_health"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "ivr_voice_sessions"');
     });
   });
 });

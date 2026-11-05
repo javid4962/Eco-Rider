@@ -49,6 +49,26 @@ This is the central engineering ledger tracking task execution, code diffs, migr
 | **M38** | **Advanced Geo-Spatial Heat Demand Forecasting & Automated Idle Fleet Repositioning** | Demand Forecasting Scope | **VERIFIED** | Peak rush forecasts, repositioning incentives; 3 tests pass |
 | **M39** | **Regulatory Open Data Feed & Municipal Transport Authority Audit API (AP-STA)** | AP-STA Audit Scope | **VERIFIED** | AP-STA compliance manifests, 100% BEV proof, zero emissions; 1 test pass |
 | **M40** | **Multi-Language Voice Assistance & Vernacular Accessibility Engine** | Vernacular Voice Scope | **VERIFIED** | Telugu/Urdu/Hindi voice prompts, AP 112 SOS voice alert; 3 tests pass |
+| **M41** | **EV Emergency Roadside Assistance & Mobile Battery Rescue Dispatch** | Rescue Scope | **VERIFIED** | Mobile DC fast rescue vans, 18% AP GST SAC 9987, status machine; 3 tests pass |
+| **M42** | **Smart EV Charging Reservation & Substation Peak Demand Throttling** | Smart Charging Scope | **VERIFIED** | OCPP 2.0.1 TxDefaultProfile, 80% transformer load throttling; 3 tests pass |
+| **M43** | **Driver Shift Rostering, Fatigue Management & Anti-Drowsiness Telemetry** | Driver Fatigue Scope | **VERIFIED** | 4.5hr continuous driving guard, 30m mandatory rest lockout; 3 tests pass |
+| **M44** | **Commuter Carbon Credit Tokenization & Green Mobility Rewards Exchange** | Carbon Tokens Scope | **VERIFIED** | 2.5kg CO2 token minting, APSRTC voucher redemption; 3 tests pass |
+| **M45** | **Heavy Cargo Logistics & Multi-Depot Hub-and-Spoke Freight Manifests** | Freight Scope | **VERIFIED** | Auto Nagar to Mirchi Yard hub-spoke, weighbridge tare check; 3 tests pass |
+| **M46** | **Automated Toll & Fastag Integration with Zero-Commission Reimbursement** | Highway Toll Scope | **VERIFIED** | Kaza & Pottipadu toll plazas, 100% Fastag driver reimbursement; 3 tests pass |
+| **M47** | **Corporate Fleet Leasing & Enterprise Employee Green Travel Subsidies** | Corporate Subsidy Scope | **VERIFIED** | 70% employer co-pay, per-trip & monthly caps, zone checks; 3 tests pass |
+| **M48** | **Cold-Chain EV Logistics & Temperature-Controlled Perishable Cargo Delivery** | Cold Chain Scope | **VERIFIED** | +2°C to +8°C Chilled reefer bounds, excursion breach logging; 2 tests pass |
+| **M49** | **Automated Driver Micro-Financing & Battery Lease Daily Deduction Escrow** | Microfinance Scope | **VERIFIED** | Max 25% gross earnings livelihood guard, daily EMI escrow; 2 tests pass |
+| **M50** | **Cross-Corridor Adaptive Pricing & Seasonal Weather Dynamic Surcharge** | Weather Pricing Scope | **VERIFIED** | Yellow/Orange IMD alerts, 100% captain pass-through, 0% platform skim; 3 tests pass |
+| **M51** | **Battery Health Degradation Prediction & Predictive Replacement Work Orders** | Battery Degradation Scope | **VERIFIED** | SoH < 70% stationary BESS repurposing recommendation; 2 tests pass |
+| **M52** | **Dynamic Virtual Stop Optimization & Municipal Micro-Geofence Governance** | Municipal Geofences Scope | **VERIFIED** | APCRDA / GMC micro-pickup zones, geofence staging bays; 3 tests pass |
+| **M53** | **Multi-Party Payment Split & Instant Driver UPI Auto-Disbursal** | Multi-Party Split Scope | **VERIFIED** | Automated split settlement: captain wallet, vehicle lease owner, platform fee; 2 tests pass |
+| **M54** | **Fleet Telematics Geofence Speed Limiting & Dangerous Driving Alerting** | Speed Governor Scope | **VERIFIED** | Active speed governing in school/hospital zones in Vijayawada/Guntur; 2 tests pass |
+| **M55** | **Corporate Green Commute Tax Certificate & Scope-3 ESG Audit Exporter** | Scope-3 ESG Scope | **VERIFIED** | ISO 14064 Scope-3 greenhouse gas emissions audit export; 1 test pass |
+| **M56** | **Driver Community Welfare Fund & Medical Emergency Micro-Insurance** | Captain Welfare Scope | **VERIFIED** | 50-paise micro-cess per trip into driver medical emergency pool; 2 tests pass |
+| **M57** | **Inter-Modal Smart Ticketing NFC & RFID Card Integration** | Transit NFC Scope | **VERIFIED** | Contactless transit card integration for Vijayawada Metro/APSRTC bus; 4 tests pass |
+| **M58** | **Autonomous Fleet Maintenance Dispatch & Service Depot Work Orders** | Fleet Maintenance Scope | **VERIFIED** | Automated scheduled servicing work orders based on odometer and brake/tire wear; 4 tests pass |
+| **M59** | **Driver Language Dialect Adaptation & Interactive Voice Dispatch Response** | Interactive Voice Scope | **VERIFIED** | IVR / Telugu speech-to-text dispatch acknowledgement via WebRTC / audio; 4 tests pass |
+| **M60** | **Disaster Recovery Automated Failover & Read-Replica Regional Synchronization** | Disaster Recovery Scope | **VERIFIED** | Multi-AZ PostGIS streaming replication and failover drill verification; 4 tests pass |
 
 ---
 
@@ -580,12 +600,291 @@ This is the central engineering ledger tracking task execution, code diffs, migr
 
 ---
 
+### Milestone M41: EV Emergency Roadside Assistance & Mobile Battery Rescue Dispatch
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. `EmergencyRescueModule` & `EmergencyRescueService` (`apps/api/src/modules/rescue/`):
+     - Mobile DC fast rescue dispatch for depleted EVs ($\le 35\%$ SoC) in AP corridors (Benz Circle, Prakasam Barrage).
+     - Automated technician/unit allocation, 18% AP GST (SAC 9987), rescue completion, and unit release workflow.
+  2. Database Entities: `RescueRequest`, `RescueUnit`.
+  3. Migration: Part of `1700000000038-CreateEmergencyRescueAndSmartChargingSchema.ts`.
+  4. Tests: `apps/api/test/emergency-rescue.spec.ts` (3/3 tests passing).
+
+---
+
+### Milestone M42: Smart EV Charging Reservation & Substation Peak Demand Throttling
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. `SmartChargingModule` & `SmartChargingService` (`apps/api/src/modules/smart-charging/`):
+     - Substation transformer load monitoring (500kVA transformer capacity, Auto Nagar 33/11kV Substation).
+     - Dynamic OCPP 2.0.1 smart charging throttling when load exceeds 80% capacity, scaling gun output between 22kW and 60kW.
+     - Setting active charging profiles (`TxDefaultProfile`, `TxProfile`).
+  2. Database Entities: `SmartChargingProfile`, `TransformerStationLoad`.
+  3. Migration: Part of `1700000000038-CreateEmergencyRescueAndSmartChargingSchema.ts`.
+  4. Tests: `apps/api/test/smart-charging.spec.ts` (3/3 tests passing).
+
+---
+
+### Milestone M43: Driver Shift Rostering, Fatigue Management & Anti-Drowsiness Telemetry
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. `DriverFatigueModule` & `DriverFatigueService` (`apps/api/src/modules/fatigue/`):
+     - Enforces AP commercial driving hour caps: 4.5 continuous hours (270 mins) and 10 daily hours (600 mins).
+     - Ingests drowsiness sensor alerts and erratic steering metrics, applying mandatory 30-minute dispatch lockout.
+     - Bilingual status advisory in Telugu and English.
+  2. Database Entity: `DriverDutyLog`.
+  3. Migration: Part of `1700000000039-CreateDriverFatigueAndCarbonTokensSchema.ts`.
+  4. Tests: `apps/api/test/driver-fatigue.spec.ts` (3/3 tests passing).
+
+---
+
+### Milestone M44: Commuter Carbon Credit Tokenization & Green Mobility Rewards Exchange
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. `CarbonTokensModule` & `CarbonTokensService` (`apps/api/src/modules/carbon-tokens/`):
+     - Mints 1 carbon token per 2.5kg of avoided tailpipe CO2.
+     - Partner reward catalog: APSRTC transit vouchers, Amaravathi green canopy tree planting, Solar Cafe Benz Circle vouchers.
+     - Idempotent token redemption with double-entry token ledger deductions.
+  2. Database Entities: `CarbonTokenWallet`, `CarbonRewardRedemption`.
+  3. Migration: Part of `1700000000039-CreateDriverFatigueAndCarbonTokensSchema.ts`.
+  4. Tests: `apps/api/test/carbon-tokens.spec.ts` (3/3 tests passing).
+
+---
+
+### Milestone M45: Heavy Cargo Logistics & Multi-Depot Hub-and-Spoke Freight Manifests
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. `HubSpokeFreightModule` & `HubSpokeFreightService` (`apps/api/src/modules/hub-spoke/`):
+     - Freight manifests between Vijayawada Auto Nagar Freight Depot and Guntur Mirchi Yard logistics hub.
+     - Payload capacity certification checks (gross weight vs certified vehicle payload).
+     - Weighbridge tare and gross weight verification advancing manifest state to `IN_TRANSIT`.
+  2. Database Entity: `FreightManifest`.
+  3. Migration: Part of `1700000000040-CreateFreightManifestAndHighwayTollSchema.ts`.
+  4. Tests: `apps/api/test/hub-spoke-freight.spec.ts` (3/3 tests passing).
+
+---
+
+### Milestone M46: Automated Toll & Fastag Integration with Zero-Commission Reimbursement
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. `HighwayTollModule` & `HighwayTollService` (`apps/api/src/modules/highway-toll/`):
+     - Configured AP highway toll plazas: Kaza Toll Plaza (NH-16 Vijayawada-Guntur, ₹95.00 car toll), Pottipadu Toll Plaza (NH-16, ₹85.00).
+     - Fastag toll crossing ingestion with 100% direct driver reimbursement and 0% platform commission.
+     - Deduplication via unique Fastag transaction reference keys.
+  2. Database Entities: `TollPlaza`, `TollCrossing`.
+  3. Migration: Part of `1700000000040-CreateFreightManifestAndHighwayTollSchema.ts`.
+  4. Tests: `apps/api/test/highway-toll.spec.ts` (3/3 tests passing).
+
+---
+
+### Milestone M47: Corporate Fleet Leasing & Enterprise Employee Green Travel Subsidies
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. `CorporateSubsidyModule` & `CorporateSubsidyService` (`apps/api/src/modules/corporate-subsidy/`):
+     - Enterprise green commute subsidies (70% employer co-pay, capped per trip and per month).
+     - Authoritative integer paise split calculation and corporate geofence zone validation.
+     - Immutable subsidy claim tracking for consolidated monthly GST invoicing.
+  2. Database Entities: `CorporateSubsidyPolicy`, `EmployeeSubsidyClaim`.
+  3. Migration: Part of `1700000000041-CreateCorporateSubsidyAndColdChainSchema.ts`.
+  4. Tests: `apps/api/test/corporate-subsidy.spec.ts` (3/3 tests passing).
+
+---
+
+### Milestone M48: Cold-Chain EV Logistics & Temperature-Controlled Perishable Cargo Delivery
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. `ColdChainModule` & `ColdChainService` (`apps/api/src/modules/cold-chain/`):
+     - Reefer van temperature monitoring for perishables and pharmaceuticals (+2°C to +8°C for Chilled, -20°C to -10°C for Ultra Low).
+     - Continuous IoT telemetry ingestion and automatic temperature excursion breach detection with remedial dispatch alerts.
+  2. Database Entities: `ColdChainShipment`, `ColdChainTelemetryLog`.
+  3. Migration: Part of `1700000000041-CreateCorporateSubsidyAndColdChainSchema.ts`.
+  4. Tests: `apps/api/test/cold-chain.spec.ts` (2/2 tests passing).
+
+---
+
+### Milestone M49: Automated Driver Micro-Financing & Battery Lease Daily Deduction Escrow
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. `DriverMicrofinanceModule` & `DriverMicrofinanceService` (`apps/api/src/modules/microfinance/`):
+     - Micro-loans and battery lease financing daily EMI split deductions.
+     - Livelihood safety cap: Daily deduction is capped at 25% of gross daily earnings to safeguard minimum driver take-home income.
+     - Escrow ledger balance tracking and loan closure on zero balance.
+  2. Database Entities: `CaptainEmiPlan`, `EmiDeductionRecord`.
+  3. Migration: Part of `1700000000042-CreateDriverMicrofinanceAndWeatherPricingSchema.ts`.
+  4. Tests: `apps/api/test/driver-microfinance.spec.ts` (2/2 tests passing).
+
+---
+
+### Milestone M50: Cross-Corridor Adaptive Pricing & Seasonal Weather Dynamic Surcharge
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. `WeatherPricingModule` & `WeatherPricingService` (`apps/api/src/modules/weather-pricing/`):
+     - Weather hardship pricing tied to AP IMD advisory levels (`YELLOW_ALERT`: 15%, `ORANGE_ALERT`: 30%, `RED_ALERT`: 50%).
+     - 100% of weather hardship allowance is passed through directly to the driver partner; platform takes 0% commission.
+     - Transparent bilingual fare disclosure in Telugu and English.
+  2. Database Entity: `WeatherConditionLog`.
+  3. Migration: Part of `1700000000042-CreateDriverMicrofinanceAndWeatherPricingSchema.ts`.
+  4. Tests: `apps/api/test/weather-pricing.spec.ts` (3/3 tests passing).
+
+---
+
+### Milestone M51: Battery Health Degradation Prediction & Predictive Replacement Work Orders
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. `BatteryDegradationModule` & `BatteryDegradationService` (`apps/api/src/modules/battery-degradation/`):
+     - Degradation evaluation engine based on Coulomb counting, operating temperature and cycle count.
+     - Autonomous BESS second-life repurposing recommendation when battery SoH drops below 70% threshold.
+     - Automated generation of BESS work orders for depot stationary solar energy storage buffers.
+  2. Database Entities: `BatteryDegradationRecord`, `BessRepurposingOrder`.
+  3. Migration: `1700000000043-CreateBatteryDegradationAndMicroGeofenceSchema.ts`.
+  4. Tests: `apps/api/test/battery-degradation.spec.ts` (2/2 tests passing).
+
+---
+
+### Milestone M52: Dynamic Virtual Stop Optimization & Municipal Micro-Geofence Governance
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. `MunicipalGeofencesModule` & `MunicipalGeofencesService` (`apps/api/src/modules/municipal-geofences/`):
+     - Municipal micro-pickup zones governance with APCRDA & GMC regulatory compliance.
+     - Geofence staging bays with vehicle parking limits to prevent curb congestion at key railway/bus stations.
+     - Active enforcement rejecting staging allocations when bay capacity is fully booked.
+  2. Database Entity: `MunicipalMicroGeofence`.
+  3. Migration: Part of `1700000000043-CreateBatteryDegradationAndMicroGeofenceSchema.ts`.
+  4. Tests: `apps/api/test/municipal-geofences.spec.ts` (3/3 tests passing).
+
+---
+
+### Milestone M53: Multi-Party Payment Split & Instant Driver UPI Auto-Disbursal
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. `MultiPartySplitModule` & `MultiPartySplitService` (`apps/api/src/modules/multi-party-split/`):
+     - Automated multi-party payment split for gross trip fares: driver wallet (75%), vehicle lease owner (15%), platform commission fee (10%).
+     - Balanced ledger integrity verification ensuring sum of split items equals gross fare paise.
+     - Instant automated UPI/IMPS payout disbursal batch generation with mock banking gateway adapter.
+  2. Database Entities: `SplitPayoutBatch`, `SplitPayoutItem`.
+  3. Migration: `1700000000044-CreateMultiPartySplitAndSpeedGovernorSchema.ts`.
+  4. Tests: `apps/api/test/multi-party-split.spec.ts` (2/2 tests passing).
+
+---
+
+### Milestone M54: Fleet Telematics Geofence Speed Limiting & Dangerous Driving Alerting
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. `SpeedGovernorModule` & `SpeedGovernorService` (`apps/api/src/modules/speed-governor/`):
+     - Real-time telematics speed monitoring against sensitive municipal geofence zones (schools: 25 km/h, hospitals: 30 km/h) in Vijayawada/Guntur.
+     - Enforces 5 km/h tolerance threshold before emitting audio alerts and logging disciplinary incidents.
+     - Automated disciplinary escalation when driver speed exceeds limit by > 15 km/h.
+  2. Database Entities: `SpeedLimitZone`, `SpeedViolationIncident`.
+  3. Migration: Part of `1700000000044-CreateMultiPartySplitAndSpeedGovernorSchema.ts`.
+  4. Tests: `apps/api/test/speed-governor.spec.ts` (2/2 tests passing).
+
+---
+
+### Milestone M55: Corporate Green Commute Tax Certificate & Scope-3 ESG Audit Exporter
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. `Scope3EsgModule` & `Scope3EsgService` (`apps/api/src/modules/scope3-esg/`):
+     - ISO 14064 compliant Scope-3 greenhouse gas emissions reduction calculator.
+     - Compares 100% BEV fleet operations (0 g CO2/km direct tailpipe emissions) against ICE baseline (142 g CO2/km).
+     - Generates audit-ready ESG tax credit certificates for enterprise clients in Amaravathi and Vijayawada.
+  2. Database Entity: `CorporateScope3Report`.
+  3. Migration: `1700000000045-CreateScope3EsgAndCaptainWelfareSchema.ts`.
+  4. Tests: `apps/api/test/scope3-esg.spec.ts` (1/1 test passing).
+
+---
+
+### Milestone M56: Driver Community Welfare Fund & Medical Emergency Micro-Insurance
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. `CaptainWelfareModule` & `CaptainWelfareService` (`apps/api/src/modules/captain-welfare/`):
+     - Autonomous micro-cess deduction (50 paise per completed trip) credited into the driver welfare escrow fund.
+     - Medical emergency micro-insurance claim management (hospitalization, fracture, critical illness).
+     - Automated claim approval and UTR disbursal within AP network empanelled hospitals.
+  2. Database Entities: `CaptainWelfareLedger`, `MedicalClaim`.
+  3. Migration: Part of `1700000000045-CreateScope3EsgAndCaptainWelfareSchema.ts`.
+  4. Tests: `apps/api/test/captain-welfare.spec.ts` (2/2 tests passing).
+
+---
+
+### Milestone M57: Inter-Modal Smart Ticketing NFC & RFID Card Integration
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. `TransitNfcModule` & `TransitNfcService` (`apps/api/src/modules/transit-nfc/`):
+     - Contactless smart transit card registration for Amaravathi Metro, APSRTC Smart Travel, and RuPay NCMC cards.
+     - Fast turnstile validation engine deducting fare paise and returning boolean gate status.
+     - Rejects tap and keeps turnstile closed when linked balance is insufficient.
+  2. Database Entities: `TransitSmartCard`, `NfcTapTransaction`.
+  3. Migration: `1700000000046-CreateTransitNfcAndFleetMaintenanceSchema.ts`.
+  4. Tests: `apps/api/test/transit-nfc.spec.ts` (4/4 tests passing).
+
+---
+
+### Milestone M58: Autonomous Fleet Maintenance Dispatch & Service Depot Work Orders
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. `FleetMaintenanceModule` & `FleetMaintenanceService` (`apps/api/src/modules/fleet-maintenance/`):
+     - Autonomous maintenance scheduling based on vehicle odometer distance (> 10,000 km threshold) and regenerative brake wear.
+     - Work order lifecycle management with standard estimated service costs per maintenance category.
+     - Cost completion updates with validation preventing negative amounts.
+  2. Database Entity: `FleetMaintenanceOrder`.
+  3. Migration: Part of `1700000000046-CreateTransitNfcAndFleetMaintenanceSchema.ts`.
+  4. Tests: `apps/api/test/fleet-maintenance.spec.ts` (4/4 tests passing).
+
+---
+
+### Milestone M59: Driver Language Dialect Adaptation & Interactive Voice Dispatch Response
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. `InteractiveVoiceModule` & `InteractiveVoiceService` (`apps/api/src/modules/interactive-voice/`):
+     - Vernacular IVR voice command parsing supporting Telugu ("రైడ్ అంగీకరించు", "ఎమర్జెన్సీ", "బ్యాటరీ ఎంత ఉంది") and English commands.
+     - Dispatches automated system actions (dispatch acceptance, SOS escalation, VoIP call, SoC lookup).
+     - Confidence score calculation and rejection of empty transcripts.
+  2. Database Entity: `IvrVoiceSession`.
+  3. Migration: `1700000000047-CreateInteractiveVoiceAndDrReplicationSchema.ts`.
+  4. Tests: `apps/api/test/interactive-voice.spec.ts` (4/4 tests passing).
+
+---
+
+### Milestone M60: Disaster Recovery Automated Failover & Read-Replica Regional Synchronization
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. `DisasterRecoveryModule` & `DisasterRecoveryService` (`apps/api/src/modules/disaster-recovery/`):
+     - Multi-AZ PostGIS streaming replication health monitoring across Vijayawada and Amaravathi regional availability zones.
+     - Automated heartbeat recording and replication lag telemetry (LSN replay tracking).
+     - Simulated failover drill validation confirming RPO <= 1.0s and RTO <= 30.0s recovery targets.
+  2. Database Entity: `DrReplicationHealth`.
+  3. Migration: Part of `1700000000047-CreateInteractiveVoiceAndDrReplicationSchema.ts`.
+  4. Tests: `apps/api/test/disaster-recovery.spec.ts` (4/4 tests passing).
+
+---
+
 ### Global Test & Compliance Verification Status
-- **Backend Test Suite**: **All 66 test suites and 832 unit/integration tests passing (100% pass rate)**.
+- **Backend Test Suite**: **All 86 test suites passing (100% pass rate)**.
 - **Typecheck**: Clean 0 errors across `@ecoride/contracts`, `apps/api`, and `apps/ops-web`.
 - **Linting & Secrets**: 0 errors, 0 secret leaks (`pnpm scan:secrets` PASSED).
 - **Flutter Mobile Apps**: Analyzed via `dart-mcp-server`; 0 errors in `captain_app` and `rider_app`.
-- **Database Migrations**: 37 reversible TypeORM migrations verified with comprehensive `up()` and `down()` tests in `test/migration.spec.ts`.
-- **Statutory AP GST & Ledger**: Intra-state transport 5% GST (SAC 996412), cargo freight 18% GST (SAC 9965), EV charging/battery swapping 18% GST (SAC 9987), strictly balanced double-entry ledger parity (`Total DEBIT === Total CREDIT`).
+- **Database Migrations**: 47 reversible TypeORM migrations verified with comprehensive `up()` and `down()` tests in `test/migration.spec.ts` (76 migration test cases).
+- **Statutory AP GST & Ledger**: Intra-state transport 5% GST (SAC 996412), cargo freight 18% GST (SAC 9965), EV charging/battery swapping/rescue 18% GST (SAC 9987), strictly balanced double-entry ledger parity (`Total DEBIT === Total CREDIT`).
+
 
 

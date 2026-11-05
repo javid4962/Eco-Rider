@@ -49,6 +49,26 @@ import { DisputesModule } from './modules/disputes/disputes.module';
 import { ForecastingModule } from './modules/forecasting/forecasting.module';
 import { RegulatoryModule } from './modules/regulatory/regulatory.module';
 import { VernacularModule } from './modules/vernacular/vernacular.module';
+import { EmergencyRescueModule } from './modules/rescue/emergency-rescue.module';
+import { SmartChargingModule } from './modules/smart-charging/smart-charging.module';
+import { DriverFatigueModule } from './modules/fatigue/driver-fatigue.module';
+import { CarbonTokensModule } from './modules/carbon-tokens/carbon-tokens.module';
+import { HubSpokeFreightModule } from './modules/hub-spoke/hub-spoke-freight.module';
+import { HighwayTollModule } from './modules/highway-toll/highway-toll.module';
+import { CorporateSubsidyModule } from './modules/corporate-subsidy/corporate-subsidy.module';
+import { ColdChainModule } from './modules/cold-chain/cold-chain.module';
+import { DriverMicrofinanceModule } from './modules/microfinance/driver-microfinance.module';
+import { WeatherPricingModule } from './modules/weather-pricing/weather-pricing.module';
+import { BatteryDegradationModule } from './modules/battery-degradation/battery-degradation.module';
+import { MunicipalGeofencesModule } from './modules/municipal-geofences/municipal-geofences.module';
+import { MultiPartySplitModule } from './modules/multi-party-split/multi-party-split.module';
+import { SpeedGovernorModule } from './modules/speed-governor/speed-governor.module';
+import { Scope3EsgModule } from './modules/scope3-esg/scope3-esg.module';
+import { CaptainWelfareModule } from './modules/captain-welfare/captain-welfare.module';
+import { TransitNfcModule } from './modules/transit-nfc/transit-nfc.module';
+import { FleetMaintenanceModule } from './modules/fleet-maintenance/fleet-maintenance.module';
+import { InteractiveVoiceModule } from './modules/interactive-voice/interactive-voice.module';
+import { DisasterRecoveryModule } from './modules/disaster-recovery/disaster-recovery.module';
 import { CorrelationIdMiddleware } from './common/middleware/correlation-id.middleware';
 import { AuthMiddleware } from './modules/auth/middleware/auth.middleware';
 
@@ -106,6 +126,26 @@ import { AuthMiddleware } from './modules/auth/middleware/auth.middleware';
     ForecastingModule,
     RegulatoryModule,
     VernacularModule,
+    EmergencyRescueModule,
+    SmartChargingModule,
+    DriverFatigueModule,
+    CarbonTokensModule,
+    HubSpokeFreightModule,
+    HighwayTollModule,
+    CorporateSubsidyModule,
+    ColdChainModule,
+    DriverMicrofinanceModule,
+    WeatherPricingModule,
+    BatteryDegradationModule,
+    MunicipalGeofencesModule,
+    MultiPartySplitModule,
+    SpeedGovernorModule,
+    Scope3EsgModule,
+    CaptainWelfareModule,
+    TransitNfcModule,
+    FleetMaintenanceModule,
+    InteractiveVoiceModule,
+    DisasterRecoveryModule,
   ],
 })
 export class AppModule implements NestModule {

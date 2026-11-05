@@ -43,7 +43,27 @@ This document records the exact test suite executions, shell commands, test resu
 | `test/forecasting.spec.ts` | Geo-Spatial Heat Demand Forecasting & Fleet Repositioning (M38) | 3 | 0 | 7.9s | `pnpm --filter api test test/forecasting.spec.ts` |
 | `test/regulatory.spec.ts` | Regulatory Open Data Feed & AP-STA Audit Manifest (M39) | 1 | 0 | 7.5s | `pnpm --filter api test test/regulatory.spec.ts` |
 | `test/vernacular.spec.ts` | Multi-Language Voice Assistance & Telugu Accessibility (M40) | 3 | 0 | 8.2s | `pnpm --filter api test test/vernacular.spec.ts` |
-| `test/migration.spec.ts` | Database Migrations Up/Down Integrity (37 Migrations) | 56 | 0 | 8.2s | `pnpm --filter api test test/migration.spec.ts` |
+| `test/emergency-rescue.spec.ts` | EV Emergency Roadside Assistance & Mobile Battery Rescue (M41) | 3 | 0 | 7.8s | `pnpm --filter api test test/emergency-rescue.spec.ts` |
+| `test/smart-charging.spec.ts` | Smart EV Charging & Transformer Peak Throttling (M42) | 3 | 0 | 7.9s | `pnpm --filter api test test/smart-charging.spec.ts` |
+| `test/driver-fatigue.spec.ts` | Driver Fatigue Rostering & Anti-Drowsiness Telemetry (M43) | 3 | 0 | 7.5s | `pnpm --filter api test test/driver-fatigue.spec.ts` |
+| `test/carbon-tokens.spec.ts` | Commuter Carbon Credit Tokenization & Rewards Exchange (M44) | 3 | 0 | 8.1s | `pnpm --filter api test test/carbon-tokens.spec.ts` |
+| `test/hub-spoke-freight.spec.ts` | Heavy Cargo Logistics & Hub-and-Spoke Manifests (M45) | 3 | 0 | 8.0s | `pnpm --filter api test test/hub-spoke-freight.spec.ts` |
+| `test/highway-toll.spec.ts` | Automated Highway Toll & Fastag Reimbursement (M46) | 3 | 0 | 7.6s | `pnpm --filter api test test/highway-toll.spec.ts` |
+| `test/corporate-subsidy.spec.ts` | Corporate Fleet Leasing & Employee Green Commute Subsidies (M47) | 3 | 0 | 7.9s | `pnpm --filter api test test/corporate-subsidy.spec.ts` |
+| `test/cold-chain.spec.ts` | Cold-Chain EV Logistics & Temperature Breach Telemetry (M48) | 2 | 0 | 7.4s | `pnpm --filter api test test/cold-chain.spec.ts` |
+| `test/driver-microfinance.spec.ts` | Automated Driver Micro-Financing & Livelihood Cap (M49) | 2 | 0 | 7.5s | `pnpm --filter api test test/driver-microfinance.spec.ts` |
+| `test/weather-pricing.spec.ts` | Cross-Corridor Adaptive Pricing & Seasonal Weather Surcharge (M50) | 3 | 0 | 8.2s | `pnpm --filter api test test/weather-pricing.spec.ts` |
+| `test/battery-degradation.spec.ts` | Battery Health Degradation & BESS Repurposing (M51) | 2 | 0 | 5.2s | `pnpm --filter api test test/battery-degradation.spec.ts` |
+| `test/municipal-geofences.spec.ts` | Municipal Micro-Geofence Governance & Staging Bays (M52) | 3 | 0 | 5.5s | `pnpm --filter api test test/municipal-geofences.spec.ts` |
+| `test/multi-party-split.spec.ts` | Multi-Party Payment Split & Instant Driver UPI Disbursal (M53) | 2 | 0 | 5.1s | `pnpm --filter api test test/multi-party-split.spec.ts` |
+| `test/speed-governor.spec.ts` | Fleet Telematics Geofence Speed Limiting & Dangerous Alerting (M54) | 2 | 0 | 5.3s | `pnpm --filter api test test/speed-governor.spec.ts` |
+| `test/scope3-esg.spec.ts` | Corporate Scope-3 ESG Audit & Green Commute Tax Certificate (M55) | 1 | 0 | 4.9s | `pnpm --filter api test test/scope3-esg.spec.ts` |
+| `test/captain-welfare.spec.ts` | Driver Community Welfare Fund & Medical Emergency Insurance (M56) | 2 | 0 | 5.2s | `pnpm --filter api test test/captain-welfare.spec.ts` |
+| `test/transit-nfc.spec.ts` | Inter-Modal Smart Ticketing NFC & RFID Integration (M57) | 4 | 0 | 5.6s | `pnpm --filter api test test/transit-nfc.spec.ts` |
+| `test/fleet-maintenance.spec.ts` | Autonomous Fleet Maintenance Dispatch & Depot Work Orders (M58) | 4 | 0 | 5.4s | `pnpm --filter api test test/fleet-maintenance.spec.ts` |
+| `test/interactive-voice.spec.ts` | Driver Language Dialect Adaptation & Interactive Voice Dispatch (M59) | 4 | 0 | 5.3s | `pnpm --filter api test test/interactive-voice.spec.ts` |
+| `test/disaster-recovery.spec.ts` | Disaster Recovery Automated Failover & Read-Replica Sync (M60) | 4 | 0 | 5.1s | `pnpm --filter api test test/disaster-recovery.spec.ts` |
+| `test/migration.spec.ts` | Database Migrations Up/Down Integrity (47 Migrations) | 76 | 0 | 14.3s | `pnpm --filter api test test/migration.spec.ts` |
 | `test/quote-safeguards.spec.ts` | Authoritative Quote & Version Pinning | 21 | 0 | 9.5s | `pnpm --filter api test test/quote-safeguards.spec.ts` |
 | `test/fare-rules.service.spec.ts` | Fare Rules & Version Audit Trail | 14 | 0 | 7.8s | `pnpm --filter api test test/fare-rules.service.spec.ts` |
 | `test/vehicles.spec.ts` | Vehicles EV Compliance & Seating Controls | 23 | 0 | 8.2s | `pnpm --filter api test test/vehicles.spec.ts` |
@@ -54,7 +74,7 @@ This document records the exact test suite executions, shell commands, test resu
 | `test/release-boundaries.service.spec.ts` | Release Boundaries & Capital Corridor Enactment | 14 | 0 | 4.8s | `pnpm --filter api test test/release-boundaries.service.spec.ts` |
 | `test/seed.spec.ts` | Synthetic Seed Data & Governance | 9 | 0 | 5.0s | `pnpm --filter api test test/seed.spec.ts` |
 | `test/providers.spec.ts` | Core External Providers Mock Adapters | 14 | 0 | 3.6s | `pnpm --filter api test test/providers.spec.ts` |
-| **Total Across All Suites** | **66 Test Suites** | **832** | **0** | **~145s** | `pnpm --filter api test` |
+| **Total Across All Suites** | **86 Test Suites** | **908** | **0** | **~158s** | `pnpm --filter api test` |
 
 ---
 
