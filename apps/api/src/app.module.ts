@@ -79,6 +79,16 @@ import { LostFoundCustodyModule } from './modules/lost-found-custody/lost-found-
 import { DepotLoadBalancingModule } from './modules/depot-load-balancing/depot-load-balancing.module';
 import { ZeroEmissionZonesModule } from './modules/zero-emission-zones/zero-emission-zones.module';
 import { EmergencyIslandingModule } from './modules/emergency-islanding/emergency-islanding.module';
+import { CaptainMentorshipModule } from './modules/captain-mentorship/captain-mentorship.module';
+import { DynamicCongestionModule } from './modules/dynamic-congestion/dynamic-congestion.module';
+import { ColdChainInsuranceModule } from './modules/cold-chain-insurance/cold-chain-insurance.module';
+import { AirportFeederModule } from './modules/airport-feeder/airport-feeder.module';
+import { DmsFatigueModule } from './modules/dms-fatigue/dms-fatigue.module';
+import { ApStaPermitsModule } from './modules/ap-sta-permits/ap-sta-permits.module';
+import { CorporateApprovalsModule } from './modules/corporate-approvals/corporate-approvals.module';
+import { Ais156BatterySwapModule } from './modules/ais156-battery-swap/ais156-battery-swap.module';
+import { V2vRescueModule } from './modules/v2v-rescue/v2v-rescue.module';
+import { CycloneResilienceModule } from './modules/cyclone-resilience/cyclone-resilience.module';
 import { CorrelationIdMiddleware } from './common/middleware/correlation-id.middleware';
 import { AuthMiddleware } from './modules/auth/middleware/auth.middleware';
 
@@ -166,6 +176,16 @@ import { AuthMiddleware } from './modules/auth/middleware/auth.middleware';
     DepotLoadBalancingModule,
     ZeroEmissionZonesModule,
     EmergencyIslandingModule,
+    CaptainMentorshipModule,
+    DynamicCongestionModule,
+    ColdChainInsuranceModule,
+    AirportFeederModule,
+    DmsFatigueModule,
+    ApStaPermitsModule,
+    CorporateApprovalsModule,
+    Ais156BatterySwapModule,
+    V2vRescueModule,
+    CycloneResilienceModule,
   ],
 })
 export class AppModule implements NestModule {

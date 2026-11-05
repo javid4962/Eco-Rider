@@ -73,7 +73,17 @@ This document records the exact test suite executions, shell commands, test resu
 | `test/depot-load-balancing.spec.ts` | Multi-Vehicle Battery Balancing & Load Shifting (M68) | 4 | 0 | 5.4s | `pnpm --filter api test test/depot-load-balancing.spec.ts` |
 | `test/zero-emission-zones.spec.ts` | Municipal Zero-Emission Zone Enforcement (M69) | 4 | 0 | 5.2s | `pnpm --filter api test test/zero-emission-zones.spec.ts` |
 | `test/emergency-islanding.spec.ts` | Emergency Blackout Islanding Mobile Grid Power (M70) | 4 | 0 | 5.3s | `pnpm --filter api test test/emergency-islanding.spec.ts` |
-| `test/migration.spec.ts` | Database Migrations Up/Down Integrity (52 Migrations) | 86 | 0 | 9.2s | `pnpm --filter api test test/migration.spec.ts` |
+| `test/captain-mentorship.spec.ts` | Multi-Tier Captain Loyalty Guilds & Peer Mentorship (M71) | 4 | 0 | 13.5s | `pnpm --filter api test test/captain-mentorship.spec.ts` |
+| `test/dynamic-congestion.spec.ts` | Dynamic Congestion Surcharge & High-Density Roadway Pricing (M72) | 4 | 0 | 5.2s | `pnpm --filter api test test/dynamic-congestion.spec.ts` |
+| `test/cold-chain-insurance.spec.ts` | Cold-Chain Temperature Excursion Cargo Insurance Claims (M73) | 3 | 0 | 5.1s | `pnpm --filter api test test/cold-chain-insurance.spec.ts` |
+| `test/airport-feeder.spec.ts` | Gannavaram Airport Flight Feeder Schedules & Dispatch (M74) | 3 | 0 | 5.3s | `pnpm --filter api test test/airport-feeder.spec.ts` |
+| `test/dms-fatigue.spec.ts` | Driver Fatigue Camera Ingestion & Drowsiness Haptic Telemetry (M75) | 3 | 0 | 5.2s | `pnpm --filter api test test/dms-fatigue.spec.ts` |
+| `test/ap-sta-permits.spec.ts` | Statutory AP-STA Digital Permit Issuance & Fleet Compliance (M76) | 3 | 0 | 5.4s | `pnpm --filter api test test/ap-sta-permits.spec.ts` |
+| `test/corporate-approvals.spec.ts` | Corporate Travel Multi-Level Approval & Expense Management (M77) | 4 | 0 | 5.3s | `pnpm --filter api test test/corporate-approvals.spec.ts` |
+| `test/ais156-battery-swap.spec.ts` | Multi-Vendor Battery Swapping AIS-156 Amendment 3 Compatibility (M78) | 4 | 0 | 14.4s | `pnpm --filter api test test/ais156-battery-swap.spec.ts` |
+| `test/v2v-rescue.spec.ts` | Stranded Vehicle Mobile Power Bank (V2V) Rescue (M79) | 3 | 0 | 5.3s | `pnpm --filter api test test/v2v-rescue.spec.ts` |
+| `test/cyclone-resilience.spec.ts` | Disaster Resilience Cyclone Preparedness Automated Fleet Relocation (M80) | 2 | 0 | 5.1s | `pnpm --filter api test test/cyclone-resilience.spec.ts` |
+| `test/migration.spec.ts` | Database Migrations Up/Down Integrity (57 Migrations) | 96 | 0 | 18.0s | `pnpm --filter api test test/migration.spec.ts` |
 | `test/quote-safeguards.spec.ts` | Authoritative Quote & Version Pinning | 21 | 0 | 9.5s | `pnpm --filter api test test/quote-safeguards.spec.ts` |
 | `test/fare-rules.service.spec.ts` | Fare Rules & Version Audit Trail | 14 | 0 | 7.8s | `pnpm --filter api test test/fare-rules.service.spec.ts` |
 | `test/vehicles.spec.ts` | Vehicles EV Compliance & Seating Controls | 23 | 0 | 8.2s | `pnpm --filter api test test/vehicles.spec.ts` |
@@ -84,7 +94,7 @@ This document records the exact test suite executions, shell commands, test resu
 | `test/release-boundaries.service.spec.ts` | Release Boundaries & Capital Corridor Enactment | 14 | 0 | 4.8s | `pnpm --filter api test test/release-boundaries.service.spec.ts` |
 | `test/seed.spec.ts` | Synthetic Seed Data & Governance | 9 | 0 | 5.0s | `pnpm --filter api test test/seed.spec.ts` |
 | `test/providers.spec.ts` | Core External Providers Mock Adapters | 14 | 0 | 3.6s | `pnpm --filter api test test/providers.spec.ts` |
-| **Total Across All Suites** | **96 Test Suites** | **953** | **0** | **~172s** | `pnpm --filter api test` |
+| **Total Across All Suites** | **106 Test Suites** | **999** | **0** | **~200s** | `pnpm --filter api test` |
 
 ---
 

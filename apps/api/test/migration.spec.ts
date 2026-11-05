@@ -41,6 +41,11 @@ import { CreateBiometricWellnessAndCleanEnergyRoutingSchema1700000000049 } from 
 import { CreateHighwayFastChargingAndCaptainPensionSchema1700000000050 } from '../src/database/migrations/1700000000050-CreateHighwayFastChargingAndCaptainPensionSchema';
 import { CreateLostFoundCustodyAndDepotLoadBalancingSchema1700000000051 } from '../src/database/migrations/1700000000051-CreateLostFoundCustodyAndDepotLoadBalancingSchema';
 import { CreateZeroEmissionZonesAndEmergencyIslandingSchema1700000000052 } from '../src/database/migrations/1700000000052-CreateZeroEmissionZonesAndEmergencyIslandingSchema';
+import { CreateCaptainMentorshipAndCongestionZonesSchema1700000000053 } from '../src/database/migrations/1700000000053-CreateCaptainMentorshipAndCongestionZonesSchema';
+import { CreateColdChainInsuranceAndAirportFeederSchema1700000000054 } from '../src/database/migrations/1700000000054-CreateColdChainInsuranceAndAirportFeederSchema';
+import { CreateDriverFatigueAndDigitalPermitsSchema1700000000055 } from '../src/database/migrations/1700000000055-CreateDriverFatigueAndDigitalPermitsSchema';
+import { CreateCorporateApprovalsAndAis156SwapSchema1700000000056 } from '../src/database/migrations/1700000000056-CreateCorporateApprovalsAndAis156SwapSchema';
+import { CreateV2vRescueAndCycloneRelocationSchema1700000000057 } from '../src/database/migrations/1700000000057-CreateV2vRescueAndCycloneRelocationSchema';
 import { QueryRunner } from 'typeorm';
 
 describe('Database Migrations', () => {
@@ -1298,6 +1303,129 @@ describe('Database Migrations', () => {
       expect(allQueries).toContain('DROP TABLE IF EXISTS "emergency_power_missions"');
       expect(allQueries).toContain('DROP TABLE IF EXISTS "zez_compliance_records"');
       expect(allQueries).toContain('DROP TABLE IF EXISTS "zero_emission_zones"');
+    });
+  });
+
+  describe('CreateCaptainMentorshipAndCongestionZonesSchema1700000000053', () => {
+    let migration: CreateCaptainMentorshipAndCongestionZonesSchema1700000000053;
+
+    beforeEach(() => {
+      migration = new CreateCaptainMentorshipAndCongestionZonesSchema1700000000053();
+    });
+
+    it('should create captain mentorship pairings and congestion zones in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "captain_mentorship_pairings"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "congestion_zones"');
+      expect(allQueries).toContain('UQ_congestion_zones_code');
+    });
+
+    it('should drop congestion zones and mentorship pairings in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "congestion_zones"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "captain_mentorship_pairings"');
+    });
+  });
+
+  describe('CreateColdChainInsuranceAndAirportFeederSchema1700000000054', () => {
+    let migration: CreateColdChainInsuranceAndAirportFeederSchema1700000000054;
+
+    beforeEach(() => {
+      migration = new CreateColdChainInsuranceAndAirportFeederSchema1700000000054();
+    });
+
+    it('should create cold chain excursion claims and airport feeder bookings in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "cold_chain_excursion_claims"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "airport_feeder_bookings"');
+      expect(allQueries).toContain('UQ_cold_chain_excursion_claims_ref');
+    });
+
+    it('should drop airport feeder bookings and cold chain claims in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "airport_feeder_bookings"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "cold_chain_excursion_claims"');
+    });
+  });
+
+  describe('CreateDriverFatigueAndDigitalPermitsSchema1700000000055', () => {
+    let migration: CreateDriverFatigueAndDigitalPermitsSchema1700000000055;
+
+    beforeEach(() => {
+      migration = new CreateDriverFatigueAndDigitalPermitsSchema1700000000055();
+    });
+
+    it('should create driver fatigue events and digital permit records in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "driver_fatigue_events"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "digital_permit_records"');
+      expect(allQueries).toContain('UQ_digital_permit_records_num');
+    });
+
+    it('should drop digital permit records and fatigue events in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "digital_permit_records"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "driver_fatigue_events"');
+    });
+  });
+
+  describe('CreateCorporateApprovalsAndAis156SwapSchema1700000000056', () => {
+    let migration: CreateCorporateApprovalsAndAis156SwapSchema1700000000056;
+
+    beforeEach(() => {
+      migration = new CreateCorporateApprovalsAndAis156SwapSchema1700000000056();
+    });
+
+    it('should create corporate requisitions and battery swap compatibility logs in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "corporate_requisitions"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "battery_swap_compatibility_logs"');
+    });
+
+    it('should drop swap compatibility logs and corporate requisitions in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "battery_swap_compatibility_logs"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "corporate_requisitions"');
+    });
+  });
+
+  describe('CreateV2vRescueAndCycloneRelocationSchema1700000000057', () => {
+    let migration: CreateV2vRescueAndCycloneRelocationSchema1700000000057;
+
+    beforeEach(() => {
+      migration = new CreateV2vRescueAndCycloneRelocationSchema1700000000057();
+    });
+
+    it('should create V2V rescue missions and cyclone relocation plans in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "v2v_rescue_missions"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "cyclone_relocation_plans"');
+    });
+
+    it('should drop cyclone relocation plans and V2V rescue missions in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "cyclone_relocation_plans"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "v2v_rescue_missions"');
     });
   });
 });
