@@ -69,6 +69,16 @@ This is the central engineering ledger tracking task execution, code diffs, migr
 | **M58** | **Autonomous Fleet Maintenance Dispatch & Service Depot Work Orders** | Fleet Maintenance Scope | **VERIFIED** | Automated scheduled servicing work orders based on odometer and brake/tire wear; 4 tests pass |
 | **M59** | **Driver Language Dialect Adaptation & Interactive Voice Dispatch Response** | Interactive Voice Scope | **VERIFIED** | IVR / Telugu speech-to-text dispatch acknowledgement via WebRTC / audio; 4 tests pass |
 | **M60** | **Disaster Recovery Automated Failover & Read-Replica Regional Synchronization** | Disaster Recovery Scope | **VERIFIED** | Multi-AZ PostGIS streaming replication and failover drill verification; 4 tests pass |
+| **M61** | **Fleet V2G (Vehicle-to-Grid) Peak Shaving & Bidirectional Energy Trading** | V2G Trading Scope | **VERIFIED** | V2G discharge sessions, grid feed-in tariff paise, 40% reserve safeguard; 3 tests pass |
+| **M62** | **Autonomous Micro-Hub Parcel Delivery Lockers & Smart Locker QR Verification** | Smart Lockers Scope | **VERIFIED** | Multi-size compartment deposit, SHA-256 release OTP, audit logging; 4 tests pass |
+| **M63** | **Driver Health & Wellness Biometric Telemetry & Shift Pre-Flight Safety Screening** | Biometric Wellness Scope | **VERIFIED** | Zero BAC alcohol breathalyzer, SpO2/pulse vitals guard, pre-shift clearance; 4 tests pass |
+| **M64** | **Dynamic Real-Time Carbon Intensity Fleet Charging Dispatch (Clean Energy Routing)** | Clean Energy Scope | **VERIFIED** | Solar output tracking, carbon intensity ranking, avoided CO2 calculation; 3 tests pass |
+| **M65** | **Inter-City High-Speed EV Express Corridor Charging Reservation & Range Insurance Guarantee** | Highway Fast Charging Scope | **VERIFIED** | NH-16 Kaza/Pottipadu fast charger bay reservations with deposit hold; 4 tests pass |
+| **M66** | **Captain Micro-Pension & National Pension System (NPS-Lite) Voluntary Deduction Escrow** | Captain Pension Scope | **VERIFIED** | PFRDA PRAN voluntary daily micro-deductions and accumulated ledger; 4 tests pass |
+| **M67** | **Autonomous Lost & Found Chain-of-Custody & Depot Secure Vault Storage** | Lost Found Custody Scope | **VERIFIED** | Barcode custody tracking, depot secure vault assignment, OTP rider release; 4 tests pass |
+| **M68** | **Dynamic Multi-Vehicle Fleet Battery Balancing & Smart Depot Load Shifting** | Depot Load Balancing Scope | **VERIFIED** | Priority-based charging distribution, transformer overload load-shedding; 4 tests pass |
+| **M69** | **Municipal Zero-Emission Zone (ZEZ) Enforcement & Clean Air Compliance Certificates** | Zero Emission Zones Scope | **VERIFIED** | APCRDA Amaravathi ZEZ enforcement, BEV compliance certs, ICE statutory penalties; 4 tests pass |
+| **M70** | **Autonomous Emergency Blackout Islanding & Emergency Mobile Grid Power Supply** | Emergency Islanding Scope | **VERIFIED** | V2G bi-directional inverter power dispatch for Guntur GGH / relief shelters; 4 tests pass |
 
 ---
 
@@ -878,12 +888,152 @@ This is the central engineering ledger tracking task execution, code diffs, migr
 
 ---
 
+### Milestone M61: Fleet V2G Peak Shaving & Bidirectional Energy Trading
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. `V2gEnergyTradingModule` & `V2gEnergyTradingService` (`apps/api/src/modules/v2g/`):
+     - Peak evening grid deficit support allowing idle parked fleet vehicles to export energy back to the grid.
+     - Minimum 40% battery SoC reserve protection preventing deep discharge.
+     - Feed-in tariff calculations in integer paise per kWh with automated revenue crediting.
+  2. Database Entity: `V2gDischargeSession`.
+  3. Migration: `1700000000048-CreateV2gAndSmartLockersSchema.ts`.
+  4. Tests: `apps/api/test/v2g-energy-trading.spec.ts` (3/3 tests passing).
+
+---
+
+### Milestone M62: Autonomous Micro-Hub Parcel Delivery Lockers & Smart Locker QR Verification
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. `SmartLockersModule` & `SmartLockersService` (`apps/api/src/modules/smart-lockers/`):
+     - Smart parcel delivery lockers at key transit hubs (Pandit Nehru Bus Station, Vijayawada Junction).
+     - Size-based compartment allocation (SMALL, MEDIUM, LARGE) with cryptographic 6-digit SHA-256 release OTPs.
+     - Full audit access logging tracking deposits, successful retrievals, and tamper attempts.
+  2. Database Entities: `SmartLockerCompartment`, `LockerAccessLog`.
+  3. Migration: Part of `1700000000048-CreateV2gAndSmartLockersSchema.ts`.
+  4. Tests: `apps/api/test/smart-lockers.spec.ts` (4/4 tests passing).
+
+---
+
+### Milestone M63: Driver Health & Wellness Biometric Telemetry & Shift Pre-Flight Safety Screening
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. `BiometricWellnessModule` & `BiometricWellnessService` (`apps/api/src/modules/biometric-wellness/`):
+     - Pre-shift captain screening at depot turnstiles enforcing absolute zero-tolerance alcohol policy (0.0 mg/dL).
+     - Telemetry vital checks: SpO2 $\ge 95\%$, heart rate (50–115 bpm), and body temperature (35.8–38.0°C).
+     - Automated duty lockout preventing dispatch for drivers failing wellness screening.
+  2. Database Entity: `CaptainWellnessScreening`.
+  3. Migration: `1700000000049-CreateBiometricWellnessAndCleanEnergyRoutingSchema.ts`.
+  4. Tests: `apps/api/test/biometric-wellness.spec.ts` (4/4 tests passing).
+
+---
+
+### Milestone M64: Dynamic Real-Time Carbon Intensity Fleet Charging Dispatch (Clean Energy Routing)
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. `CleanEnergyRoutingModule` & `CleanEnergyRoutingService` (`apps/api/src/modules/clean-energy/`):
+     - Solar generation telemetry ingestion tracking real-time kW output and grid carbon intensity across depots.
+     - Intelligent clean routing directing vehicles to depots with highest green energy percentage (e.g. Amaravathi Mega Solar Depot at 94%).
+     - Avoided lifecycle grams of CO2 calculation comparing against standard grid factor (720 g/kWh).
+  2. Database Entity: `DepotSolarGeneration`.
+  3. Migration: Part of `1700000000049-CreateBiometricWellnessAndCleanEnergyRoutingSchema.ts`.
+  4. Tests: `apps/api/test/clean-energy-routing.spec.ts` (3/3 tests passing).
+
+---
+
+### Milestone M65: Inter-City High-Speed EV Express Corridor Charging Reservation & Range Insurance Guarantee
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. `HighwayFastChargingModule` & `HighwayFastChargingService` (`apps/api/src/modules/highway-fast-charging/`):
+     - Fast-charger bay reservation along the NH-16 high-speed corridor (Kaza and Pottipadu toll plazas).
+     - Guaranteed 45-minute arrival time windows with 10,000 paise (₹100) reservation deposit hold.
+     - Slot status machine (RESERVED, OCCUPIED, COMPLETED, NO_SHOW_CANCELLED).
+  2. Database Entity: `HighwayChargingReservation`.
+  3. Migration: `1700000000050-CreateHighwayFastChargingAndCaptainPensionSchema.ts`.
+  4. Tests: `apps/api/test/highway-fast-charging.spec.ts` (4/4 tests passing).
+
+---
+
+### Milestone M66: Captain Micro-Pension & National Pension System (NPS-Lite) Voluntary Deduction Escrow
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. `CaptainPensionModule` & `CaptainPensionService` (`apps/api/src/modules/captain-pension/`):
+     - Voluntary captain micro-pension enrollment tied to official PFRDA Permanent Retirement Account Numbers (PRAN).
+     - Daily micro-savings deductions ($\ge 500$ paise / ₹5.00) credited into retirement escrow ledger.
+     - Transparent tracking of total accumulated paise and contributed active days.
+  2. Database Entities: `CaptainPensionAccount`, `PensionDeductionRecord`.
+  3. Migration: Part of `1700000000050-CreateHighwayFastChargingAndCaptainPensionSchema.ts`.
+  4. Tests: `apps/api/test/captain-pension.spec.ts` (4/4 tests passing).
+
+---
+
+### Milestone M67: Autonomous Lost & Found Chain-of-Custody & Depot Secure Vault Storage
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. `LostFoundCustodyModule` & `LostFoundCustodyService` (`apps/api/src/modules/lost-found-custody/`):
+     - Secure barcode chain of custody tracking for items left in vehicles (`BC-LFT-...`).
+     - Depot physical vault locker assignment (`VAULT-...`) with dual-custody verification.
+     - SHA-256 hashed 6-digit OTP verification for secure owner release.
+  2. Database Entity: `LostItemCustody`.
+  3. Migration: `1700000000051-CreateLostFoundCustodyAndDepotLoadBalancingSchema.ts`.
+  4. Tests: `apps/api/test/lost-found-custody.spec.ts` (4/4 tests passing).
+
+---
+
+### Milestone M68: Dynamic Multi-Vehicle Fleet Battery Balancing & Smart Depot Load Shifting
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. `DepotLoadBalancingModule` & `DepotLoadBalancingService` (`apps/api/src/modules/depot-load-balancing/`):
+     - Smart depot charging gun allocation prioritizing vehicles by battery SoC deficit and scheduled departure time.
+     - Dynamic load shedding preventing transformer overload when total demand exceeds capacity.
+     - Pro-rata power allocation scaling ensuring total electrical draw never breaches transformer rating.
+  2. Database Entity: `DepotPowerAllocation`.
+  3. Migration: Part of `1700000000051-CreateLostFoundCustodyAndDepotLoadBalancingSchema.ts`.
+  4. Tests: `apps/api/test/depot-load-balancing.spec.ts` (4/4 tests passing).
+
+---
+
+### Milestone M69: Municipal Zero-Emission Zone (ZEZ) Enforcement & Clean Air Compliance Certificates
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. `ZeroEmissionZonesModule` & `ZeroEmissionZonesService` (`apps/api/src/modules/zero-emission-zones/`):
+     - Real-time geofence enforcement of APCRDA / GMC municipal Zero-Emission Zones (Amaravathi Government Core).
+     - Issues certified digital clean air compliance records with 0 penalty for 100% BEV fleet vehicles.
+     - Automatically flags and applies statutory municipal penalties (100,000 paise / ₹1,000) for non-electric ICE entries.
+  2. Database Entities: `ZeroEmissionZone`, `ZezComplianceRecord`.
+  3. Migration: `1700000000052-CreateZeroEmissionZonesAndEmergencyIslandingSchema.ts`.
+  4. Tests: `apps/api/test/zero-emission-zones.spec.ts` (4/4 tests passing).
+
+---
+
+### Milestone M70: Autonomous Emergency Blackout Islanding & Emergency Mobile Grid Power Supply
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. `EmergencyIslandingModule` & `EmergencyIslandingService` (`apps/api/src/modules/emergency-islanding/`):
+     - High-capacity EV fleet vehicle dispatch equipped with bi-directional AC inverters (50–60 kW) for disaster resilience.
+     - Emergency mobile grid power dispatch to critical infrastructure (Guntur GGH hospital, flood cyclone shelters, water pumping stations).
+     - Minimum 50 kWh battery reserve safety threshold strictly enforced before mission authorization.
+  2. Database Entity: `EmergencyPowerMission`.
+  3. Migration: Part of `1700000000052-CreateZeroEmissionZonesAndEmergencyIslandingSchema.ts`.
+  4. Tests: `apps/api/test/emergency-islanding.spec.ts` (4/4 tests passing).
+
+---
+
 ### Global Test & Compliance Verification Status
-- **Backend Test Suite**: **All 86 test suites passing (100% pass rate)**.
+- **Backend Test Suite**: **All 96 test suites passing (100% pass rate)**.
 - **Typecheck**: Clean 0 errors across `@ecoride/contracts`, `apps/api`, and `apps/ops-web`.
 - **Linting & Secrets**: 0 errors, 0 secret leaks (`pnpm scan:secrets` PASSED).
 - **Flutter Mobile Apps**: Analyzed via `dart-mcp-server`; 0 errors in `captain_app` and `rider_app`.
-- **Database Migrations**: 47 reversible TypeORM migrations verified with comprehensive `up()` and `down()` tests in `test/migration.spec.ts` (76 migration test cases).
+- **Database Migrations**: 52 reversible TypeORM migrations verified with comprehensive `up()` and `down()` tests in `test/migration.spec.ts` (86 migration test cases).
 - **Statutory AP GST & Ledger**: Intra-state transport 5% GST (SAC 996412), cargo freight 18% GST (SAC 9965), EV charging/battery swapping/rescue 18% GST (SAC 9987), strictly balanced double-entry ledger parity (`Total DEBIT === Total CREDIT`).
 
 

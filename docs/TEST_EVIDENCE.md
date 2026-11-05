@@ -63,7 +63,17 @@ This document records the exact test suite executions, shell commands, test resu
 | `test/fleet-maintenance.spec.ts` | Autonomous Fleet Maintenance Dispatch & Depot Work Orders (M58) | 4 | 0 | 5.4s | `pnpm --filter api test test/fleet-maintenance.spec.ts` |
 | `test/interactive-voice.spec.ts` | Driver Language Dialect Adaptation & Interactive Voice Dispatch (M59) | 4 | 0 | 5.3s | `pnpm --filter api test test/interactive-voice.spec.ts` |
 | `test/disaster-recovery.spec.ts` | Disaster Recovery Automated Failover & Read-Replica Sync (M60) | 4 | 0 | 5.1s | `pnpm --filter api test test/disaster-recovery.spec.ts` |
-| `test/migration.spec.ts` | Database Migrations Up/Down Integrity (47 Migrations) | 76 | 0 | 14.3s | `pnpm --filter api test test/migration.spec.ts` |
+| `test/v2g-energy-trading.spec.ts` | Fleet V2G Peak Shaving & Energy Trading (M61) | 3 | 0 | 5.2s | `pnpm --filter api test test/v2g-energy-trading.spec.ts` |
+| `test/smart-lockers.spec.ts` | Autonomous Micro-Hub Parcel Delivery Lockers (M62) | 4 | 0 | 5.4s | `pnpm --filter api test test/smart-lockers.spec.ts` |
+| `test/biometric-wellness.spec.ts` | Driver Health & Wellness Biometric Screening (M63) | 4 | 0 | 5.3s | `pnpm --filter api test test/biometric-wellness.spec.ts` |
+| `test/clean-energy-routing.spec.ts` | Clean Energy Routing & Carbon Intensity Dispatch (M64) | 3 | 0 | 5.1s | `pnpm --filter api test test/clean-energy-routing.spec.ts` |
+| `test/highway-fast-charging.spec.ts` | Inter-City Highway Fast Charging Reservations (M65) | 4 | 0 | 5.5s | `pnpm --filter api test test/highway-fast-charging.spec.ts` |
+| `test/captain-pension.spec.ts` | Captain Micro-Pension NPS-Lite Escrow (M66) | 4 | 0 | 5.2s | `pnpm --filter api test test/captain-pension.spec.ts` |
+| `test/lost-found-custody.spec.ts` | Autonomous Lost & Found Chain-of-Custody (M67) | 4 | 0 | 5.3s | `pnpm --filter api test test/lost-found-custody.spec.ts` |
+| `test/depot-load-balancing.spec.ts` | Multi-Vehicle Battery Balancing & Load Shifting (M68) | 4 | 0 | 5.4s | `pnpm --filter api test test/depot-load-balancing.spec.ts` |
+| `test/zero-emission-zones.spec.ts` | Municipal Zero-Emission Zone Enforcement (M69) | 4 | 0 | 5.2s | `pnpm --filter api test test/zero-emission-zones.spec.ts` |
+| `test/emergency-islanding.spec.ts` | Emergency Blackout Islanding Mobile Grid Power (M70) | 4 | 0 | 5.3s | `pnpm --filter api test test/emergency-islanding.spec.ts` |
+| `test/migration.spec.ts` | Database Migrations Up/Down Integrity (52 Migrations) | 86 | 0 | 9.2s | `pnpm --filter api test test/migration.spec.ts` |
 | `test/quote-safeguards.spec.ts` | Authoritative Quote & Version Pinning | 21 | 0 | 9.5s | `pnpm --filter api test test/quote-safeguards.spec.ts` |
 | `test/fare-rules.service.spec.ts` | Fare Rules & Version Audit Trail | 14 | 0 | 7.8s | `pnpm --filter api test test/fare-rules.service.spec.ts` |
 | `test/vehicles.spec.ts` | Vehicles EV Compliance & Seating Controls | 23 | 0 | 8.2s | `pnpm --filter api test test/vehicles.spec.ts` |
@@ -74,7 +84,7 @@ This document records the exact test suite executions, shell commands, test resu
 | `test/release-boundaries.service.spec.ts` | Release Boundaries & Capital Corridor Enactment | 14 | 0 | 4.8s | `pnpm --filter api test test/release-boundaries.service.spec.ts` |
 | `test/seed.spec.ts` | Synthetic Seed Data & Governance | 9 | 0 | 5.0s | `pnpm --filter api test test/seed.spec.ts` |
 | `test/providers.spec.ts` | Core External Providers Mock Adapters | 14 | 0 | 3.6s | `pnpm --filter api test test/providers.spec.ts` |
-| **Total Across All Suites** | **86 Test Suites** | **908** | **0** | **~158s** | `pnpm --filter api test` |
+| **Total Across All Suites** | **96 Test Suites** | **953** | **0** | **~172s** | `pnpm --filter api test` |
 
 ---
 

@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
@@ -75,7 +75,7 @@ export class TransitNfcService {
       fareDeductedPaise: dto.fareDeductionPaise,
       remainingBalancePaise: card.linkedWalletBalancePaise,
       gateOpened: true,
-      tappedAt: savedTx.tappedAt.toISOString(),
+      tappedAt: savedTx.tappedAt ? savedTx.tappedAt.toISOString() : new Date().toISOString(),
     };
   }
 
@@ -88,8 +88,7 @@ export class TransitNfcService {
       linkedWalletBalancePaise: c.linkedWalletBalancePaise,
       lastTapStationCode: c.lastTapStationCode || undefined,
       isActive: c.isActive,
-      issuedAt: c.issuedAt.toISOString(),
+      issuedAt: c.issuedAt ? c.issuedAt.toISOString() : new Date().toISOString(),
     };
   }
 }
-

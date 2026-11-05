@@ -69,6 +69,16 @@ import { TransitNfcModule } from './modules/transit-nfc/transit-nfc.module';
 import { FleetMaintenanceModule } from './modules/fleet-maintenance/fleet-maintenance.module';
 import { InteractiveVoiceModule } from './modules/interactive-voice/interactive-voice.module';
 import { DisasterRecoveryModule } from './modules/disaster-recovery/disaster-recovery.module';
+import { V2gEnergyTradingModule } from './modules/v2g/v2g-energy-trading.module';
+import { SmartLockersModule } from './modules/smart-lockers/smart-lockers.module';
+import { BiometricWellnessModule } from './modules/biometric-wellness/biometric-wellness.module';
+import { CleanEnergyRoutingModule } from './modules/clean-energy/clean-energy-routing.module';
+import { HighwayFastChargingModule } from './modules/highway-fast-charging/highway-fast-charging.module';
+import { CaptainPensionModule } from './modules/captain-pension/captain-pension.module';
+import { LostFoundCustodyModule } from './modules/lost-found-custody/lost-found-custody.module';
+import { DepotLoadBalancingModule } from './modules/depot-load-balancing/depot-load-balancing.module';
+import { ZeroEmissionZonesModule } from './modules/zero-emission-zones/zero-emission-zones.module';
+import { EmergencyIslandingModule } from './modules/emergency-islanding/emergency-islanding.module';
 import { CorrelationIdMiddleware } from './common/middleware/correlation-id.middleware';
 import { AuthMiddleware } from './modules/auth/middleware/auth.middleware';
 
@@ -146,6 +156,16 @@ import { AuthMiddleware } from './modules/auth/middleware/auth.middleware';
     FleetMaintenanceModule,
     InteractiveVoiceModule,
     DisasterRecoveryModule,
+    V2gEnergyTradingModule,
+    SmartLockersModule,
+    BiometricWellnessModule,
+    CleanEnergyRoutingModule,
+    HighwayFastChargingModule,
+    CaptainPensionModule,
+    LostFoundCustodyModule,
+    DepotLoadBalancingModule,
+    ZeroEmissionZonesModule,
+    EmergencyIslandingModule,
   ],
 })
 export class AppModule implements NestModule {

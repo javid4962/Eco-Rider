@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
@@ -19,31 +19,31 @@ export class BatteryDegradationService {
     private readonly orderRepo: Repository<BessRepurposingOrder>,
   ) {}
 
-  /**
-   * Evaluates battery pack degradation and generates second-life BESS repurposing order when SoH < 70%
-   */
   async evaluateDegradation(dto: EvaluateDegradationRequestDto): Promise<BatteryDegradationDto> {
-    const stateOfHealth = Math.round((dto.currentCapacityKwh / dto.initialCapacityKwh) * 1000) / 10;
-    const isSecondLife = stateOfHealth < 70.0;
+    const stateOfHealthPercent = parseFloat(
+      ((dto.currentCapacityKwh / dto.initialCapacityKwh) * 100).toFixed(2),
+    );
 
-    // Remaining useful life estimation in months (degradation acceleration under AP high ambient heat)
-    const tempStressFactor = dto.averageOperatingTempCelsius > 38.0 ? 1.25 : 1.0;
-    const projectedRulMonths = Math.max(0, Math.round(((stateOfHealth - 65.0) / 0.8) / tempStressFactor));
+    // BESS threshold: If SoH drops below 70%, unviable for dynamic vehicle acceleration
+    // but optimal for stationary depot solar buffer energy storage
+    const secondLifeRecommended = stateOfHealthPercent < 70.0;
+    const projectedRemainingUsefulLifeMonths = Math.max(0, Math.round((stateOfHealthPercent - 50.0) * 1.5));
 
     const record = this.recordRepo.create({
       batteryPackSerial: dto.batteryPackSerial,
       vehicleRegistrationNumber: dto.vehicleRegistrationNumber,
       initialCapacityKwh: dto.initialCapacityKwh,
       currentCapacityKwh: dto.currentCapacityKwh,
-      stateOfHealthPercent: stateOfHealth,
+      stateOfHealthPercent,
       cycleCount: dto.cycleCount,
-      projectedRulMonths,
-      secondLifeRecommended: isSecondLife,
+      projectedRulMonths: projectedRemainingUsefulLifeMonths,
+      secondLifeRecommended,
     });
+
     const savedRecord = await this.recordRepo.save(record);
 
-    if (isSecondLife) {
-      const orderNumber = `BESS-${dto.batteryPackSerial.substring(0, 8)}-${Date.now().toString(36).toUpperCase()}`;
+    if (secondLifeRecommended) {
+      const orderNumber = `BESS-${Date.now().toString(36).toUpperCase()}-${Math.floor(100 + Math.random() * 900)}`;
       const repurposingOrder = this.orderRepo.create({
         orderNumber,
         batteryPackSerial: dto.batteryPackSerial,
@@ -62,9 +62,9 @@ export class BatteryDegradationService {
       currentCapacityKwh: Number(savedRecord.currentCapacityKwh),
       stateOfHealthPercent: Number(savedRecord.stateOfHealthPercent),
       cycleCount: savedRecord.cycleCount,
-      projectedRulMonths: savedRecord.projectedRulMonths,
+      projectedRemainingUsefulLifeMonths,
       secondLifeRecommended: savedRecord.secondLifeRecommended,
-      evaluatedAt: savedRecord.evaluatedAt.toISOString(),
+      evaluatedAt: savedRecord.evaluatedAt ? savedRecord.evaluatedAt.toISOString() : new Date().toISOString(),
     };
   }
 
@@ -77,9 +77,7 @@ export class BatteryDegradationService {
       designatedDepotId: o.designatedDepotId,
       intendedUse: o.intendedUse,
       status: o.status as BessRepurposingStatus,
-      approvedAt: o.approvedAt?.toISOString(),
       createdAt: o.createdAt.toISOString(),
     }));
   }
 }
-
