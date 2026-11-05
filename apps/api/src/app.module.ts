@@ -40,6 +40,15 @@ import { IncentivesModule } from './modules/incentives/incentives.module';
 import { DepotsModule } from './modules/depots/depots.module';
 import { MultimodalModule } from './modules/multimodal/multimodal.module';
 import { OptimizationModule } from './modules/optimization/optimization.module';
+import { BatterySwapModule } from './modules/battery-swap/battery-swap.module';
+import { TelematicsBmsModule } from './modules/telematics-bms/telematics-bms.module';
+import { FleetOwnerModule } from './modules/fleet-owner/fleet-owner.module';
+import { OutstationModule } from './modules/outstation/outstation.module';
+import { CampusModule } from './modules/campus/campus.module';
+import { DisputesModule } from './modules/disputes/disputes.module';
+import { ForecastingModule } from './modules/forecasting/forecasting.module';
+import { RegulatoryModule } from './modules/regulatory/regulatory.module';
+import { VernacularModule } from './modules/vernacular/vernacular.module';
 import { CorrelationIdMiddleware } from './common/middleware/correlation-id.middleware';
 import { AuthMiddleware } from './modules/auth/middleware/auth.middleware';
 
@@ -88,6 +97,15 @@ import { AuthMiddleware } from './modules/auth/middleware/auth.middleware';
     DepotsModule,
     MultimodalModule,
     OptimizationModule,
+    BatterySwapModule,
+    TelematicsBmsModule,
+    FleetOwnerModule,
+    OutstationModule,
+    CampusModule,
+    DisputesModule,
+    ForecastingModule,
+    RegulatoryModule,
+    VernacularModule,
   ],
 })
 export class AppModule implements NestModule {

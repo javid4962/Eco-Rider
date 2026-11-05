@@ -39,6 +39,16 @@ This is the central engineering ledger tracking task execution, code diffs, migr
 | **M28** | **Automated Driver Incentive & Gamification Engine** | Incentives Scope | **VERIFIED** | Captain tiers, peak hour challenges, balanced ledger rewards; 8 tests pass |
 | **M29** | **Institutional & Government Fleet Depots** | Depots Scope | **VERIFIED** | Amaravathi/Vijayawada government EV depots, bay allocations; 6 tests pass |
 | **M30** | **Multi-Modal Transit Feeder Integration** | Multi-Modal Scope | **VERIFIED** | APSRTC/Railway feeder booking, unified QR tickets; 5 tests pass |
+| **M31** | **Battery Swap Station Network & Automated Telemetry Ingestion (BSS)** | Battery Swap Scope | **VERIFIED** | Standardized swap bays, pack health SoH, idempotent swap execution; 6 tests pass |
+| **M32** | **Time-of-Day (ToD) Dynamic Grid Tariff & Smart Charging Dispatch** | Grid Tariff Scope | **VERIFIED** | AP Discom solar peak windows, off-peak savings, 18% GST SAC 9987; 6 tests pass |
+| **M33** | **Telematics OBD-II / CAN Bus IoT Ingestion Pipeline & Anomaly Detection** | Telematics BMS Scope | **VERIFIED** | Thermal safety guard, summer overheat lockout, CAN bus telemetry; 3 tests pass |
+| **M34** | **Fleet Owner Multi-Vehicle Revenue Share & Automated P&L Reconciliation** | Fleet Owner Scope | **VERIFIED** | Fixed daily rent & revenue share, driver deduction ledger; 3 tests pass |
+| **M35** | **Outstation & Inter-City Corridor EV Express Dispatch** | Outstation Scope | **VERIFIED** | Vijayawada-Hyderabad/Vizag corridors, highway fast charger checks; 4 tests pass |
+| **M36** | **Institutional Campus & Government Closed-User-Group (CUG) Shuttles** | Campus Shuttle Scope | **VERIFIED** | Amaravathi Secretariat & SRM/VIT loops, geofenced QR boarding; 3 tests pass |
+| **M37** | **Autonomous Ride Dispute, Lost Item & Customer Grievance Desk** | Disputes & Support Scope | **VERIFIED** | 20%+ detour auto-refunds, tokenized driver proxy URLs; 3 tests pass |
+| **M38** | **Advanced Geo-Spatial Heat Demand Forecasting & Automated Idle Fleet Repositioning** | Demand Forecasting Scope | **VERIFIED** | Peak rush forecasts, repositioning incentives; 3 tests pass |
+| **M39** | **Regulatory Open Data Feed & Municipal Transport Authority Audit API (AP-STA)** | AP-STA Audit Scope | **VERIFIED** | AP-STA compliance manifests, 100% BEV proof, zero emissions; 1 test pass |
+| **M40** | **Multi-Language Voice Assistance & Vernacular Accessibility Engine** | Vernacular Voice Scope | **VERIFIED** | Telugu/Urdu/Hindi voice prompts, AP 112 SOS voice alert; 3 tests pass |
 
 ---
 
@@ -438,11 +448,144 @@ This is the central engineering ledger tracking task execution, code diffs, migr
 
 ---
 
+### Milestone M31: Battery Swap Station Network & Automated Telemetry Ingestion (BSS)
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. `BatterySwapModule` & `BatterySwapService` (`apps/api/src/modules/battery-swap/`):
+     - Standardized battery swap stations in AP (Benz Circle, MG Road Vijayawada, Arundelpet Guntur, Velagapudi Amaravathi) with real-time bay and charged pack availability.
+     - Pack health metrics: State of Health (SoH), Cycle Count, operating temperature Celsius, and readiness verification.
+     - Idempotent battery swap transaction execution with automatic swap fee billing (₹100.00 base + 18% AP GST SAC 9987).
+  2. Database Entities: `BatterySwapStation`, `BatteryPack`, `BatterySwapTransaction`.
+  3. Migration: Part of `1700000000033-CreateBatterySwapAndGridTariffsSchema.ts`.
+  4. Tests: `apps/api/test/battery-swap.spec.ts` (6/6 tests passing).
+
+---
+
+### Milestone M32: Time-of-Day (ToD) Dynamic Grid Tariff & Smart Charging Dispatch
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. Integrated into `BatterySwapModule` (`apps/api/src/modules/battery-swap/`):
+     - AP Discom (APCPDCL / APSPDCL) Time-of-Day tariff schedule modeling: Morning Solar Peak (09:00–16:00 IST at ₹6.50/kWh), Off-Peak Night (22:00–06:00 IST at ₹5.00/kWh), Evening Peak (18:00–22:00 IST at ₹11.50/kWh).
+     - Smart charge recommendation engine advising depot charging during solar surplus hours with ~43% cost savings.
+  2. Database Entity: `GridTariffWindow`.
+  3. Migration: Part of `1700000000033-CreateBatterySwapAndGridTariffsSchema.ts`.
+  4. Tests: Tested in `apps/api/test/battery-swap.spec.ts`.
+
+---
+
+### Milestone M33: Telematics OBD-II / CAN Bus IoT Ingestion Pipeline & Anomaly Detection
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. `TelematicsBmsModule` & `TelematicsBmsService` (`apps/api/src/modules/telematics-bms/`):
+     - CAN bus / OBD-II telemetry ingestion: pack voltage, current, cell voltage delta (mV), max/min cell temperatures, motor RPM, Wh/km energy consumption.
+     - High AP ambient temperature safeguards: Cell temperatures $> 55^\circ\text{C}$ trigger `CRITICAL_OVERHEAT` and immediate automatic dispatch lockout; $> 65^\circ\text{C}$ escalates to `THERMAL_RUNAWAY_RISK`.
+  2. Database Entities: `VehicleBmsTelemetry`, `BmsAlertIncident`.
+  3. Migration: `1700000000034-CreateBmsTelemetryAndFleetOwnerSchema.ts`.
+  4. Tests: `apps/api/test/telematics-bms.spec.ts` (3/3 tests passing).
+
+---
+
+### Milestone M34: Fleet Owner Multi-Vehicle Revenue Share & Automated P&L Reconciliation
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. `FleetOwnerModule` & `FleetOwnerService` (`apps/api/src/modules/fleet-owner/`):
+     - Multi-vehicle lease contracts supporting `FIXED_DAILY_RENT` and `REVENUE_SHARE` models.
+     - Automated end-of-day P&L reconciliation: gross fares collected, electricity deductions, maintenance reserves, and net fleet owner payout.
+  2. Database Entities: `FleetLeaseContract`, `FleetOwnerSettlement`.
+  3. Migration: `1700000000034-CreateBmsTelemetryAndFleetOwnerSchema.ts`.
+  4. Tests: `apps/api/test/fleet-owner.spec.ts` (3/3 tests passing).
+
+---
+
+### Milestone M35: Outstation & Inter-City Corridor EV Express Dispatch
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. `OutstationModule` & `OutstationService` (`apps/api/src/modules/outstation/`):
+     - Outstation EV express corridors in AP: Vijayawada – Hyderabad (NH65, 275 km), Vijayawada – Visakhapatnam (NH16, 350 km), Guntur – Chennai (NH16, 395 km).
+     - Mandatory charging stop enforcement (e.g. Suryapet Fast Charger, Rajahmundry Highway Plaza) and minimum departure SoC guard ($\ge 60\%$).
+  2. Database Entities: `OutstationRoute`, `OutstationTrip`.
+  3. Migration: `1700000000035-CreateOutstationAndCampusShuttleSchema.ts`.
+  4. Tests: `apps/api/test/outstation.spec.ts` (4/4 tests passing).
+
+---
+
+### Milestone M36: Institutional Campus & Government Closed-User-Group (CUG) Shuttles
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. `CampusModule` & `CampusService` (`apps/api/src/modules/campus/`):
+     - Polygonal campus geofencing for Amaravathi AP Secretariat Complex, SRM University AP, and VIT-AP University.
+     - Closed-user-group (CUG) organization authorization validation and tamper-proof digital boarding pass issuance.
+  2. Database Entity: `CampusGeofence`.
+  3. Migration: `1700000000035-CreateOutstationAndCampusShuttleSchema.ts`.
+  4. Tests: `apps/api/test/campus.spec.ts` (3/3 tests passing).
+
+---
+
+### Milestone M37: Autonomous Ride Dispute, Lost Item & Customer Grievance Desk
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. `DisputesModule` & `DisputesService` (`apps/api/src/modules/disputes/`):
+     - Customer dispute ticketing with autonomous GPS detour audit: If actual distance exceeds scheduled route by $> 20\%$, system autonomously computes proportional excess fare and credits rider wallet.
+     - Lost & found registry with expirable tokenized driver contact URLs (`https://track.ecoride.in/lost-item/...`) masking phone numbers and PII.
+  2. Database Entities: `CustomerDispute`, `LostItemReport`.
+  3. Migration: `1700000000036-CreateDisputesAndDemandForecastSchema.ts`.
+  4. Tests: `apps/api/test/disputes.spec.ts` (3/3 tests passing).
+
+---
+
+### Milestone M38: Advanced Geo-Spatial Heat Demand Forecasting & Automated Idle Fleet Repositioning
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. `ForecastingModule` & `ForecastingService` (`apps/api/src/modules/forecasting/`):
+     - Geo-spatial demand forecasting for Andhra Pradesh capital zones (Benz Circle, PNBS Terminal, Velagapudi Secretariat, Brodipet).
+     - Automated repositioning orders dispatching idle captains from surplus zones to deficit zones with non-negative incentive bonuses.
+  2. Database Entities: `ZoneDemandForecast`, `FleetRepositioningOrder`.
+  3. Migration: `1700000000036-CreateDisputesAndDemandForecastSchema.ts`.
+  4. Tests: `apps/api/test/forecasting.spec.ts` (3/3 tests passing).
+
+---
+
+### Milestone M39: Regulatory Open Data Feed & Municipal Transport Authority Audit API (AP-STA)
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. `RegulatoryModule` & `RegulatoryService` (`apps/api/src/modules/regulatory/`):
+     - Andhra Pradesh State Transport Authority (AP-STA) regulatory compliance reporting API.
+     - Immutable audit verification of 100% BEV fleet, zero tailpipe emissions, ICE exclusion enforcement count, and statutory GST collections with cryptographic SHA-256 manifest signature.
+  2. Database Entity: `RegulatoryAuditLog`.
+  3. Migration: `1700000000037-CreateRegulatoryAuditAndVoiceSchema.ts`.
+  4. Tests: `apps/api/test/regulatory.spec.ts` (1/1 test passing).
+
+---
+
+### Milestone M40: Multi-Language Voice Assistance & Vernacular Accessibility Engine
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-05
+- **Changes Implemented**:
+  1. `VernacularModule` & `VernacularService` (`apps/api/src/modules/vernacular/`):
+     - Driver voice accessibility engine supporting Telugu (`te` default), English (`en`), Urdu (`ur`), and Hindi (`hi`).
+     - Localized voice prompts for dispatch offers, pickup approach, ride start OTP, low battery swap station routing, AP 112 emergency SOS countdown, and fare completion announcements.
+     - Driver voice preferences: announcement toggles, slow cadence mode, and preferred audio dialect.
+  2. Database Entity: `CaptainVoicePreference`.
+  3. Migration: `1700000000037-CreateRegulatoryAuditAndVoiceSchema.ts`.
+  4. Tests: `apps/api/test/vernacular.spec.ts` (3/3 tests passing).
+
+---
+
 ### Global Test & Compliance Verification Status
-- **Backend Test Suite**: **All 57 test suites and 793 unit/integration tests passing (100% pass rate)**.
+- **Backend Test Suite**: **All 66 test suites and 832 unit/integration tests passing (100% pass rate)**.
 - **Typecheck**: Clean 0 errors across `@ecoride/contracts`, `apps/api`, and `apps/ops-web`.
 - **Linting & Secrets**: 0 errors, 0 secret leaks (`pnpm scan:secrets` PASSED).
 - **Flutter Mobile Apps**: Analyzed via `dart-mcp-server`; 0 errors in `captain_app` and `rider_app`.
-- **Database Migrations**: 32 reversible TypeORM migrations verified with comprehensive `up()` and `down()` tests in `test/migration.spec.ts`.
-- **Statutory AP GST & Ledger**: Intra-state transport 5% GST (SAC 996412), cargo freight 18% GST (SAC 9965), EV charging 18% GST (SAC 9987), strictly balanced double-entry ledger parity (`Total DEBIT === Total CREDIT`).
+- **Database Migrations**: 37 reversible TypeORM migrations verified with comprehensive `up()` and `down()` tests in `test/migration.spec.ts`.
+- **Statutory AP GST & Ledger**: Intra-state transport 5% GST (SAC 996412), cargo freight 18% GST (SAC 9965), EV charging/battery swapping 18% GST (SAC 9987), strictly balanced double-entry ledger parity (`Total DEBIT === Total CREDIT`).
+
 

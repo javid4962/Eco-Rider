@@ -34,7 +34,16 @@ This document records the exact test suite executions, shell commands, test resu
 | `test/incentives.spec.ts` | Automated Driver Incentives & Gamification Engine (M28) | 8 | 0 | 8.5s | `pnpm --filter api test test/incentives.spec.ts` |
 | `test/depots.spec.ts` | Institutional & Municipal Fleet Depots (M29) | 6 | 0 | 7.9s | `pnpm --filter api test test/depots.spec.ts` |
 | `test/multimodal.spec.ts` | Multi-Modal Feeder & Unified AP Transit (M30) | 5 | 0 | 7.5s | `pnpm --filter api test test/multimodal.spec.ts` |
-| `test/migration.spec.ts` | Database Migrations Up/Down Integrity (32 Migrations) | 46 | 0 | 6.0s | `pnpm --filter api test test/migration.spec.ts` |
+| `test/battery-swap.spec.ts` | Battery Swap Station Network & Dynamic Grid Tariff (M31, M32) | 6 | 0 | 9.4s | `pnpm --filter api test test/battery-swap.spec.ts` |
+| `test/telematics-bms.spec.ts` | Telematics OBD-II / CAN Bus BMS Pipeline (M33) | 3 | 0 | 8.1s | `pnpm --filter api test test/telematics-bms.spec.ts` |
+| `test/fleet-owner.spec.ts` | Fleet Owner Multi-Vehicle Revenue Share & P&L (M34) | 3 | 0 | 11.5s | `pnpm --filter api test test/fleet-owner.spec.ts` |
+| `test/outstation.spec.ts` | Outstation & Inter-City Corridor EV Express Dispatch (M35) | 4 | 0 | 8.3s | `pnpm --filter api test test/outstation.spec.ts` |
+| `test/campus.spec.ts` | Institutional Campus & Closed-User-Group Shuttles (M36) | 3 | 0 | 7.8s | `pnpm --filter api test test/campus.spec.ts` |
+| `test/disputes.spec.ts` | Autonomous Ride Dispute & Lost Item Registry (M37) | 3 | 0 | 8.0s | `pnpm --filter api test test/disputes.spec.ts` |
+| `test/forecasting.spec.ts` | Geo-Spatial Heat Demand Forecasting & Fleet Repositioning (M38) | 3 | 0 | 7.9s | `pnpm --filter api test test/forecasting.spec.ts` |
+| `test/regulatory.spec.ts` | Regulatory Open Data Feed & AP-STA Audit Manifest (M39) | 1 | 0 | 7.5s | `pnpm --filter api test test/regulatory.spec.ts` |
+| `test/vernacular.spec.ts` | Multi-Language Voice Assistance & Telugu Accessibility (M40) | 3 | 0 | 8.2s | `pnpm --filter api test test/vernacular.spec.ts` |
+| `test/migration.spec.ts` | Database Migrations Up/Down Integrity (37 Migrations) | 56 | 0 | 8.2s | `pnpm --filter api test test/migration.spec.ts` |
 | `test/quote-safeguards.spec.ts` | Authoritative Quote & Version Pinning | 21 | 0 | 9.5s | `pnpm --filter api test test/quote-safeguards.spec.ts` |
 | `test/fare-rules.service.spec.ts` | Fare Rules & Version Audit Trail | 14 | 0 | 7.8s | `pnpm --filter api test test/fare-rules.service.spec.ts` |
 | `test/vehicles.spec.ts` | Vehicles EV Compliance & Seating Controls | 23 | 0 | 8.2s | `pnpm --filter api test test/vehicles.spec.ts` |
@@ -45,7 +54,7 @@ This document records the exact test suite executions, shell commands, test resu
 | `test/release-boundaries.service.spec.ts` | Release Boundaries & Capital Corridor Enactment | 14 | 0 | 4.8s | `pnpm --filter api test test/release-boundaries.service.spec.ts` |
 | `test/seed.spec.ts` | Synthetic Seed Data & Governance | 9 | 0 | 5.0s | `pnpm --filter api test test/seed.spec.ts` |
 | `test/providers.spec.ts` | Core External Providers Mock Adapters | 14 | 0 | 3.6s | `pnpm --filter api test test/providers.spec.ts` |
-| **Total Across All Suites** | **57 Test Suites** | **793** | **0** | **~120s** | `pnpm --filter api test` |
+| **Total Across All Suites** | **66 Test Suites** | **832** | **0** | **~145s** | `pnpm --filter api test` |
 
 ---
 

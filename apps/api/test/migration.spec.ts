@@ -21,6 +21,11 @@ import { CreateChargingAndBatteryTelemetrySchema1700000000029 } from '../src/dat
 import { CreateLoyaltyAndReferralsSchema1700000000030 } from '../src/database/migrations/1700000000030-CreateLoyaltyAndReferralsSchema';
 import { CreateSustainabilityAndIncentivesSchema1700000000031 } from '../src/database/migrations/1700000000031-CreateSustainabilityAndIncentivesSchema';
 import { CreateDepotsAndMultiModalSchema1700000000032 } from '../src/database/migrations/1700000000032-CreateDepotsAndMultiModalSchema';
+import { CreateBatterySwapAndGridTariffsSchema1700000000033 } from '../src/database/migrations/1700000000033-CreateBatterySwapAndGridTariffsSchema';
+import { CreateBmsTelemetryAndFleetOwnerSchema1700000000034 } from '../src/database/migrations/1700000000034-CreateBmsTelemetryAndFleetOwnerSchema';
+import { CreateOutstationAndCampusShuttleSchema1700000000035 } from '../src/database/migrations/1700000000035-CreateOutstationAndCampusShuttleSchema';
+import { CreateDisputesAndDemandForecastSchema1700000000036 } from '../src/database/migrations/1700000000036-CreateDisputesAndDemandForecastSchema';
+import { CreateRegulatoryAuditAndVoiceSchema1700000000037 } from '../src/database/migrations/1700000000037-CreateRegulatoryAuditAndVoiceSchema';
 import { QueryRunner } from 'typeorm';
 
 describe('Database Migrations', () => {
@@ -723,6 +728,149 @@ describe('Database Migrations', () => {
       expect(allQueries).toContain('DROP TABLE IF EXISTS "transit_hubs"');
       expect(allQueries).toContain('DROP TABLE IF EXISTS "depot_bay_allocations"');
       expect(allQueries).toContain('DROP TABLE IF EXISTS "fleet_depots"');
+    });
+  });
+
+  describe('CreateBatterySwapAndGridTariffsSchema1700000000033', () => {
+    let migration: CreateBatterySwapAndGridTariffsSchema1700000000033;
+
+    beforeEach(() => {
+      migration = new CreateBatterySwapAndGridTariffsSchema1700000000033();
+    });
+
+    it('should create battery swap stations, packs, transactions, and grid tariff windows in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "battery_swap_stations"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "battery_packs"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "battery_swap_transactions"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "grid_tariff_windows"');
+      expect(allQueries).toContain('idx_battery_swap_stations_city');
+      expect(allQueries).toContain('idx_battery_packs_station');
+    });
+
+    it('should drop battery swap and grid tariff tables in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "battery_swap_transactions"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "grid_tariff_windows"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "battery_packs"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "battery_swap_stations"');
+    });
+  });
+
+  describe('CreateBmsTelemetryAndFleetOwnerSchema1700000000034', () => {
+    let migration: CreateBmsTelemetryAndFleetOwnerSchema1700000000034;
+
+    beforeEach(() => {
+      migration = new CreateBmsTelemetryAndFleetOwnerSchema1700000000034();
+    });
+
+    it('should create vehicle BMS telemetry, alert incidents, lease contracts, and settlements in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "vehicle_bms_telemetry"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "bms_alert_incidents"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "fleet_lease_contracts"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "fleet_owner_settlements"');
+      expect(allQueries).toContain('idx_bms_telemetry_vehicle');
+    });
+
+    it('should drop BMS telemetry and fleet owner tables in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "fleet_owner_settlements"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "fleet_lease_contracts"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "bms_alert_incidents"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "vehicle_bms_telemetry"');
+    });
+  });
+
+  describe('CreateOutstationAndCampusShuttleSchema1700000000035', () => {
+    let migration: CreateOutstationAndCampusShuttleSchema1700000000035;
+
+    beforeEach(() => {
+      migration = new CreateOutstationAndCampusShuttleSchema1700000000035();
+    });
+
+    it('should create outstation routes, trips, and campus geofences in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "outstation_routes"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "outstation_trips"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "campus_geofences"');
+      expect(allQueries).toContain('UQ_outstation_routes_code');
+      expect(allQueries).toContain('UQ_campus_geofences_code');
+    });
+
+    it('should drop outstation and campus tables in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "campus_geofences"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "outstation_trips"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "outstation_routes"');
+    });
+  });
+
+  describe('CreateDisputesAndDemandForecastSchema1700000000036', () => {
+    let migration: CreateDisputesAndDemandForecastSchema1700000000036;
+
+    beforeEach(() => {
+      migration = new CreateDisputesAndDemandForecastSchema1700000000036();
+    });
+
+    it('should create customer disputes, lost item reports, demand forecasts, and repositioning orders in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "customer_disputes"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "lost_item_reports"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "zone_demand_forecasts"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "fleet_repositioning_orders"');
+      expect(allQueries).toContain('UQ_customer_disputes_ticket');
+      expect(allQueries).toContain('UQ_lost_item_reports_report');
+    });
+
+    it('should drop disputes, lost items, and forecasting tables in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "fleet_repositioning_orders"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "zone_demand_forecasts"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "lost_item_reports"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "customer_disputes"');
+    });
+  });
+
+  describe('CreateRegulatoryAuditAndVoiceSchema1700000000037', () => {
+    let migration: CreateRegulatoryAuditAndVoiceSchema1700000000037;
+
+    beforeEach(() => {
+      migration = new CreateRegulatoryAuditAndVoiceSchema1700000000037();
+    });
+
+    it('should create regulatory audit logs and captain voice preferences in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "regulatory_audit_logs"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "captain_voice_preferences"');
+      expect(allQueries).toContain('PK_regulatory_audit_logs_id');
+      expect(allQueries).toContain('UQ_captain_voice_preferences_cap');
+    });
+
+    it('should drop regulatory audit and voice tables in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "captain_voice_preferences"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "regulatory_audit_logs"');
     });
   });
 });
