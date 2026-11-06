@@ -21,3 +21,4 @@ export interface QueryOptimalDepotDto {
   currentLongitude: number;
   requiredKwh: number;
 }
+

@@ -92,3 +92,4 @@ describe('BiometricWellnessService (Milestone M63)', () => {
     ).rejects.toThrow(BadRequestException);
   });
 });
+

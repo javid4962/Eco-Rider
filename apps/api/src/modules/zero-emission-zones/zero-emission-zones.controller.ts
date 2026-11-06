@@ -22,3 +22,4 @@ export class ZeroEmissionZonesController {
     return this.zezService.checkCompliance(dto);
   }
 }
+

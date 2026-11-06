@@ -11,3 +11,4 @@ import { CorporateApprovalsController } from './corporate-approvals.controller';
   exports: [CorporateApprovalsService],
 })
 export class CorporateApprovalsModule {}
+

@@ -90,3 +90,4 @@ describe('HighwayFastChargingService (Milestone M65)', () => {
     await expect(service.cancelReservation('HWY-NONEXISTENT')).rejects.toThrow(NotFoundException);
   });
 });
+

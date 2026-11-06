@@ -22,3 +22,4 @@ export class SmartLockersController {
     return this.lockersService.retrieveParcel(dto);
   }
 }
+

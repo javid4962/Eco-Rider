@@ -50,3 +50,4 @@ export class CorporateRequisition {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updatedAt: Date;
 }
+

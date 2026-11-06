@@ -41,3 +41,4 @@ export interface LockerOperationResultDto {
   doorUnlocked: boolean;
   timestamp: string;
 }
+

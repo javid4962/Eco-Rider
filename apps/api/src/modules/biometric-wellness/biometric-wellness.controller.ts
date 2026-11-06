@@ -15,3 +15,4 @@ export class BiometricWellnessController {
     return this.wellnessService.recordScreening(dto);
   }
 }
+

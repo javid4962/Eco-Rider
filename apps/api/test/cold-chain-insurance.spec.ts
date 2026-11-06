@@ -81,3 +81,4 @@ describe('ColdChainInsuranceService (M73)', () => {
     expect(settled.status).toBe(ExcursionClaimStatus.CLAIM_SETTLED);
   });
 });
+

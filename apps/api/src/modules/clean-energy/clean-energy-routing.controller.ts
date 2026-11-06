@@ -22,3 +22,4 @@ export class CleanEnergyRoutingController {
     return this.cleanEnergyService.findOptimalDepot(dto);
   }
 }
+

@@ -11,3 +11,4 @@ import { CycloneResilienceController } from './cyclone-resilience.controller';
   exports: [CycloneResilienceService],
 })
 export class CycloneResilienceModule {}
+

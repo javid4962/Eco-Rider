@@ -44,3 +44,4 @@ export interface FleetRelocationPlanResult {
   evacuationTimestamp: string;
   instructions: string;
 }
+

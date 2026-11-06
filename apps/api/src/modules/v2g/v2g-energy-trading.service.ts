@@ -80,3 +80,4 @@ export class V2gEnergyTradingService {
     };
   }
 }
+

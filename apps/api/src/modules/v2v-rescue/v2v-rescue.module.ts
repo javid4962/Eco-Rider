@@ -11,3 +11,4 @@ import { V2vRescueController } from './v2v-rescue.controller';
   exports: [V2vRescueService],
 })
 export class V2vRescueModule {}
+

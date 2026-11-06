@@ -45,3 +45,4 @@ export interface ClaimItemDto {
   riderId: string;
   claimOtp: string;
 }
+

@@ -89,3 +89,4 @@ describe('CleanEnergyRoutingService (Milestone M64)', () => {
     ).rejects.toThrow(BadRequestException);
   });
 });
+

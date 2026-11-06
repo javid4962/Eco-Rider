@@ -11,3 +11,4 @@ import { DmsFatigueController } from './dms-fatigue.controller';
   exports: [DmsFatigueService],
 })
 export class DmsFatigueModule {}
+

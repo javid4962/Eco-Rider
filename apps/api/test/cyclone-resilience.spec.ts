@@ -81,3 +81,4 @@ describe('CycloneResilienceService (M80)', () => {
     expect(progress.relocationStatus).toBe(FleetRelocationStatus.SAFE_STAGED);
   });
 });
+

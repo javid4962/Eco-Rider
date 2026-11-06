@@ -25,3 +25,4 @@ export interface ReserveHighwaySlotDto {
   targetArrivalWindowStart: string;
   targetArrivalWindowEnd: string;
 }
+

@@ -11,3 +11,4 @@ import { V2gDischargeSession } from '../../database/entities/v2g-discharge-sessi
   exports: [V2gEnergyTradingService],
 })
 export class V2gEnergyTradingModule {}
+

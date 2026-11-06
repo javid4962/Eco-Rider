@@ -24,3 +24,4 @@ export class Ais156BatterySwapController {
     return await this.swapService.getRecentLogs(serial);
   }
 }
+

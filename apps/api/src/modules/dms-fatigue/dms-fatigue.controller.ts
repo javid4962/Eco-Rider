@@ -20,3 +20,4 @@ export class DmsFatigueController {
     return await this.fatigueService.getRecentEventsForCaptain(captainId);
   }
 }
+

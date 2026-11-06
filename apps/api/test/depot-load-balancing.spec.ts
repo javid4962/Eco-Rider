@@ -109,3 +109,4 @@ describe('DepotLoadBalancingService (Milestone M68)', () => {
     ).rejects.toThrow(BadRequestException);
   });
 });
+

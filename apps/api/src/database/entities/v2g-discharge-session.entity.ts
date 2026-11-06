@@ -44,3 +44,4 @@ export class V2gDischargeSession {
   @Column({ name: 'completed_at', type: 'timestamp with time zone', nullable: true })
   completedAt: Date | null;
 }
+

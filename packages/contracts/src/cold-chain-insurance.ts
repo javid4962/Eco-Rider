@@ -47,3 +47,4 @@ export interface ColdChainExcursionClaim {
   filingReason: string;
   createdAt: string;
 }
+

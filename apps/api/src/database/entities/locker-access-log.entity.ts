@@ -23,3 +23,4 @@ export class LockerAccessLog {
   @CreateDateColumn({ name: 'logged_at' })
   loggedAt: Date;
 }
+

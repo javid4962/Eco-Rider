@@ -28,3 +28,4 @@ export class ApStaPermitsController {
     return await this.permitService.renewPermit(dto);
   }
 }
+

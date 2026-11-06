@@ -41,3 +41,4 @@ export interface Ais156ComplianceVerdictResult {
   safetyInterlockEngaged: boolean;
   reason: string;
 }
+

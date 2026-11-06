@@ -35,3 +35,4 @@ export class CaptainWellnessScreening {
   @CreateDateColumn({ name: 'screened_at' })
   screenedAt: Date;
 }
+

@@ -21,3 +21,4 @@ export class EmergencyIslandingController {
     return this.islandingService.completeMission(missionId);
   }
 }
+

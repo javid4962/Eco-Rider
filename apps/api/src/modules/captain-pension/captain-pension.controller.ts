@@ -22,3 +22,4 @@ export class CaptainPensionController {
     return this.pensionService.recordDeduction(dto);
   }
 }
+

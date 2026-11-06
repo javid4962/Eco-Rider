@@ -39,3 +39,4 @@ export class CreateBiometricWellnessAndCleanEnergyRoutingSchema1700000000049 imp
     `);
   }
 }
+

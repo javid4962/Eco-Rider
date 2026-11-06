@@ -108,3 +108,4 @@ describe('Ais156BatterySwapService (M78)', () => {
     expect(result.safetyInterlockEngaged).toBe(true);
   });
 });
+

@@ -91,3 +91,4 @@ export class ColdChainInsuranceService {
     return await this.claimRepo.save(claim);
   }
 }
+

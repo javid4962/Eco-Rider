@@ -23,3 +23,4 @@ export class ZezComplianceRecord {
   @CreateDateColumn({ name: 'issued_at' })
   issuedAt: Date;
 }
+

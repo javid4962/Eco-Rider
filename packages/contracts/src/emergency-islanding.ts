@@ -24,3 +24,4 @@ export interface DispatchEmergencyPowerDto {
   inverterCapacityKw: number;
   batteryReserveKwh: number;
 }
+

@@ -57,3 +57,4 @@ export class CreateV2gAndSmartLockersSchema1700000000048 implements MigrationInt
     `);
   }
 }
+

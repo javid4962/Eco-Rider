@@ -11,3 +11,4 @@ import { EmergencyPowerMission } from '../../database/entities/emergency-power-m
   exports: [EmergencyIslandingService],
 })
 export class EmergencyIslandingModule {}
+

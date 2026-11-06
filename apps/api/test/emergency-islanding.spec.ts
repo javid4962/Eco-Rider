@@ -90,3 +90,4 @@ describe('EmergencyIslandingService (Milestone M70)', () => {
     await expect(service.completeMission('MSN-NONEXISTENT')).rejects.toThrow(NotFoundException);
   });
 });
+

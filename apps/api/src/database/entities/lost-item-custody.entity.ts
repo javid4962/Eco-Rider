@@ -38,3 +38,4 @@ export class LostItemCustody {
   @Column({ name: 'returned_at', type: 'timestamp with time zone', nullable: true })
   returnedAt: Date | null;
 }
+

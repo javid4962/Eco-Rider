@@ -29,3 +29,4 @@ export interface BalanceDepotLoadRequestDto {
     departureScheduledAt: string;
   }>;
 }
+

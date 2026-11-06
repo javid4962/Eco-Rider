@@ -139,3 +139,4 @@ describe('SmartLockersService (Milestone M62)', () => {
     ).rejects.toThrow(NotFoundException);
   });
 });
+

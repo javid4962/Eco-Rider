@@ -20,3 +20,4 @@ export class PensionDeductionRecord {
   @CreateDateColumn({ name: 'deducted_at' })
   deductedAt: Date;
 }
+

@@ -35,3 +35,4 @@ export class HighwayChargingReservation {
   @CreateDateColumn({ name: 'reserved_at' })
   reservedAt: Date;
 }
+

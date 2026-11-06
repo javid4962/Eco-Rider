@@ -53,3 +53,4 @@ export class DigitalPermitRecord {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updatedAt: Date;
 }
+

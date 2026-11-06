@@ -27,3 +27,4 @@ export class DynamicCongestionController {
     return await this.congestionService.getZoneByCode(code);
   }
 }
+

@@ -12,3 +12,4 @@ import { LockerAccessLog } from '../../database/entities/locker-access-log.entit
   exports: [SmartLockersService],
 })
 export class SmartLockersModule {}
+

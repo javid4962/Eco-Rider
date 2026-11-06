@@ -22,3 +22,4 @@ export interface ZezCertificateDto {
   penaltyChargedPaise: number;
   issuedAt: string;
 }
+

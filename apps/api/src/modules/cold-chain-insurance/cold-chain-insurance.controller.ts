@@ -22,3 +22,4 @@ export class ColdChainInsuranceController {
     return await this.insuranceService.settleClaim(ref);
   }
 }
+

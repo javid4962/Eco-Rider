@@ -32,3 +32,4 @@ export class SmartLockerCompartment {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 }
+

@@ -50,3 +50,4 @@ export class CaptainMentorshipPairing {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updatedAt: Date;
 }
+

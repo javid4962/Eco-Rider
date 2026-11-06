@@ -11,3 +11,4 @@ import { DepotPowerAllocation } from '../../database/entities/depot-power-alloca
   exports: [DepotLoadBalancingService],
 })
 export class DepotLoadBalancingModule {}
+

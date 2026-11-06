@@ -28,3 +28,4 @@ export class V2vRescueController {
     return await this.rescueService.getMission(id);
   }
 }
+

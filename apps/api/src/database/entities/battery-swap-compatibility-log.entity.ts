@@ -57,3 +57,4 @@ export class BatterySwapCompatibilityLog {
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
 }
+

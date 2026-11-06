@@ -78,3 +78,4 @@ export class DynamicCongestionService {
     return await this.zoneRepo.find({ where: { isActive: true } });
   }
 }
+

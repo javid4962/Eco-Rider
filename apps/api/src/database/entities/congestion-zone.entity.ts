@@ -46,3 +46,4 @@ export class CongestionZone {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updatedAt: Date;
 }
+

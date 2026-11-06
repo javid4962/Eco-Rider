@@ -25,3 +25,4 @@ export interface RecordPensionDeductionDto {
   deductionAmountPaise: number;
   tripId?: string;
 }
+

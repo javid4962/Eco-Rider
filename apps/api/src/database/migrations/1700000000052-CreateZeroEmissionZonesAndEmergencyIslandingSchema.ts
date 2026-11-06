@@ -53,3 +53,4 @@ export class CreateZeroEmissionZonesAndEmergencyIslandingSchema1700000000052 imp
     `);
   }
 }
+

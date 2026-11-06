@@ -88,3 +88,4 @@ describe('ApStaPermitsService (M76)', () => {
     expect(renewal.newVerificationHash).not.toBe('old-hash');
   });
 });
+

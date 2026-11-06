@@ -39,3 +39,4 @@ export interface CorporateRequisitionResult {
   reviewedBy?: string;
   decisionNote?: string;
 }
+

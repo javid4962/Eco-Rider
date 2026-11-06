@@ -30,3 +30,4 @@ export interface InitiateV2gDischargeDto {
   targetExportKwh: number;
   feedInTariffPaisePerKwh: number;
 }
+

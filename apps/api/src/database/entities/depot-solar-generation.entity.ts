@@ -23,3 +23,4 @@ export class DepotSolarGeneration {
   @CreateDateColumn({ name: 'recorded_at' })
   recordedAt: Date;
 }
+

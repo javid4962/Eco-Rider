@@ -43,3 +43,4 @@ export interface PermitRenewalResult {
   newVerificationHash: string;
   message: string;
 }
+

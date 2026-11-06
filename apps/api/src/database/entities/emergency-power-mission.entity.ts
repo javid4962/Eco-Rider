@@ -32,3 +32,4 @@ export class EmergencyPowerMission {
   @CreateDateColumn({ name: 'dispatched_at' })
   dispatchedAt: Date;
 }
+

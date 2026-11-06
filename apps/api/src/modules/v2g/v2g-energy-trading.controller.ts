@@ -24,3 +24,4 @@ export class V2gEnergyTradingController {
     return this.v2gService.completeDischarge(sessionId, body.actualExportedKwh);
   }
 }
+

@@ -84,3 +84,4 @@ describe('V2vRescueService (M79)', () => {
     expect(completed.totalCostPaise).toBe(55460);
   });
 });
+

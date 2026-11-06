@@ -107,3 +107,4 @@ describe('CorporateApprovalsService (M77)', () => {
     expect(reviewed.gstTaxInvoiceEligible).toBe(false);
   });
 });
+

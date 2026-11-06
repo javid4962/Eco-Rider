@@ -26,3 +26,4 @@ export class CaptainPensionAccount {
   @CreateDateColumn({ name: 'enrolled_at' })
   enrolledAt: Date;
 }
+

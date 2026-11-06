@@ -61,3 +61,4 @@ export class ColdChainExcursionClaim {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updatedAt: Date;
 }
+

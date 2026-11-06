@@ -129,3 +129,4 @@ describe('ZeroEmissionZonesService (Milestone M69)', () => {
     ).rejects.toThrow(NotFoundException);
   });
 });
+

@@ -15,3 +15,4 @@ export class DepotLoadBalancingController {
     return this.balancingService.balanceDepotLoad(dto);
   }
 }
+

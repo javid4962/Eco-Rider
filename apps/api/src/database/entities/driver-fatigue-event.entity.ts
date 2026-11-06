@@ -49,3 +49,4 @@ export class DriverFatigueEvent {
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
 }
+

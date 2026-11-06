@@ -11,3 +11,4 @@ import { HighwayChargingReservation } from '../../database/entities/highway-char
   exports: [HighwayFastChargingService],
 })
 export class HighwayFastChargingModule {}
+

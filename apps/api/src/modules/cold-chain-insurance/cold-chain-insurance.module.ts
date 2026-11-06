@@ -11,3 +11,4 @@ import { ColdChainInsuranceController } from './cold-chain-insurance.controller'
   exports: [ColdChainInsuranceService],
 })
 export class ColdChainInsuranceModule {}
+

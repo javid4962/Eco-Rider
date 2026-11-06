@@ -11,3 +11,4 @@ import { CaptainWellnessScreening } from '../../database/entities/captain-wellne
   exports: [BiometricWellnessService],
 })
 export class BiometricWellnessModule {}
+

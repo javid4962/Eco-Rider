@@ -30,3 +30,4 @@ export interface DmsFatigueAssessmentResult {
   dispatchBlockedUntil?: string;
   recommendation: string;
 }
+

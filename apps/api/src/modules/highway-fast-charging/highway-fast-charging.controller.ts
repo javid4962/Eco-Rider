@@ -21,3 +21,4 @@ export class HighwayFastChargingController {
     return this.highwayService.cancelReservation(reservationId);
   }
 }
+

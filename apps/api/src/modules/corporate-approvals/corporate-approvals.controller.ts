@@ -30,3 +30,4 @@ export class CorporateApprovalsController {
     return await this.approvalsService.getRequisition(id);
   }
 }
+

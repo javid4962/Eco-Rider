@@ -23,3 +23,4 @@ export class DepotPowerAllocation {
   @CreateDateColumn({ name: 'calculated_at' })
   calculatedAt: Date;
 }
+

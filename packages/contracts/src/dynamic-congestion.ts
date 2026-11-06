@@ -37,3 +37,4 @@ export interface CongestionSurchargeResult {
   totalSurchargeWithGstPaise: number;
   municipalContributionPaise: number; // 20% diverted to AP Green Urban Fund
 }
+

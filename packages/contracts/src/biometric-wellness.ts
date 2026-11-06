@@ -26,3 +26,4 @@ export interface RecordWellnessCheckDto {
   heartRateBpm: number;
   bodyTemperatureCelsius: number;
 }
+

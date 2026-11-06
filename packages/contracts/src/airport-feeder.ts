@@ -43,3 +43,4 @@ export interface AirportFeederScheduleResult {
   farePaise: number;
   status: 'CONFIRMED' | 'DELAY_ADJUSTED' | 'FLIGHT_CANCELLED_REFUNDED';
 }
+

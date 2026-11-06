@@ -11,3 +11,4 @@ import { DepotSolarGeneration } from '../../database/entities/depot-solar-genera
   exports: [CleanEnergyRoutingService],
 })
 export class CleanEnergyRoutingModule {}
+
