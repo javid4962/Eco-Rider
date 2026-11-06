@@ -89,6 +89,16 @@ import { CorporateApprovalsModule } from './modules/corporate-approvals/corporat
 import { Ais156BatterySwapModule } from './modules/ais156-battery-swap/ais156-battery-swap.module';
 import { V2vRescueModule } from './modules/v2v-rescue/v2v-rescue.module';
 import { CycloneResilienceModule } from './modules/cyclone-resilience/cyclone-resilience.module';
+import { BessMicrogridModule } from './modules/bess-microgrid/bess-microgrid.module';
+import { EwayBillModule } from './modules/eway-bill/eway-bill.module';
+import { CaptainAcademyModule } from './modules/captain-academy/captain-academy.module';
+import { AvasTelemetryModule } from './modules/avas-telemetry/avas-telemetry.module';
+import { InterDepotRelayModule } from './modules/inter-depot-relay/inter-depot-relay.module';
+import { MicroMobilityModule } from './modules/micro-mobility/micro-mobility.module';
+import { CarbonCreditsModule } from './modules/carbon-credits/carbon-credits.module';
+import { PanicAudioModule } from './modules/panic-audio/panic-audio.module';
+import { CampusLoopModule } from './modules/campus-loop/campus-loop.module';
+import { PredictiveTireModule } from './modules/predictive-tire/predictive-tire.module';
 import { CorrelationIdMiddleware } from './common/middleware/correlation-id.middleware';
 import { AuthMiddleware } from './modules/auth/middleware/auth.middleware';
 
@@ -186,6 +196,16 @@ import { AuthMiddleware } from './modules/auth/middleware/auth.middleware';
     Ais156BatterySwapModule,
     V2vRescueModule,
     CycloneResilienceModule,
+    BessMicrogridModule,
+    EwayBillModule,
+    CaptainAcademyModule,
+    AvasTelemetryModule,
+    InterDepotRelayModule,
+    MicroMobilityModule,
+    CarbonCreditsModule,
+    PanicAudioModule,
+    CampusLoopModule,
+    PredictiveTireModule,
   ],
 })
 export class AppModule implements NestModule {

@@ -131,3 +131,14 @@ export * from './corporate-requisition.entity';
 export * from './battery-swap-compatibility-log.entity';
 export * from './v2v-rescue-mission.entity';
 export * from './cyclone-relocation-plan.entity';
+
+export * from './depot-bess-unit.entity';
+export * from './eway-bill-record.entity';
+export * from './captain-training-certification.entity';
+export * from './avas-sound-telemetry.entity';
+export * from './inter-depot-parcel-relay.entity';
+export * from './micro-mobility-session.entity';
+export * from './carbon-credit-batch.entity';
+export * from './panic-audio-incident.entity';
+export * from './campus-shuttle-schedule.entity';
+export * from './predictive-tire-assessment.entity';

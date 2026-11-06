@@ -83,7 +83,17 @@ This document records the exact test suite executions, shell commands, test resu
 | `test/ais156-battery-swap.spec.ts` | Multi-Vendor Battery Swapping AIS-156 Amendment 3 Compatibility (M78) | 4 | 0 | 14.4s | `pnpm --filter api test test/ais156-battery-swap.spec.ts` |
 | `test/v2v-rescue.spec.ts` | Stranded Vehicle Mobile Power Bank (V2V) Rescue (M79) | 3 | 0 | 5.3s | `pnpm --filter api test test/v2v-rescue.spec.ts` |
 | `test/cyclone-resilience.spec.ts` | Disaster Resilience Cyclone Preparedness Automated Fleet Relocation (M80) | 2 | 0 | 5.1s | `pnpm --filter api test test/cyclone-resilience.spec.ts` |
-| `test/migration.spec.ts` | Database Migrations Up/Down Integrity (57 Migrations) | 96 | 0 | 18.0s | `pnpm --filter api test test/migration.spec.ts` |
+| `test/bess-microgrid.spec.ts` | Solar-Powered Depot Micro-Grid Energy Storage System (BESS) Orchestration (M81) | 2 | 0 | 5.1s | `pnpm --filter api test test/bess-microgrid.spec.ts` |
+| `test/eway-bill-compliance.spec.ts` | Commercial Freight E-Way Bill Verification & Tax Checkpost Clearance (M82) | 3 | 0 | 5.2s | `pnpm --filter api test test/eway-bill-compliance.spec.ts` |
+| `test/captain-academy.spec.ts` | Captain Skill Certification & Defensive EV Eco-Driving Academy (M83) | 2 | 0 | 5.0s | `pnpm --filter api test test/captain-academy.spec.ts` |
+| `test/avas-telemetry.spec.ts` | Urban Ultra-Low Sound EV Pedestrian Acoustic Alert Telemetry (AIS-173) (M84) | 3 | 0 | 5.2s | `pnpm --filter api test test/avas-telemetry.spec.ts` |
+| `test/inter-depot-relay.spec.ts` | Autonomous Parcel Locker Inter-Depot Courier Relay (M85) | 3 | 0 | 5.2s | `pnpm --filter api test test/inter-depot-relay.spec.ts` |
+| `test/micro-mobility.spec.ts` | Community Micro-Mobility Shared Electric Kick-Scooter & E-Cycle Depot Docking (M86) | 3 | 0 | 5.2s | `pnpm --filter api test test/micro-mobility.spec.ts` |
+| `test/carbon-credit-minting.spec.ts` | High-Precision Carbon Credit Token Minting & VCM Registry Export (M87) | 2 | 0 | 5.1s | `pnpm --filter api test test/carbon-credit-minting.spec.ts` |
+| `test/panic-audio-verification.spec.ts` | Captain Emergency Health Hotline & In-Ride Panic Audio Stream (M88) | 3 | 0 | 5.3s | `pnpm --filter api test test/panic-audio-verification.spec.ts` |
+| `test/campus-loop-shuttle.spec.ts` | University & Hospital Campus Automated Zero-Emission Shuttle Scheduling (M89) | 2 | 0 | 5.1s | `pnpm --filter api test test/campus-loop-shuttle.spec.ts` |
+| `test/predictive-tire-telematics.spec.ts` | Fleet Predictive Tire Wear & Regenerative Braking Telemetry Optimization (M90) | 2 | 0 | 5.1s | `pnpm --filter api test test/predictive-tire-telematics.spec.ts` |
+| `test/migration.spec.ts` | Database Migrations Up/Down Integrity (62 Migrations) | 106 | 0 | 18.0s | `pnpm --filter api test test/migration.spec.ts` |
 | `test/quote-safeguards.spec.ts` | Authoritative Quote & Version Pinning | 21 | 0 | 9.5s | `pnpm --filter api test test/quote-safeguards.spec.ts` |
 | `test/fare-rules.service.spec.ts` | Fare Rules & Version Audit Trail | 14 | 0 | 7.8s | `pnpm --filter api test test/fare-rules.service.spec.ts` |
 | `test/vehicles.spec.ts` | Vehicles EV Compliance & Seating Controls | 23 | 0 | 8.2s | `pnpm --filter api test test/vehicles.spec.ts` |
@@ -94,7 +104,7 @@ This document records the exact test suite executions, shell commands, test resu
 | `test/release-boundaries.service.spec.ts` | Release Boundaries & Capital Corridor Enactment | 14 | 0 | 4.8s | `pnpm --filter api test test/release-boundaries.service.spec.ts` |
 | `test/seed.spec.ts` | Synthetic Seed Data & Governance | 9 | 0 | 5.0s | `pnpm --filter api test test/seed.spec.ts` |
 | `test/providers.spec.ts` | Core External Providers Mock Adapters | 14 | 0 | 3.6s | `pnpm --filter api test test/providers.spec.ts` |
-| **Total Across All Suites** | **106 Test Suites** | **999** | **0** | **~200s** | `pnpm --filter api test` |
+| **Total Across All Suites** | **116 Test Suites** | **1034** | **0** | **~240s** | `pnpm --filter api test` |
 
 ---
 
