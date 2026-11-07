@@ -24,3 +24,4 @@ export class RuralAgriCargoController {
     return this.service.getConsignment(id);
   }
 }
+

@@ -16,3 +16,4 @@ export class RegenHarvestTelemetryController {
     return this.service.getLog(id);
   }
 }
+

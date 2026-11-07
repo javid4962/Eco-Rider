@@ -76,3 +76,4 @@ describe('FloodEvacuationRoutingModule', () => {
     expect(alert.activeVehiclesNotifiedCount).toBe(0);
   });
 });
+

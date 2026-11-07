@@ -82,3 +82,4 @@ describe('SolarMpptCouplingModule', () => {
     expect(session.gridPowerImportKw).toBe(65.0);
   });
 });
+

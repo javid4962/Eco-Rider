@@ -11,3 +11,4 @@ import { GreenBondReportingController } from './green-bond-reporting.controller'
   exports: [GreenBondReportingService],
 })
 export class GreenBondReportingModule {}
+

@@ -69,3 +69,4 @@ export class SolarMpptCouplingSessionEntity {
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 }
+

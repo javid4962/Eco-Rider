@@ -37,3 +37,4 @@ export interface ExecuteRoboticSwapDto {
   lockingPinsEngagedCount: number;
   canbusHandshakeOk: boolean;
 }
+

@@ -56,3 +56,4 @@ export interface CreateAgriConsignmentDto {
   captainId: string;
   markfedHubId: string;
 }
+

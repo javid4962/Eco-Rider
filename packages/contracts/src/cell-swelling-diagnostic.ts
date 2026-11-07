@@ -31,3 +31,4 @@ export interface PerformCellDiagnosticDto {
   internalGasPressureKPa: number;
   cellSurfaceTemperatureC: number;
 }
+

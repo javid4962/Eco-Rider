@@ -16,3 +16,4 @@ export class CellSwellingDiagnosticController {
     return this.service.getDiagnosticLog(id);
   }
 }
+

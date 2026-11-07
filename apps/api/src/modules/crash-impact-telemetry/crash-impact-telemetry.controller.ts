@@ -16,3 +16,4 @@ export class CrashImpactTelemetryController {
     return this.service.getCrashEvent(id);
   }
 }
+

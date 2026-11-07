@@ -33,3 +33,4 @@ export interface GenerateGreenBondReportDto {
   bondProceedsAllocatedPaise: number;
   greenJobsGeneratedCount: number;
 }
+

@@ -11,3 +11,4 @@ import { SolarMpptCouplingController } from './solar-mppt-coupling.controller';
   exports: [SolarMpptCouplingService],
 })
 export class SolarMpptCouplingModule {}
+

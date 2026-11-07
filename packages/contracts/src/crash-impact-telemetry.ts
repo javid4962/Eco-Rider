@@ -44,3 +44,4 @@ export interface IngestCrashImpactDto {
   speedKmhAtImpact: number;
   passengerCount: number;
 }
+

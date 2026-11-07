@@ -16,3 +16,4 @@ export class GreenBondReportingController {
     return this.service.getReport(id);
   }
 }
+

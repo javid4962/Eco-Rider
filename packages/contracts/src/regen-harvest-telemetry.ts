@@ -33,3 +33,4 @@ export interface IngestRegenTelemetryDto {
   packSocPercent: number;
   cellMaxTemperatureC: number;
 }
+

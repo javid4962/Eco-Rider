@@ -72,3 +72,4 @@ describe('GreenBondReportingModule', () => {
     expect(result.bondSeriesId).toBe('APUIIDC-GREEN-BOND-2026');
   });
 });
+

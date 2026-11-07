@@ -16,3 +16,4 @@ export class SolarMpptCouplingController {
     return this.service.getSession(id);
   }
 }
+

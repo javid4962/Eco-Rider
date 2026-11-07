@@ -75,3 +75,4 @@ export class ChargingHostSettlementEntity {
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 }
+

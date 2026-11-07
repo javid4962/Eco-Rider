@@ -54,3 +54,4 @@ export class WheelAlignmentLogEntity {
   @CreateDateColumn({ name: 'logged_at' })
   loggedAt: Date;
 }
+

@@ -16,3 +16,4 @@ export class FloodEvacuationRoutingController {
     return this.service.getAlert(id);
   }
 }
+

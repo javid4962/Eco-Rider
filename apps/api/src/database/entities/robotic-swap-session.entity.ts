@@ -60,3 +60,4 @@ export class RoboticSwapSessionEntity {
   @Column({ name: 'completed_at', type: 'timestamp with time zone', nullable: true })
   completedAt?: Date;
 }
+

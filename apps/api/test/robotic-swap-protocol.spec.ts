@@ -81,3 +81,4 @@ describe('RoboticSwapProtocolModule', () => {
     expect(session.faultCode).toBe('ERR_LOCKING_PINS_NOT_SEATED');
   });
 });
+

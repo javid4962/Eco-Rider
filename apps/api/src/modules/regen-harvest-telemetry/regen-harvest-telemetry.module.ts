@@ -11,3 +11,4 @@ import { RegenHarvestTelemetryController } from './regen-harvest-telemetry.contr
   exports: [RegenHarvestTelemetryService],
 })
 export class RegenHarvestTelemetryModule {}
+

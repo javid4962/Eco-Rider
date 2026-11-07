@@ -61,3 +61,4 @@ export class CreateChargingHostRevenueAndSolarMpptSchema1700000000085 implements
     `);
   }
 }
+

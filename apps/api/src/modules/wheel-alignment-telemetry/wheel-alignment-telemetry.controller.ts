@@ -16,3 +16,4 @@ export class WheelAlignmentTelemetryController {
     return this.service.getLog(id);
   }
 }
+

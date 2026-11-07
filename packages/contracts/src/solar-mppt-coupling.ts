@@ -36,3 +36,4 @@ export interface LogMpptCouplingTelemetryDto {
   solarDcCurrentAmps: number;
   vehicleDemandKw: number;
 }
+

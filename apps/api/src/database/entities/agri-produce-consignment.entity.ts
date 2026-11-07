@@ -95,3 +95,4 @@ export class AgriProduceConsignmentEntity {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 }
+

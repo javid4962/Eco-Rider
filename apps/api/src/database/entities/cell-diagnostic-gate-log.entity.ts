@@ -57,3 +57,4 @@ export class CellDiagnosticGateLogEntity {
   @CreateDateColumn({ name: 'inspected_at' })
   inspectedAt: Date;
 }
+

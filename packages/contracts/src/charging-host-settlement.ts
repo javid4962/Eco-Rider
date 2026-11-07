@@ -40,3 +40,4 @@ export interface CalculateChargingHostSettlementDto {
   electricityCostPaise: number;
   landlordShareBps: number;
 }
+

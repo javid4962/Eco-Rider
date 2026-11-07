@@ -11,3 +11,4 @@ import { CrashImpactTelemetryController } from './crash-impact-telemetry.control
   exports: [CrashImpactTelemetryService],
 })
 export class CrashImpactTelemetryModule {}
+

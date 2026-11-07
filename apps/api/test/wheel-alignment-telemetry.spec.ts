@@ -77,3 +77,4 @@ describe('WheelAlignmentTelemetryModule', () => {
     expect(log.depotMaintenanceRequired).toBe(false);
   });
 });
+

@@ -80,3 +80,4 @@ describe('RuralAgriCargoModule', () => {
     expect(updated.status).toBe(AgriConsignmentStatus.DELIVERED_MARKFED);
   });
 });
+

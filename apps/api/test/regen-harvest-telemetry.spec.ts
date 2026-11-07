@@ -83,3 +83,4 @@ describe('RegenHarvestTelemetryModule', () => {
     expect(log.energyRecuperatedWattHours).toBe(0.0);
   });
 });
+

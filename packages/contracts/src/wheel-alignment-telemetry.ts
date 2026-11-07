@@ -29,3 +29,4 @@ export interface IngestWheelAlignmentDto {
   lateralDriftRateMps2: number;
   yawRateVariance: number;
 }
+

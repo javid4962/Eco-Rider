@@ -68,3 +68,4 @@ export class CrashImpactTelemetryService {
     return event;
   }
 }
+

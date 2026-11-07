@@ -82,3 +82,4 @@ describe('CellSwellingDiagnosticModule', () => {
     expect(log.quarantineTriggered).toBe(false);
   });
 });
+

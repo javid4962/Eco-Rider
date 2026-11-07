@@ -65,3 +65,4 @@ export class CreateCrashImpactAndRuralAgriCargoSchema1700000000083 implements Mi
     `);
   }
 }
+

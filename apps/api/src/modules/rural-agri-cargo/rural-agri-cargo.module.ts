@@ -11,3 +11,4 @@ import { RuralAgriCargoController } from './rural-agri-cargo.controller';
   exports: [RuralAgriCargoService],
 })
 export class RuralAgriCargoModule {}
+

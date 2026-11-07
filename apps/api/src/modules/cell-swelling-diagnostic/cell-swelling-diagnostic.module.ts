@@ -11,3 +11,4 @@ import { CellSwellingDiagnosticController } from './cell-swelling-diagnostic.con
   exports: [CellSwellingDiagnosticService],
 })
 export class CellSwellingDiagnosticModule {}
+

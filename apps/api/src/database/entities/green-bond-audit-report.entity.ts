@@ -60,3 +60,4 @@ export class GreenBondAuditReportEntity {
   @CreateDateColumn({ name: 'audited_at' })
   auditedAt: Date;
 }
+
