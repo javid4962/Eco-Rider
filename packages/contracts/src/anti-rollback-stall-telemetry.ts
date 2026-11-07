@@ -21,3 +21,4 @@ export interface AntiRollbackInterventionResult {
   alertIssued: boolean;
   timestamp: string;
 }
+

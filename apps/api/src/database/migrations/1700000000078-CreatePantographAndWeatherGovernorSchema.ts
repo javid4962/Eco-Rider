@@ -47,3 +47,4 @@ export class CreatePantographAndWeatherGovernorSchema1700000000078 implements Mi
     `);
   }
 }
+

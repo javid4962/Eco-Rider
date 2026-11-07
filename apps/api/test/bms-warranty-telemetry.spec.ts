@@ -67,3 +67,4 @@ describe('BmsWarrantyTelemetryModule', () => {
     expect(result.warrantyProtectionActive).toBe(true);
   });
 });
+

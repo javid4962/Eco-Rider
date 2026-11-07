@@ -66,3 +66,4 @@ describe('WeatherSpeedGovernorModule', () => {
     expect(directive.recommendedSpeedLimitKmph).toBe(80);
   });
 });
+

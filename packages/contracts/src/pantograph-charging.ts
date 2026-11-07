@@ -26,3 +26,4 @@ export interface PantographChargingSessionRecord {
   startedAt: string;
   completedAt?: string;
 }
+

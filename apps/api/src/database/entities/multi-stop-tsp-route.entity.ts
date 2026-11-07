@@ -28,3 +28,4 @@ export class MultiStopTspRouteEntity {
   @CreateDateColumn({ name: 'optimized_at', type: 'timestamptz' })
   optimizedAt: Date;
 }
+

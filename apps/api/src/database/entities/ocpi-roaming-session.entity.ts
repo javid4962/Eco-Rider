@@ -40,3 +40,4 @@ export class OcpiRoamingSessionEntity {
   @Column({ name: 'completed_at', type: 'timestamptz', nullable: true })
   completedAt: Date | null;
 }
+

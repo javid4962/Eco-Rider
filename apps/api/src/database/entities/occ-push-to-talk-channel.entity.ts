@@ -27,3 +27,4 @@ export class OccPushToTalkChannelEntity {
   @CreateDateColumn({ name: 'last_active_at', type: 'timestamptz' })
   lastActiveAt: Date;
 }
+

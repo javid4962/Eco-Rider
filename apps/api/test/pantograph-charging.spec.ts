@@ -83,3 +83,4 @@ describe('PantographChargingModule', () => {
     expect(stopped.totalCostPaise).toBeGreaterThan(0);
   });
 });
+

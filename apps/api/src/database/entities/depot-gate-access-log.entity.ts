@@ -34,3 +34,4 @@ export class DepotGateAccessLogEntity {
   @CreateDateColumn({ name: 'scanned_at', type: 'timestamptz' })
   scannedAt: Date;
 }
+

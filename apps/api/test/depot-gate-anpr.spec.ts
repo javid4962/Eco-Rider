@@ -64,3 +64,4 @@ describe('DepotGateAnprModule', () => {
     expect(result.reason).toContain('pending safety recall');
   });
 });
+

@@ -41,3 +41,4 @@ export class CreateBmsWarrantyAndTspRoutingSchema1700000000079 implements Migrat
     `);
   }
 }
+

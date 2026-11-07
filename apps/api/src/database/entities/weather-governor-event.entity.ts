@@ -27,3 +27,4 @@ export class WeatherGovernorEventEntity {
   @CreateDateColumn({ name: 'effective_from', type: 'timestamptz' })
   effectiveFrom: Date;
 }
+

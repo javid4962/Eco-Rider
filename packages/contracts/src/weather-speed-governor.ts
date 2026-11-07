@@ -28,3 +28,4 @@ export interface WeatherGovernorEventRecord {
   vehiclesNotifiedCount: number;
   effectiveFrom: string;
 }
+

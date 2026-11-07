@@ -43,3 +43,4 @@ export class CreateVernacularDetourAndAntiRollbackSchema1700000000081 implements
     `);
   }
 }
+

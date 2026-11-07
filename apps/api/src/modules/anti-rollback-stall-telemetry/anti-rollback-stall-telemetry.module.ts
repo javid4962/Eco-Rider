@@ -11,3 +11,4 @@ import { AntiRollbackStallTelemetryController } from './anti-rollback-stall-tele
   exports: [AntiRollbackStallTelemetryService],
 })
 export class AntiRollbackStallTelemetryModule {}
+

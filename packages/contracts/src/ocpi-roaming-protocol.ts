@@ -22,3 +22,4 @@ export interface OcpiRoamingSessionRecord {
   startedAt: string;
   completedAt?: string;
 }
+

@@ -43,3 +43,4 @@ export class CreateDepotGateAndTaxCertificateSchema1700000000080 implements Migr
     `);
   }
 }
+

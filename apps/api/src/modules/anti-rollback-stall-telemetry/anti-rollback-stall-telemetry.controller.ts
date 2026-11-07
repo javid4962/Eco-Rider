@@ -16,3 +16,4 @@ export class AntiRollbackStallTelemetryController {
     return this.rollbackService.getVehicleEvents(vehicleId);
   }
 }
+

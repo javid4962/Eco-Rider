@@ -11,3 +11,4 @@ import { DepotGateAnprController } from './depot-gate-anpr.controller';
   exports: [DepotGateAnprService],
 })
 export class DepotGateAnprModule {}
+

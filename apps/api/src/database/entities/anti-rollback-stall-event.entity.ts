@@ -30,3 +30,4 @@ export class AntiRollbackStallEventEntity {
   @CreateDateColumn({ name: 'timestamp', type: 'timestamptz' })
   timestamp: Date;
 }
+

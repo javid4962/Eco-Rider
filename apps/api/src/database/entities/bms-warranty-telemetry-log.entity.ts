@@ -30,3 +30,4 @@ export class BmsWarrantyTelemetryLogEntity {
   @CreateDateColumn({ name: 'timestamp', type: 'timestamptz' })
   timestamp: Date;
 }
+

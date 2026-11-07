@@ -16,3 +16,4 @@ export class WeatherSpeedGovernorController {
     return this.governorService.getCorridorLatestEvent(corridorId);
   }
 }
+

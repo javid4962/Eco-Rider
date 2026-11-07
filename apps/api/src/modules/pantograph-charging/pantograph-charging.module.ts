@@ -11,3 +11,4 @@ import { PantographChargingController } from './pantograph-charging.controller';
   exports: [PantographChargingService],
 })
 export class PantographChargingModule {}
+

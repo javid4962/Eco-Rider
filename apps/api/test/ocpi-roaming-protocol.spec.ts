@@ -84,3 +84,4 @@ describe('OcpiRoamingProtocolModule', () => {
     expect(session.partnerCpoId).toBe('IN-TATA-POWER');
   });
 });
+

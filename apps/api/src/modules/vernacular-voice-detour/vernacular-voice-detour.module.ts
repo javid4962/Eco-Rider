@@ -11,3 +11,4 @@ import { VernacularVoiceDetourController } from './vernacular-voice-detour.contr
   exports: [VernacularVoiceDetourService],
 })
 export class VernacularVoiceDetourModule {}
+

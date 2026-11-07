@@ -26,3 +26,4 @@ export interface EnergyOptimalTspRouteResult {
   elevationAvoidedGainMeters: number;
   optimizedAt: string;
 }
+

@@ -20,3 +20,4 @@ export interface TeluguVoicePromptResult {
   audioFileUrl: string;
   generatedAt: string;
 }
+

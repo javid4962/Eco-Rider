@@ -18,3 +18,4 @@ export interface TaxRebateCertificateRecord {
   qrVerificationUrl: string;
   issuedAt: string;
 }
+

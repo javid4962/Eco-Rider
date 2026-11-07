@@ -36,3 +36,4 @@ export class VernacularNavigationPromptEntity {
   @CreateDateColumn({ name: 'generated_at', type: 'timestamptz' })
   generatedAt: Date;
 }
+

@@ -16,3 +16,4 @@ export class DepotGateAnprController {
     return this.anprService.getDepotLogs(depotId);
   }
 }
+

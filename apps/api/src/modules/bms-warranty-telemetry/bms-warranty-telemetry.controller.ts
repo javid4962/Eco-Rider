@@ -16,3 +16,4 @@ export class BmsWarrantyTelemetryController {
     return this.warrantyService.getVehicleWarrantyLogs(vehicleId);
   }
 }
+

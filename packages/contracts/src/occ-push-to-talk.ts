@@ -19,3 +19,4 @@ export interface PttChannelRecord {
   priority: PttPriorityLevel;
   lastActiveAt: string;
 }
+

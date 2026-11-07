@@ -20,3 +20,4 @@ export interface BmsWarrantyProtectionRecord {
   warrantyProtectionActive: boolean;
   timestamp: string;
 }
+

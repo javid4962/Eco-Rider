@@ -16,3 +16,4 @@ export class VernacularVoiceDetourController {
     return this.voiceService.getCaptainPrompts(captainId);
   }
 }
+

@@ -11,3 +11,4 @@ import { WeatherSpeedGovernorController } from './weather-speed-governor.control
   exports: [WeatherSpeedGovernorService],
 })
 export class WeatherSpeedGovernorModule {}
+

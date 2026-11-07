@@ -70,3 +70,4 @@ describe('AntiRollbackStallTelemetryModule', () => {
     expect(result.holdingTorqueBoostNm).toBe(0);
   });
 });
+

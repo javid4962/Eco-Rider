@@ -20,3 +20,4 @@ export interface DepotGateAccessRecord {
   reason: string;
   scannedAt: string;
 }
+

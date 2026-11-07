@@ -67,3 +67,4 @@ describe('VernacularVoiceDetourModule', () => {
     expect(result.promptTextEnglish).toContain('Fast Charger');
   });
 });
+

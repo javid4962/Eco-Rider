@@ -27,3 +27,4 @@ export class PantographChargingController {
     return this.pantographService.getBusSessions(busId);
   }
 }
+
