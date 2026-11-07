@@ -139,6 +139,16 @@ import { VernacularVoiceDetourModule } from './modules/vernacular-voice-detour/v
 import { AntiRollbackStallTelemetryModule } from './modules/anti-rollback-stall-telemetry/anti-rollback-stall-telemetry.module';
 import { OcpiRoamingProtocolModule } from './modules/ocpi-roaming-protocol/ocpi-roaming-protocol.module';
 import { OccPushToTalkModule } from './modules/occ-push-to-talk/occ-push-to-talk.module';
+import { CrashImpactTelemetryModule } from './modules/crash-impact-telemetry/crash-impact-telemetry.module';
+import { RuralAgriCargoModule } from './modules/rural-agri-cargo/rural-agri-cargo.module';
+import { RegenHarvestTelemetryModule } from './modules/regen-harvest-telemetry/regen-harvest-telemetry.module';
+import { CellSwellingDiagnosticModule } from './modules/cell-swelling-diagnostic/cell-swelling-diagnostic.module';
+import { ChargingHostSettlementModule } from './modules/charging-host-settlement/charging-host-settlement.module';
+import { SolarMpptCouplingModule } from './modules/solar-mppt-coupling/solar-mppt-coupling.module';
+import { FloodEvacuationRoutingModule } from './modules/flood-evacuation-routing/flood-evacuation-routing.module';
+import { WheelAlignmentTelemetryModule } from './modules/wheel-alignment-telemetry/wheel-alignment-telemetry.module';
+import { RoboticSwapProtocolModule } from './modules/robotic-swap-protocol/robotic-swap-protocol.module';
+import { GreenBondReportingModule } from './modules/green-bond-reporting/green-bond-reporting.module';
 import { CorrelationIdMiddleware } from './common/middleware/correlation-id.middleware';
 import { AuthMiddleware } from './modules/auth/middleware/auth.middleware';
 
@@ -286,6 +296,16 @@ import { AuthMiddleware } from './modules/auth/middleware/auth.middleware';
     AntiRollbackStallTelemetryModule,
     OcpiRoamingProtocolModule,
     OccPushToTalkModule,
+    CrashImpactTelemetryModule,
+    RuralAgriCargoModule,
+    RegenHarvestTelemetryModule,
+    CellSwellingDiagnosticModule,
+    ChargingHostSettlementModule,
+    SolarMpptCouplingModule,
+    FloodEvacuationRoutingModule,
+    WheelAlignmentTelemetryModule,
+    RoboticSwapProtocolModule,
+    GreenBondReportingModule,
   ],
 })
 export class AppModule implements NestModule {

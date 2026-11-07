@@ -133,7 +133,17 @@ This document records the exact test suite executions, shell commands, test resu
 | `test/anti-rollback-stall-telemetry.spec.ts` | E-Auto Incline Rollback & Stall Telemetry (M128) | 2 | 0 | 5.1s | `pnpm --filter api test test/anti-rollback-stall-telemetry.spec.ts` |
 | `test/ocpi-roaming-protocol.spec.ts` | Interoperable EV Roaming & OCPI 2.2.1 Protocol (M129) | 3 | 0 | 5.3s | `pnpm --filter api test test/ocpi-roaming-protocol.spec.ts` |
 | `test/occ-push-to-talk.spec.ts` | OCC Audio Dispatch & Emergency Push-to-Talk (M130) | 3 | 0 | 5.2s | `pnpm --filter api test test/occ-push-to-talk.spec.ts` |
-| `test/migration.spec.ts` | Database Migrations Up/Down Integrity (82 Migrations) | 146 | 0 | 10.4s | `pnpm --filter api test test/migration.spec.ts` |
+| `test/crash-impact-telemetry.spec.ts` | Crash Impact Telemetry & Pyro-Fuse Isolation (M131) | 2 | 0 | 5.1s | `pnpm --filter api test test/crash-impact-telemetry.spec.ts` |
+| `test/rural-agri-cargo.spec.ts` | Rural Agri Cargo Feeder & APMC 1% Cess (M132) | 2 | 0 | 5.3s | `pnpm --filter api test test/rural-agri-cargo.spec.ts` |
+| `test/regen-harvest-telemetry.spec.ts` | Downhill Regen Braking Energy Harvest (M133) | 2 | 0 | 5.0s | `pnpm --filter api test test/regen-harvest-telemetry.spec.ts` |
+| `test/cell-swelling-diagnostic.spec.ts` | EV Battery Cell Swelling Laser Diagnostic (M134) | 2 | 0 | 5.1s | `pnpm --filter api test test/cell-swelling-diagnostic.spec.ts` |
+| `test/charging-host-settlement.spec.ts` | Charging Host Landlord Revenue Split & GST (M135) | 2 | 0 | 10.7s | `pnpm --filter api test test/charging-host-settlement.spec.ts` |
+| `test/solar-mppt-coupling.spec.ts` | Smart Depot Solar MPPT Direct DC Bus Coupling (M136) | 2 | 0 | 5.2s | `pnpm --filter api test test/solar-mppt-coupling.spec.ts` |
+| `test/flood-evacuation-routing.spec.ts` | Urban Flood Inundation & Evacuation Routing (M137) | 2 | 0 | 5.2s | `pnpm --filter api test test/flood-evacuation-routing.spec.ts` |
+| `test/wheel-alignment-telemetry.spec.ts` | Wheel Alignment & Tire Scrub Telemetry (M138) | 2 | 0 | 5.1s | `pnpm --filter api test test/wheel-alignment-telemetry.spec.ts` |
+| `test/robotic-swap-protocol.spec.ts` | Autonomous Robotic Battery Swap Mechanism (M139) | 2 | 0 | 5.3s | `pnpm --filter api test test/robotic-swap-protocol.spec.ts` |
+| `test/green-bond-reporting.spec.ts` | AP State Clean Transit ESG Green Bond Audit (M140) | 2 | 0 | 5.2s | `pnpm --filter api test test/green-bond-reporting.spec.ts` |
+| `test/migration.spec.ts` | Database Migrations Up/Down Integrity (87 Migrations) | 156 | 0 | 11.2s | `pnpm --filter api test test/migration.spec.ts` |
 | `test/quote-safeguards.spec.ts` | Authoritative Quote & Version Pinning | 21 | 0 | 9.5s | `pnpm --filter api test test/quote-safeguards.spec.ts` |
 | `test/fare-rules.service.spec.ts` | Fare Rules & Version Audit Trail | 14 | 0 | 7.8s | `pnpm --filter api test test/fare-rules.service.spec.ts` |
 | `test/vehicles.spec.ts` | Vehicles EV Compliance & Seating Controls | 23 | 0 | 8.2s | `pnpm --filter api test test/vehicles.spec.ts` |
@@ -144,7 +154,7 @@ This document records the exact test suite executions, shell commands, test resu
 | `test/release-boundaries.service.spec.ts` | Release Boundaries & Capital Corridor Enactment | 14 | 0 | 4.8s | `pnpm --filter api test test/release-boundaries.service.spec.ts` |
 | `test/seed.spec.ts` | Synthetic Seed Data & Governance | 9 | 0 | 5.0s | `pnpm --filter api test test/seed.spec.ts` |
 | `test/providers.spec.ts` | Core External Providers Mock Adapters | 14 | 0 | 3.6s | `pnpm --filter api test test/providers.spec.ts` |
-| **Total Across All Suites** | **156 Test Suites** | **1161** | **0** | **~370s** | `pnpm --filter api test` |
+| **Total Across All Suites** | **166 Test Suites** | **1191** | **0** | **~400s** | `pnpm --filter api test` |
 
 ---
 

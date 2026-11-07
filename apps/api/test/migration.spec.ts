@@ -71,6 +71,11 @@ import { CreateBmsWarrantyAndTspRoutingSchema1700000000079 } from '../src/databa
 import { CreateDepotGateAndTaxCertificateSchema1700000000080 } from '../src/database/migrations/1700000000080-CreateDepotGateAndTaxCertificateSchema';
 import { CreateVernacularDetourAndAntiRollbackSchema1700000000081 } from '../src/database/migrations/1700000000081-CreateVernacularDetourAndAntiRollbackSchema';
 import { CreateOcpiRoamingAndOccPttSchema1700000000082 } from '../src/database/migrations/1700000000082-CreateOcpiRoamingAndOccPttSchema';
+import { CreateCrashImpactAndRuralAgriCargoSchema1700000000083 } from '../src/database/migrations/1700000000083-CreateCrashImpactAndRuralAgriCargoSchema';
+import { CreateRegenHarvestAndCellDiagnosticSchema1700000000084 } from '../src/database/migrations/1700000000084-CreateRegenHarvestAndCellDiagnosticSchema';
+import { CreateChargingHostRevenueAndSolarMpptSchema1700000000085 } from '../src/database/migrations/1700000000085-CreateChargingHostRevenueAndSolarMpptSchema';
+import { CreateFloodEvacuationAndWheelAlignmentSchema1700000000086 } from '../src/database/migrations/1700000000086-CreateFloodEvacuationAndWheelAlignmentSchema';
+import { CreateRoboticSwapAndGreenBondAuditSchema1700000000087 } from '../src/database/migrations/1700000000087-CreateRoboticSwapAndGreenBondAuditSchema';
 import { QueryRunner } from 'typeorm';
 
 describe('Database Migrations', () => {
@@ -2054,6 +2059,126 @@ describe('Database Migrations', () => {
       const allQueries = executedQueries.join(' ');
       expect(allQueries).toContain('DROP TABLE IF EXISTS "occ_push_to_talk_channels"');
       expect(allQueries).toContain('DROP TABLE IF EXISTS "ocpi_roaming_sessions"');
+    });
+  });
+
+  describe('CreateCrashImpactAndRuralAgriCargoSchema1700000000083', () => {
+    let migration: CreateCrashImpactAndRuralAgriCargoSchema1700000000083;
+
+    beforeEach(() => {
+      migration = new CreateCrashImpactAndRuralAgriCargoSchema1700000000083();
+    });
+
+    it('should create crash impact events and agri produce consignments in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "crash_impact_telemetry_events"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "agri_produce_consignments"');
+    });
+
+    it('should drop agri consignments and crash impact events in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "agri_produce_consignments"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "crash_impact_telemetry_events"');
+    });
+  });
+
+  describe('CreateRegenHarvestAndCellDiagnosticSchema1700000000084', () => {
+    let migration: CreateRegenHarvestAndCellDiagnosticSchema1700000000084;
+
+    beforeEach(() => {
+      migration = new CreateRegenHarvestAndCellDiagnosticSchema1700000000084();
+    });
+
+    it('should create regen harvest logs and cell diagnostic gate logs in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "regen_harvest_logs"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "cell_diagnostic_gate_logs"');
+    });
+
+    it('should drop cell diagnostic logs and regen harvest logs in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "cell_diagnostic_gate_logs"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "regen_harvest_logs"');
+    });
+  });
+
+  describe('CreateChargingHostRevenueAndSolarMpptSchema1700000000085', () => {
+    let migration: CreateChargingHostRevenueAndSolarMpptSchema1700000000085;
+
+    beforeEach(() => {
+      migration = new CreateChargingHostRevenueAndSolarMpptSchema1700000000085();
+    });
+
+    it('should create charging host settlements and solar mppt coupling sessions in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "charging_host_settlements"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "solar_mppt_coupling_sessions"');
+    });
+
+    it('should drop solar mppt sessions and charging host settlements in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "solar_mppt_coupling_sessions"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "charging_host_settlements"');
+    });
+  });
+
+  describe('CreateFloodEvacuationAndWheelAlignmentSchema1700000000086', () => {
+    let migration: CreateFloodEvacuationAndWheelAlignmentSchema1700000000086;
+
+    beforeEach(() => {
+      migration = new CreateFloodEvacuationAndWheelAlignmentSchema1700000000086();
+    });
+
+    it('should create flood evacuation alerts and wheel alignment logs in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "flood_evacuation_alerts"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "wheel_alignment_logs"');
+    });
+
+    it('should drop wheel alignment logs and flood evacuation alerts in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "wheel_alignment_logs"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "flood_evacuation_alerts"');
+    });
+  });
+
+  describe('CreateRoboticSwapAndGreenBondAuditSchema1700000000087', () => {
+    let migration: CreateRoboticSwapAndGreenBondAuditSchema1700000000087;
+
+    beforeEach(() => {
+      migration = new CreateRoboticSwapAndGreenBondAuditSchema1700000000087();
+    });
+
+    it('should create robotic swap sessions and green bond audit reports in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "robotic_swap_sessions"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "green_bond_audit_reports"');
+    });
+
+    it('should drop green bond reports and robotic swap sessions in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "green_bond_audit_reports"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "robotic_swap_sessions"');
     });
   });
 });
