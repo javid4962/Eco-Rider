@@ -103,7 +103,17 @@ This document records the exact test suite executions, shell commands, test resu
 | `test/clean-air-subsidy.spec.ts` | Municipal Clean Air Partnership Live Air Quality Index Surcharge Offset (M98) | 3 | 0 | 5.1s | `pnpm --filter api test test/clean-air-subsidy.spec.ts` |
 | `test/monsoon-traction.spec.ts` | Autonomous Low-Traction Wet Monsoon Road Surface Adaptive Torque Telemetry (M99) | 3 | 0 | 5.2s | `pnpm --filter api test test/monsoon-traction.spec.ts` |
 | `test/occ-command-wall.spec.ts` | Century Milestone: Full Enterprise OCC Live Command Wall & Incident Orchestrator (M100) | 2 | 0 | 5.1s | `pnpm --filter api test test/occ-command-wall.spec.ts` |
-| `test/migration.spec.ts` | Database Migrations Up/Down Integrity (67 Migrations) | 116 | 0 | 18.0s | `pnpm --filter api test test/migration.spec.ts` |
+| `test/flood-telemetry.spec.ts` | Roadway Flood Depth Telemetry & Low-Clearance Rerouting (M101) | 3 | 0 | 5.9s | `pnpm --filter api test test/flood-telemetry.spec.ts` |
+| `test/captain-shift-ergonomics.spec.ts` | Captain Shift Ergonomics & Mandatory Biometric Rest-Break (M102) | 3 | 0 | 8.3s | `pnpm --filter api test test/captain-shift-ergonomics.spec.ts` |
+| `test/solar-canopy-reservation.spec.ts` | Solar Canopy EV Fast-Charging Dynamic Reservation (M103) | 2 | 0 | 6.7s | `pnpm --filter api test test/solar-canopy-reservation.spec.ts` |
+| `test/corporate-cost-center.spec.ts` | Corporate Multi-Tier Cost-Center Budgeting & Expense Quotas (M104) | 2 | 0 | 8.9s | `pnpm --filter api test test/corporate-cost-center.spec.ts` |
+| `test/high-value-cargo-lockbox.spec.ts` | Inter-District Courier Cold-Storage Parcel Lockbox Verification (M105) | 3 | 0 | 52.5s | `pnpm --filter api test test/high-value-cargo-lockbox.spec.ts` |
+| `test/micro-mobility-speed-governor.spec.ts` | Urban Micro-Mobility Geofenced Speed Governor Adaptive Throttling (M106) | 2 | 0 | 6.5s | `pnpm --filter api test test/micro-mobility-speed-governor.spec.ts` |
+| `test/captain-eco-bonus.spec.ts` | Captain Battery Health Bonus & Eco-Regen Driving Incentive (M107) | 2 | 0 | 7.6s | `pnpm --filter api test test/captain-eco-bonus.spec.ts` |
+| `test/disaster-fleet-mobilization.spec.ts` | Mass Casualty / Disaster Relief EV Fleet Mobilization Protocol (M108) | 2 | 0 | 5.2s | `pnpm --filter api test test/disaster-fleet-mobilization.spec.ts` |
+| `test/v2h-residential-backup.spec.ts` | Real-Time Vehicle-to-Home (V2H) Emergency Residential Power Backup (M109) | 3 | 0 | 10.4s | `pnpm --filter api test test/v2h-residential-backup.spec.ts` |
+| `test/executive-kpi-reporting.spec.ts` | Executive Operations KPI Data Warehouse & Regulatory Reporting (M110) | 1 | 0 | 5.3s | `pnpm --filter api test test/executive-kpi-reporting.spec.ts` |
+| `test/migration.spec.ts` | Database Migrations Up/Down Integrity (72 Migrations) | 126 | 0 | 28.9s | `pnpm --filter api test test/migration.spec.ts` |
 | `test/quote-safeguards.spec.ts` | Authoritative Quote & Version Pinning | 21 | 0 | 9.5s | `pnpm --filter api test test/quote-safeguards.spec.ts` |
 | `test/fare-rules.service.spec.ts` | Fare Rules & Version Audit Trail | 14 | 0 | 7.8s | `pnpm --filter api test test/fare-rules.service.spec.ts` |
 | `test/vehicles.spec.ts` | Vehicles EV Compliance & Seating Controls | 23 | 0 | 8.2s | `pnpm --filter api test test/vehicles.spec.ts` |
@@ -114,7 +124,7 @@ This document records the exact test suite executions, shell commands, test resu
 | `test/release-boundaries.service.spec.ts` | Release Boundaries & Capital Corridor Enactment | 14 | 0 | 4.8s | `pnpm --filter api test test/release-boundaries.service.spec.ts` |
 | `test/seed.spec.ts` | Synthetic Seed Data & Governance | 9 | 0 | 5.0s | `pnpm --filter api test test/seed.spec.ts` |
 | `test/providers.spec.ts` | Core External Providers Mock Adapters | 14 | 0 | 3.6s | `pnpm --filter api test test/providers.spec.ts` |
-| **Total Across All Suites** | **126 Test Suites** | **1071** | **0** | **~280s** | `pnpm --filter api test` |
+| **Total Across All Suites** | **136 Test Suites** | **1104** | **0** | **~320s** | `pnpm --filter api test` |
 
 ---
 

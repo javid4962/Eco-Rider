@@ -56,6 +56,11 @@ import { CreateHighwayRestStopAndGridCurtailmentSchema1700000000064 } from '../s
 import { CreateCorporateGreenAndReeferTelematicsSchema1700000000065 } from '../src/database/migrations/1700000000065-CreateCorporateGreenAndReeferTelematicsSchema';
 import { CreateMicroMobilityBountyAndAqiMonitoringSchema1700000000066 } from '../src/database/migrations/1700000000066-CreateMicroMobilityBountyAndAqiMonitoringSchema';
 import { CreateMonsoonTractionAndOccPostureSchema1700000000067 } from '../src/database/migrations/1700000000067-CreateMonsoonTractionAndOccPostureSchema';
+import { CreateFloodDepthAndCaptainErgonomicsSchema1700000000068 } from '../src/database/migrations/1700000000068-CreateFloodDepthAndCaptainErgonomicsSchema';
+import { CreateSolarCanopyAndCostCenterSchema1700000000069 } from '../src/database/migrations/1700000000069-CreateSolarCanopyAndCostCenterSchema';
+import { CreateLockboxAndPedestrianZoneSchema1700000000070 } from '../src/database/migrations/1700000000070-CreateLockboxAndPedestrianZoneSchema';
+import { CreateCaptainEcoAndDisasterMobilizationSchema1700000000071 } from '../src/database/migrations/1700000000071-CreateCaptainEcoAndDisasterMobilizationSchema';
+import { CreateV2hResidentialAndExecutiveKpiSchema1700000000072 } from '../src/database/migrations/1700000000072-CreateV2hResidentialAndExecutiveKpiSchema';
 import { QueryRunner } from 'typeorm';
 
 describe('Database Migrations', () => {
@@ -1679,6 +1684,126 @@ describe('Database Migrations', () => {
       const allQueries = executedQueries.join(' ');
       expect(allQueries).toContain('DROP TABLE IF EXISTS "occ_posture_audits"');
       expect(allQueries).toContain('DROP TABLE IF EXISTS "monsoon_traction_events"');
+    });
+  });
+
+  describe('CreateFloodDepthAndCaptainErgonomicsSchema1700000000068', () => {
+    let migration: CreateFloodDepthAndCaptainErgonomicsSchema1700000000068;
+
+    beforeEach(() => {
+      migration = new CreateFloodDepthAndCaptainErgonomicsSchema1700000000068();
+    });
+
+    it('should create flood depth assessments and captain shift ergonomics in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "flood_depth_assessments"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "captain_shift_ergonomics"');
+    });
+
+    it('should drop captain shift ergonomics and flood depth assessments in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "captain_shift_ergonomics"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "flood_depth_assessments"');
+    });
+  });
+
+  describe('CreateSolarCanopyAndCostCenterSchema1700000000069', () => {
+    let migration: CreateSolarCanopyAndCostCenterSchema1700000000069;
+
+    beforeEach(() => {
+      migration = new CreateSolarCanopyAndCostCenterSchema1700000000069();
+    });
+
+    it('should create solar canopy reservations and corporate cost centers in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "solar_canopy_reservations"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "corporate_cost_centers"');
+    });
+
+    it('should drop corporate cost centers and solar canopy reservations in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "corporate_cost_centers"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "solar_canopy_reservations"');
+    });
+  });
+
+  describe('CreateLockboxAndPedestrianZoneSchema1700000000070', () => {
+    let migration: CreateLockboxAndPedestrianZoneSchema1700000000070;
+
+    beforeEach(() => {
+      migration = new CreateLockboxAndPedestrianZoneSchema1700000000070();
+    });
+
+    it('should create high value lockboxes and micro mobility pedestrian zones in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "high_value_lockboxes"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "micro_mobility_pedestrian_zones"');
+    });
+
+    it('should drop micro mobility pedestrian zones and high value lockboxes in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "micro_mobility_pedestrian_zones"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "high_value_lockboxes"');
+    });
+  });
+
+  describe('CreateCaptainEcoAndDisasterMobilizationSchema1700000000071', () => {
+    let migration: CreateCaptainEcoAndDisasterMobilizationSchema1700000000071;
+
+    beforeEach(() => {
+      migration = new CreateCaptainEcoAndDisasterMobilizationSchema1700000000071();
+    });
+
+    it('should create captain eco driving records and disaster mobilization logs in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "captain_eco_driving_records"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "disaster_mobilization_logs"');
+    });
+
+    it('should drop disaster mobilization logs and captain eco driving records in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "disaster_mobilization_logs"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "captain_eco_driving_records"');
+    });
+  });
+
+  describe('CreateV2hResidentialAndExecutiveKpiSchema1700000000072', () => {
+    let migration: CreateV2hResidentialAndExecutiveKpiSchema1700000000072;
+
+    beforeEach(() => {
+      migration = new CreateV2hResidentialAndExecutiveKpiSchema1700000000072();
+    });
+
+    it('should create v2h residential sessions and executive kpi snapshots in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "v2h_residential_sessions"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "executive_kpi_snapshots"');
+    });
+
+    it('should drop executive kpi snapshots and v2h residential sessions in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "executive_kpi_snapshots"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "v2h_residential_sessions"');
     });
   });
 });

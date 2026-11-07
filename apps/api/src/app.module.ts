@@ -109,6 +109,16 @@ import { MicroMobilityBountyModule } from './modules/micro-mobility-bounty/micro
 import { CleanAirSubsidyModule } from './modules/clean-air-subsidy/clean-air-subsidy.module';
 import { MonsoonTractionModule } from './modules/monsoon-traction/monsoon-traction.module';
 import { OccCommandWallModule } from './modules/occ-command-wall/occ-command-wall.module';
+import { FloodTelemetryModule } from './modules/flood-telemetry/flood-telemetry.module';
+import { CaptainShiftErgonomicsModule } from './modules/captain-shift-ergonomics/captain-shift-ergonomics.module';
+import { SolarCanopyReservationModule } from './modules/solar-canopy-reservation/solar-canopy-reservation.module';
+import { CorporateCostCenterModule } from './modules/corporate-cost-center/corporate-cost-center.module';
+import { HighValueCargoLockboxModule } from './modules/high-value-cargo-lockbox/high-value-cargo-lockbox.module';
+import { MicroMobilitySpeedGovernorModule } from './modules/micro-mobility-speed-governor/micro-mobility-speed-governor.module';
+import { CaptainEcoBonusModule } from './modules/captain-eco-bonus/captain-eco-bonus.module';
+import { DisasterFleetMobilizationModule } from './modules/disaster-fleet-mobilization/disaster-fleet-mobilization.module';
+import { V2hResidentialBackupModule } from './modules/v2h-residential-backup/v2h-residential-backup.module';
+import { ExecutiveKpiReportingModule } from './modules/executive-kpi-reporting/executive-kpi-reporting.module';
 import { CorrelationIdMiddleware } from './common/middleware/correlation-id.middleware';
 import { AuthMiddleware } from './modules/auth/middleware/auth.middleware';
 
@@ -226,6 +236,16 @@ import { AuthMiddleware } from './modules/auth/middleware/auth.middleware';
     CleanAirSubsidyModule,
     MonsoonTractionModule,
     OccCommandWallModule,
+    FloodTelemetryModule,
+    CaptainShiftErgonomicsModule,
+    SolarCanopyReservationModule,
+    CorporateCostCenterModule,
+    HighValueCargoLockboxModule,
+    MicroMobilitySpeedGovernorModule,
+    CaptainEcoBonusModule,
+    DisasterFleetMobilizationModule,
+    V2hResidentialBackupModule,
+    ExecutiveKpiReportingModule,
   ],
 })
 export class AppModule implements NestModule {
