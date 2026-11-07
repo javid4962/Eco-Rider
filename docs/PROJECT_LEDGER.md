@@ -1709,12 +1709,142 @@ This is the central engineering ledger tracking task execution, code diffs, migr
 
 ---
 
+### Milestone M121: Electric Bus Overhead Pantograph High-Power DC Charging Arbitrage & Telemetry
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-07
+- **Changes Implemented**:
+  1. `PantographChargingModule` & `PantographChargingService` (`apps/api/src/modules/pantograph-charging/`):
+     - Automated high-power DC overhead pantograph charging (350kW–450kW flash charging) telemetry and session lifecycle for electric transit buses.
+     - Enforces steady head contact pressure (~120 N) and solar peak off-peak tariff arbitrage (850 paise/kWh).
+  2. Database Entity: `PantographChargingSessionEntity`.
+  3. Migration: Part of `1700000000078-CreatePantographAndWeatherGovernorSchema.ts`.
+  4. Tests: `apps/api/test/pantograph-charging.spec.ts` (2/2 tests passing).
+
+---
+
+### Milestone M122: Dynamic Inter-City EV Corridor Weather-Responsive Top-Speed Adaptive Governor
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-07
+- **Changes Implemented**:
+  1. `WeatherSpeedGovernorModule` & `WeatherSpeedGovernorService` (`apps/api/src/modules/weather-speed-governor/`):
+     - Dynamic corridor-level speed governor adapting speed limits based on severe monsoon / cyclone wind gusts on the Prakasam Barrage and Vijayawada-Guntur Express Highway.
+     - Issues telemetry speed restriction instructions down to 40 km/h with automated audible buzzer alerts when speeds exceed limits.
+  2. Database Entity: `WeatherGovernorEventEntity`.
+  3. Migration: Part of `1700000000078-CreatePantographAndWeatherGovernorSchema.ts`.
+  4. Tests: `apps/api/test/weather-speed-governor.spec.ts` (2/2 tests passing).
+
+---
+
+### Milestone M123: Captain EV Battery Warranty Preservation & Thermal Degradation Telemetry Shield
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-07
+- **Changes Implemented**:
+  1. `BmsWarrantyTelemetryModule` & `BmsWarrantyTelemetryService` (`apps/api/src/modules/bms-warranty-telemetry/`):
+     - Monitors BMS operating envelopes and enforces OEM battery pack thermal degradation preservation limits (cell temp > 46.5°C triggers power throttling and warranty flag).
+     - Tracks cycle counts and state-of-health (SoH) preservation across summer peak temperature corridors in AP Capital region.
+  2. Database Entity: `BmsWarrantyTelemetryLogEntity`.
+  3. Migration: Part of `1700000000079-CreateBmsWarrantyAndTspRoutingSchema.ts`.
+  4. Tests: `apps/api/test/bms-warranty-telemetry.spec.ts` (2/2 tests passing).
+
+---
+
+### Milestone M124: Multi-Stop Parcel Delivery Dynamic Traveling Salesperson (TSP) Energy-Optimal Routing
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-07
+- **Changes Implemented**:
+  1. `MultiStopTspRoutingModule` & `MultiStopTspRoutingService` (`apps/api/src/modules/multi-stop-tsp-routing/`):
+     - Energy-optimal dynamic TSP heuristics for intra-district electric multi-drop parcel courier operations.
+     - Minimizes elevation gain and incorporates regenerative braking profiles across Krishna canal bund and hilly suburban routes, estimating SoC consumption.
+  2. Database Entity: `MultiStopTspRouteEntity`.
+  3. Migration: Part of `1700000000079-CreateBmsWarrantyAndTspRoutingSchema.ts`.
+  4. Tests: `apps/api/test/multi-stop-tsp-routing.spec.ts` (2/2 tests passing).
+
+---
+
+### Milestone M125: Autonomous Smart Depot Security Gate & ANPR Ingress/Egress
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-07
+- **Changes Implemented**:
+  1. `DepotGateAnprModule` & `DepotGateAnprService` (`apps/api/src/modules/depot-gate-anpr/`):
+     - Automated barrier boom-arm controller integrating computer vision ANPR with active fleet duty rosters and high-voltage safety interlocks.
+     - Verifies battery thermal status before permitting EV ingress to indoor depot charging bays.
+  2. Database Entity: `DepotGateAccessLogEntity`.
+  3. Migration: Part of `1700000000080-CreateDepotGateAndTaxCertificateSchema.ts`.
+  4. Tests: `apps/api/test/depot-gate-anpr.spec.ts` (2/2 tests passing).
+
+---
+
+### Milestone M126: Corporate Green Commute Tax Rebate (Section 80EEB) Digital Certificate Generator
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-07
+- **Changes Implemented**:
+  1. `Section80eebTaxModule` & `Section80eebTaxService` (`apps/api/src/modules/section-80eeb-tax/`):
+     - Verifiable digital tax compliance generator under Section 80EEB of the Indian Income Tax Act for EV interest deductions up to ₹1,50,000 (15,000,000 paise).
+     - Cryptographically signs certificate payload with SHA-256 digital seals for statutory employer deduction audits.
+  2. Database Entity: `TaxRebateCertificateEntity`.
+  3. Migration: Part of `1700000000080-CreateDepotGateAndTaxCertificateSchema.ts`.
+  4. Tests: `apps/api/test/section-80eeb-tax.spec.ts` (2/2 tests passing).
+
+---
+
+### Milestone M127: AI-Assisted Real-Time Vernacular Voice Navigation in Telugu for EV Charging Detours
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-07
+- **Changes Implemented**:
+  1. `VernacularVoiceDetourModule` & `VernacularVoiceDetourService` (`apps/api/src/modules/vernacular-voice-detour/`):
+     - Generates low-latency localized Telugu voice synthesis prompts for critical battery low situations (SoC < 18%).
+     - Dynamically detours drivers to available fast chargers with natural Telugu script phrasing and audio phoneme representations.
+  2. Database Entity: `VernacularNavigationPromptEntity`.
+  3. Migration: Part of `1700000000081-CreateVernacularDetourAndAntiRollbackSchema.ts`.
+  4. Tests: `apps/api/test/vernacular-voice-detour.spec.ts` (2/2 tests passing).
+
+---
+
+### Milestone M128: Autonomous High-Load Electric Three-Wheeler (E-Auto) Incline Rollback Telemetry Safeguard
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-07
+- **Changes Implemented**:
+  1. `AntiRollbackStallTelemetryModule` & `AntiRollbackStallTelemetryService` (`apps/api/src/modules/anti-rollback-stall-telemetry/`):
+     - Real-time CAN-bus IMU telemetry processor detecting reverse rolling motion on steep inclines (Kanaka Durga Flyover, Guntur Ghat road) while vehicle is in forward drive gear.
+     - Triggers automated hill-hold motor counter-torque injection (85.0 Nm) and captain audio warning.
+  2. Database Entity: `AntiRollbackStallEventEntity`.
+  3. Migration: Part of `1700000000081-CreateVernacularDetourAndAntiRollbackSchema.ts`.
+  4. Tests: `apps/api/test/anti-rollback-stall-telemetry.spec.ts` (2/2 tests passing).
+
+---
+
+### Milestone M129: Multi-Operator Interoperable EV Roaming & OCPI 2.2.1 Protocol Adapter
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-07
+- **Changes Implemented**:
+  1. `OcpiRoamingProtocolModule` & `OcpiRoamingProtocolService` (`apps/api/src/modules/ocpi-roaming-protocol/`):
+     - Enterprise OCPI 2.2.1 e-Mobility Service Provider (eMSP) and Charge Point Operator (CPO) inter-network roaming adapter.
+     - Manages cross-network session start/stop, token authorization, CDR generation, and clearinghouse financial settlement in integer paise with 18% AP GST.
+  2. Database Entity: `OcpiRoamingSessionEntity`.
+  3. Migration: Part of `1700000000082-CreateOcpiRoamingAndOccPttSchema.ts`.
+  4. Tests: `apps/api/test/ocpi-roaming-protocol.spec.ts` (3/3 tests passing).
+
+---
+
+### Milestone M130: Unified Operations Control Center (OCC) Live Audio Dispatch & Emergency Push-to-Talk (PTT)
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-07
+- **Changes Implemented**:
+  1. `OccPushToTalkModule` & `OccPushToTalkService` (`apps/api/src/modules/occ-push-to-talk/`):
+     - WebRTC / Opus audio channel manager for instant half-duplex Push-to-Talk (PTT) dispatch between OCC commanders and field EV fleet captains.
+     - Supports high-priority emergency preemption, geo-targeted perimeter broadcasts, and statutory audit compliance recording.
+  2. Database Entity: `OccPushToTalkChannelEntity`.
+  3. Migration: Part of `1700000000082-CreateOcpiRoamingAndOccPttSchema.ts`.
+  4. Tests: `apps/api/test/occ-push-to-talk.spec.ts` (3/3 tests passing).
+
+---
+
 ### Global Test & Compliance Verification Status
-- **Backend Test Suite**: **All 146 test suites passing (100% pass rate, 1,129 tests)**.
+- **Backend Test Suite**: **All 156 test suites passing (100% pass rate, 1,161 tests)**.
 - **Typecheck**: Clean 0 errors across `@ecoride/contracts`, `apps/api`, and `apps/ops-web`.
 - **Linting & Secrets**: 0 errors, 0 secret leaks (`pnpm scan:secrets` PASSED).
 - **Flutter Mobile Apps**: Analyzed via `dart-mcp-server`; 0 errors in `captain_app` and `rider_app`.
-- **Database Migrations**: 77 reversible TypeORM migrations verified with comprehensive `up()` and `down()` tests in `test/migration.spec.ts` (136 migration test cases).
+- **Database Migrations**: 82 reversible TypeORM migrations verified with comprehensive `up()` and `down()` tests in `test/migration.spec.ts` (146 migration test cases).
 - **Statutory AP GST & Ledger**: Intra-state transport 5% GST (SAC 996412), cargo freight 18% GST (SAC 9965), EV charging/battery swapping/rescue 18% GST (SAC 9987), strictly balanced double-entry ledger parity (`Total DEBIT === Total CREDIT`).
 
 

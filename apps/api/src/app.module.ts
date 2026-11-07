@@ -129,6 +129,16 @@ import { RainCoverEscrowModule } from './modules/rain-cover-escrow/rain-cover-es
 import { DepotSmartChargingBalanceModule } from './modules/depot-smart-charging-balance/depot-smart-charging-balance.module';
 import { NcmcTransitPaymentModule } from './modules/ncmc-transit-payment/ncmc-transit-payment.module';
 import { FleetRebalancingDispatchModule } from './modules/fleet-rebalancing-dispatch/fleet-rebalancing-dispatch.module';
+import { PantographChargingModule } from './modules/pantograph-charging/pantograph-charging.module';
+import { WeatherSpeedGovernorModule } from './modules/weather-speed-governor/weather-speed-governor.module';
+import { BmsWarrantyTelemetryModule } from './modules/bms-warranty-telemetry/bms-warranty-telemetry.module';
+import { MultiStopTspRoutingModule } from './modules/multi-stop-tsp-routing/multi-stop-tsp-routing.module';
+import { DepotGateAnprModule } from './modules/depot-gate-anpr/depot-gate-anpr.module';
+import { Section80eebTaxModule } from './modules/section-80eeb-tax/section-80eeb-tax.module';
+import { VernacularVoiceDetourModule } from './modules/vernacular-voice-detour/vernacular-voice-detour.module';
+import { AntiRollbackStallTelemetryModule } from './modules/anti-rollback-stall-telemetry/anti-rollback-stall-telemetry.module';
+import { OcpiRoamingProtocolModule } from './modules/ocpi-roaming-protocol/ocpi-roaming-protocol.module';
+import { OccPushToTalkModule } from './modules/occ-push-to-talk/occ-push-to-talk.module';
 import { CorrelationIdMiddleware } from './common/middleware/correlation-id.middleware';
 import { AuthMiddleware } from './modules/auth/middleware/auth.middleware';
 
@@ -266,6 +276,16 @@ import { AuthMiddleware } from './modules/auth/middleware/auth.middleware';
     DepotSmartChargingBalanceModule,
     NcmcTransitPaymentModule,
     FleetRebalancingDispatchModule,
+    PantographChargingModule,
+    WeatherSpeedGovernorModule,
+    BmsWarrantyTelemetryModule,
+    MultiStopTspRoutingModule,
+    DepotGateAnprModule,
+    Section80eebTaxModule,
+    VernacularVoiceDetourModule,
+    AntiRollbackStallTelemetryModule,
+    OcpiRoamingProtocolModule,
+    OccPushToTalkModule,
   ],
 })
 export class AppModule implements NestModule {

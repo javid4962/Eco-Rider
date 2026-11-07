@@ -66,6 +66,11 @@ import { CreateFeederDiscountAndCableThermalSchema1700000000074 } from '../src/d
 import { CreateCorporateOccupancyAndMultipathGpsSchema1700000000075 } from '../src/database/migrations/1700000000075-CreateCorporateOccupancyAndMultipathGpsSchema';
 import { CreateRainCoverAndSmartDepotSchema1700000000076 } from '../src/database/migrations/1700000000076-CreateRainCoverAndSmartDepotSchema';
 import { CreateNcmcPaymentAndFleetRebalancingSchema1700000000077 } from '../src/database/migrations/1700000000077-CreateNcmcPaymentAndFleetRebalancingSchema';
+import { CreatePantographAndWeatherGovernorSchema1700000000078 } from '../src/database/migrations/1700000000078-CreatePantographAndWeatherGovernorSchema';
+import { CreateBmsWarrantyAndTspRoutingSchema1700000000079 } from '../src/database/migrations/1700000000079-CreateBmsWarrantyAndTspRoutingSchema';
+import { CreateDepotGateAndTaxCertificateSchema1700000000080 } from '../src/database/migrations/1700000000080-CreateDepotGateAndTaxCertificateSchema';
+import { CreateVernacularDetourAndAntiRollbackSchema1700000000081 } from '../src/database/migrations/1700000000081-CreateVernacularDetourAndAntiRollbackSchema';
+import { CreateOcpiRoamingAndOccPttSchema1700000000082 } from '../src/database/migrations/1700000000082-CreateOcpiRoamingAndOccPttSchema';
 import { QueryRunner } from 'typeorm';
 
 describe('Database Migrations', () => {
@@ -1929,6 +1934,126 @@ describe('Database Migrations', () => {
       const allQueries = executedQueries.join(' ');
       expect(allQueries).toContain('DROP TABLE IF EXISTS "multi_district_rebalancing_orders"');
       expect(allQueries).toContain('DROP TABLE IF EXISTS "ncmc_transit_transactions"');
+    });
+  });
+
+  describe('CreatePantographAndWeatherGovernorSchema1700000000078', () => {
+    let migration: CreatePantographAndWeatherGovernorSchema1700000000078;
+
+    beforeEach(() => {
+      migration = new CreatePantographAndWeatherGovernorSchema1700000000078();
+    });
+
+    it('should create pantograph charging sessions and weather governor events in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "pantograph_charging_sessions"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "weather_governor_events"');
+    });
+
+    it('should drop weather governor events and pantograph charging sessions in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "weather_governor_events"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "pantograph_charging_sessions"');
+    });
+  });
+
+  describe('CreateBmsWarrantyAndTspRoutingSchema1700000000079', () => {
+    let migration: CreateBmsWarrantyAndTspRoutingSchema1700000000079;
+
+    beforeEach(() => {
+      migration = new CreateBmsWarrantyAndTspRoutingSchema1700000000079();
+    });
+
+    it('should create bms warranty telemetry logs and multi stop tsp routes in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "bms_warranty_telemetry_logs"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "multi_stop_tsp_routes"');
+    });
+
+    it('should drop multi stop tsp routes and bms warranty telemetry logs in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "multi_stop_tsp_routes"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "bms_warranty_telemetry_logs"');
+    });
+  });
+
+  describe('CreateDepotGateAndTaxCertificateSchema1700000000080', () => {
+    let migration: CreateDepotGateAndTaxCertificateSchema1700000000080;
+
+    beforeEach(() => {
+      migration = new CreateDepotGateAndTaxCertificateSchema1700000000080();
+    });
+
+    it('should create depot gate access logs and tax rebate certificates in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "depot_gate_access_logs"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "tax_rebate_certificates"');
+    });
+
+    it('should drop tax rebate certificates and depot gate access logs in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "tax_rebate_certificates"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "depot_gate_access_logs"');
+    });
+  });
+
+  describe('CreateVernacularDetourAndAntiRollbackSchema1700000000081', () => {
+    let migration: CreateVernacularDetourAndAntiRollbackSchema1700000000081;
+
+    beforeEach(() => {
+      migration = new CreateVernacularDetourAndAntiRollbackSchema1700000000081();
+    });
+
+    it('should create vernacular navigation prompts and anti rollback stall events in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "vernacular_navigation_prompts"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "anti_rollback_stall_events"');
+    });
+
+    it('should drop anti rollback stall events and vernacular navigation prompts in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "anti_rollback_stall_events"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "vernacular_navigation_prompts"');
+    });
+  });
+
+  describe('CreateOcpiRoamingAndOccPttSchema1700000000082', () => {
+    let migration: CreateOcpiRoamingAndOccPttSchema1700000000082;
+
+    beforeEach(() => {
+      migration = new CreateOcpiRoamingAndOccPttSchema1700000000082();
+    });
+
+    it('should create ocpi roaming sessions and occ push to talk channels in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "ocpi_roaming_sessions"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "occ_push_to_talk_channels"');
+    });
+
+    it('should drop occ push to talk channels and ocpi roaming sessions in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "occ_push_to_talk_channels"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "ocpi_roaming_sessions"');
     });
   });
 });

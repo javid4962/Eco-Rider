@@ -123,7 +123,17 @@ This document records the exact test suite executions, shell commands, test resu
 | `test/depot-smart-charging-balance.spec.ts` | Smart Depot Fleet Overnight Slow-Charging AC Balancing (M118) | 2 | 0 | 5.2s | `pnpm --filter api test test/depot-smart-charging-balance.spec.ts` |
 | `test/ncmc-transit-payment.spec.ts` | Public Transit Fare Integration (APSRTC NCMC Protocol) (M119) | 2 | 0 | 4.9s | `pnpm --filter api test test/ncmc-transit-payment.spec.ts` |
 | `test/fleet-rebalancing-dispatch.spec.ts` | Multi-District Fleet Rebalancing & Dispatch Repositioning (M120) | 3 | 0 | 5.4s | `pnpm --filter api test test/fleet-rebalancing-dispatch.spec.ts` |
-| `test/migration.spec.ts` | Database Migrations Up/Down Integrity (77 Migrations) | 136 | 0 | 18.9s | `pnpm --filter api test test/migration.spec.ts` |
+| `test/pantograph-charging.spec.ts` | High-Power Pantograph Charging Arbitrage (M121) | 2 | 0 | 5.2s | `pnpm --filter api test test/pantograph-charging.spec.ts` |
+| `test/weather-speed-governor.spec.ts` | Weather-Responsive Speed Governor (M122) | 2 | 0 | 5.1s | `pnpm --filter api test test/weather-speed-governor.spec.ts` |
+| `test/bms-warranty-telemetry.spec.ts` | BMS Warranty Preservation & Thermal Degradation (M123) | 2 | 0 | 5.0s | `pnpm --filter api test test/bms-warranty-telemetry.spec.ts` |
+| `test/multi-stop-tsp-routing.spec.ts` | Multi-Stop TSP Energy-Optimal Routing (M124) | 2 | 0 | 5.2s | `pnpm --filter api test test/multi-stop-tsp-routing.spec.ts` |
+| `test/depot-gate-anpr.spec.ts` | Autonomous Smart Depot Security Gate & ANPR (M125) | 2 | 0 | 5.1s | `pnpm --filter api test test/depot-gate-anpr.spec.ts` |
+| `test/section-80eeb-tax.spec.ts` | Corporate Section 80EEB EV Tax Certificate Generator (M126) | 2 | 0 | 5.3s | `pnpm --filter api test test/section-80eeb-tax.spec.ts` |
+| `test/vernacular-voice-detour.spec.ts` | AI Vernacular Telugu Voice Charging Detour (M127) | 2 | 0 | 7.7s | `pnpm --filter api test test/vernacular-voice-detour.spec.ts` |
+| `test/anti-rollback-stall-telemetry.spec.ts` | E-Auto Incline Rollback & Stall Telemetry (M128) | 2 | 0 | 5.1s | `pnpm --filter api test test/anti-rollback-stall-telemetry.spec.ts` |
+| `test/ocpi-roaming-protocol.spec.ts` | Interoperable EV Roaming & OCPI 2.2.1 Protocol (M129) | 3 | 0 | 5.3s | `pnpm --filter api test test/ocpi-roaming-protocol.spec.ts` |
+| `test/occ-push-to-talk.spec.ts` | OCC Audio Dispatch & Emergency Push-to-Talk (M130) | 3 | 0 | 5.2s | `pnpm --filter api test test/occ-push-to-talk.spec.ts` |
+| `test/migration.spec.ts` | Database Migrations Up/Down Integrity (82 Migrations) | 146 | 0 | 10.4s | `pnpm --filter api test test/migration.spec.ts` |
 | `test/quote-safeguards.spec.ts` | Authoritative Quote & Version Pinning | 21 | 0 | 9.5s | `pnpm --filter api test test/quote-safeguards.spec.ts` |
 | `test/fare-rules.service.spec.ts` | Fare Rules & Version Audit Trail | 14 | 0 | 7.8s | `pnpm --filter api test test/fare-rules.service.spec.ts` |
 | `test/vehicles.spec.ts` | Vehicles EV Compliance & Seating Controls | 23 | 0 | 8.2s | `pnpm --filter api test test/vehicles.spec.ts` |
@@ -134,7 +144,7 @@ This document records the exact test suite executions, shell commands, test resu
 | `test/release-boundaries.service.spec.ts` | Release Boundaries & Capital Corridor Enactment | 14 | 0 | 4.8s | `pnpm --filter api test test/release-boundaries.service.spec.ts` |
 | `test/seed.spec.ts` | Synthetic Seed Data & Governance | 9 | 0 | 5.0s | `pnpm --filter api test test/seed.spec.ts` |
 | `test/providers.spec.ts` | Core External Providers Mock Adapters | 14 | 0 | 3.6s | `pnpm --filter api test test/providers.spec.ts` |
-| **Total Across All Suites** | **146 Test Suites** | **1129** | **0** | **~340s** | `pnpm --filter api test` |
+| **Total Across All Suites** | **156 Test Suites** | **1161** | **0** | **~370s** | `pnpm --filter api test` |
 
 ---
 
