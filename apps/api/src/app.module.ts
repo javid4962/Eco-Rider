@@ -99,6 +99,16 @@ import { CarbonCreditsModule } from './modules/carbon-credits/carbon-credits.mod
 import { PanicAudioModule } from './modules/panic-audio/panic-audio.module';
 import { CampusLoopModule } from './modules/campus-loop/campus-loop.module';
 import { PredictiveTireModule } from './modules/predictive-tire/predictive-tire.module';
+import { BatterySecondLifeModule } from './modules/battery-second-life/battery-second-life.module';
+import { TransitTurnstileModule } from './modules/transit-turnstile/transit-turnstile.module';
+import { HighwayRestStopModule } from './modules/highway-rest-stop/highway-rest-stop.module';
+import { GridCurtailmentModule } from './modules/grid-curtailment/grid-curtailment.module';
+import { CorporateGreenCommuteModule } from './modules/corporate-green-commute/corporate-green-commute.module';
+import { ReeferTelematicsModule } from './modules/reefer-telematics/reefer-telematics.module';
+import { MicroMobilityBountyModule } from './modules/micro-mobility-bounty/micro-mobility-bounty.module';
+import { CleanAirSubsidyModule } from './modules/clean-air-subsidy/clean-air-subsidy.module';
+import { MonsoonTractionModule } from './modules/monsoon-traction/monsoon-traction.module';
+import { OccCommandWallModule } from './modules/occ-command-wall/occ-command-wall.module';
 import { CorrelationIdMiddleware } from './common/middleware/correlation-id.middleware';
 import { AuthMiddleware } from './modules/auth/middleware/auth.middleware';
 
@@ -206,6 +216,16 @@ import { AuthMiddleware } from './modules/auth/middleware/auth.middleware';
     PanicAudioModule,
     CampusLoopModule,
     PredictiveTireModule,
+    BatterySecondLifeModule,
+    TransitTurnstileModule,
+    HighwayRestStopModule,
+    GridCurtailmentModule,
+    CorporateGreenCommuteModule,
+    ReeferTelematicsModule,
+    MicroMobilityBountyModule,
+    CleanAirSubsidyModule,
+    MonsoonTractionModule,
+    OccCommandWallModule,
   ],
 })
 export class AppModule implements NestModule {

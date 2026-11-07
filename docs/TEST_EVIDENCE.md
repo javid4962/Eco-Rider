@@ -93,7 +93,17 @@ This document records the exact test suite executions, shell commands, test resu
 | `test/panic-audio-verification.spec.ts` | Captain Emergency Health Hotline & In-Ride Panic Audio Stream (M88) | 3 | 0 | 5.3s | `pnpm --filter api test test/panic-audio-verification.spec.ts` |
 | `test/campus-loop-shuttle.spec.ts` | University & Hospital Campus Automated Zero-Emission Shuttle Scheduling (M89) | 2 | 0 | 5.1s | `pnpm --filter api test test/campus-loop-shuttle.spec.ts` |
 | `test/predictive-tire-telematics.spec.ts` | Fleet Predictive Tire Wear & Regenerative Braking Telemetry Optimization (M90) | 2 | 0 | 5.1s | `pnpm --filter api test test/predictive-tire-telematics.spec.ts` |
-| `test/migration.spec.ts` | Database Migrations Up/Down Integrity (62 Migrations) | 106 | 0 | 18.0s | `pnpm --filter api test test/migration.spec.ts` |
+| `test/battery-second-life.spec.ts` | Dynamic Fleet EV Battery Second-Life BESS Re-Assembly & Recertification (M91) | 2 | 0 | 5.2s | `pnpm --filter api test test/battery-second-life.spec.ts` |
+| `test/transit-turnstile.spec.ts` | Multi-Modal Transit Ticketing QR Validator Turnstile Hardware Protocol Adapter (M92) | 3 | 0 | 5.3s | `pnpm --filter api test test/transit-turnstile.spec.ts` |
+| `test/highway-rest-stop.spec.ts` | Inter-City Outstation Highway Rest-Stop Amenities & Meal Voucher Escrow (M93) | 3 | 0 | 5.1s | `pnpm --filter api test test/highway-rest-stop.spec.ts` |
+| `test/grid-curtailment.spec.ts` | Autonomous Dynamic Fleet Charging Curtailment during Grid Frequency Drop (M94) | 3 | 0 | 5.2s | `pnpm --filter api test test/grid-curtailment.spec.ts` |
+| `test/corporate-green-commute.spec.ts` | Corporate Carbon Neutral Commute Offsetting & Green Badge Gamification (M95) | 2 | 0 | 5.1s | `pnpm --filter api test test/corporate-green-commute.spec.ts` |
+| `test/reefer-telematics.spec.ts` | Autonomous Cold-Chain Reefer Temperature Setpoint CAN-bus Telematics (M96) | 3 | 0 | 5.2s | `pnpm --filter api test test/reefer-telematics.spec.ts` |
+| `test/micro-mobility-bounty.spec.ts` | High-Density Urban Micro-Mobility Geofenced No-Parking Lockout & Bounty (M97) | 3 | 0 | 5.3s | `pnpm --filter api test test/micro-mobility-bounty.spec.ts` |
+| `test/clean-air-subsidy.spec.ts` | Municipal Clean Air Partnership Live Air Quality Index Surcharge Offset (M98) | 3 | 0 | 5.1s | `pnpm --filter api test test/clean-air-subsidy.spec.ts` |
+| `test/monsoon-traction.spec.ts` | Autonomous Low-Traction Wet Monsoon Road Surface Adaptive Torque Telemetry (M99) | 3 | 0 | 5.2s | `pnpm --filter api test test/monsoon-traction.spec.ts` |
+| `test/occ-command-wall.spec.ts` | Century Milestone: Full Enterprise OCC Live Command Wall & Incident Orchestrator (M100) | 2 | 0 | 5.1s | `pnpm --filter api test test/occ-command-wall.spec.ts` |
+| `test/migration.spec.ts` | Database Migrations Up/Down Integrity (67 Migrations) | 116 | 0 | 18.0s | `pnpm --filter api test test/migration.spec.ts` |
 | `test/quote-safeguards.spec.ts` | Authoritative Quote & Version Pinning | 21 | 0 | 9.5s | `pnpm --filter api test test/quote-safeguards.spec.ts` |
 | `test/fare-rules.service.spec.ts` | Fare Rules & Version Audit Trail | 14 | 0 | 7.8s | `pnpm --filter api test test/fare-rules.service.spec.ts` |
 | `test/vehicles.spec.ts` | Vehicles EV Compliance & Seating Controls | 23 | 0 | 8.2s | `pnpm --filter api test test/vehicles.spec.ts` |
@@ -104,7 +114,7 @@ This document records the exact test suite executions, shell commands, test resu
 | `test/release-boundaries.service.spec.ts` | Release Boundaries & Capital Corridor Enactment | 14 | 0 | 4.8s | `pnpm --filter api test test/release-boundaries.service.spec.ts` |
 | `test/seed.spec.ts` | Synthetic Seed Data & Governance | 9 | 0 | 5.0s | `pnpm --filter api test test/seed.spec.ts` |
 | `test/providers.spec.ts` | Core External Providers Mock Adapters | 14 | 0 | 3.6s | `pnpm --filter api test test/providers.spec.ts` |
-| **Total Across All Suites** | **116 Test Suites** | **1034** | **0** | **~240s** | `pnpm --filter api test` |
+| **Total Across All Suites** | **126 Test Suites** | **1071** | **0** | **~280s** | `pnpm --filter api test` |
 
 ---
 
