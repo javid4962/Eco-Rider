@@ -27,3 +27,4 @@ export interface LogRestBreakDto {
   restHubId: string;
   breakDurationMinutes: number;
 }
+

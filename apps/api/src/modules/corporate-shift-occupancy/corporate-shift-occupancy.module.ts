@@ -11,3 +11,4 @@ import { CorporateShiftOccupancyController } from './corporate-shift-occupancy.c
   exports: [CorporateShiftOccupancyService],
 })
 export class CorporateShiftOccupancyModule {}
+

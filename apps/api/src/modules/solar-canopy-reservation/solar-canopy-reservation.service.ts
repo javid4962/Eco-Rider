@@ -67,3 +67,4 @@ export class SolarCanopyReservationService {
     return this.reservationRepo.save(reservation);
   }
 }
+

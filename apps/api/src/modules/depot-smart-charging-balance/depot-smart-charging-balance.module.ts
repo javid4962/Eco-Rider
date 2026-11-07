@@ -11,3 +11,4 @@ import { DepotSmartChargingBalanceController } from './depot-smart-charging-bala
   exports: [DepotSmartChargingBalanceService],
 })
 export class DepotSmartChargingBalanceModule {}
+

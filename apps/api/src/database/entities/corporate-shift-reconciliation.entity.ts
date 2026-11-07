@@ -33,3 +33,4 @@ export class CorporateShiftReconciliationEntity {
   @CreateDateColumn({ name: 'reconciled_at', type: 'timestamptz' })
   reconciledAt: Date;
 }
+

@@ -16,3 +16,4 @@ export class SolarCanopyReservationController {
     return this.service.checkInSession(dto);
   }
 }
+

@@ -30,3 +30,4 @@ export interface RouteOccupancySummary {
   skippedStopsCount: number;
   reconciledAt: string;
 }
+

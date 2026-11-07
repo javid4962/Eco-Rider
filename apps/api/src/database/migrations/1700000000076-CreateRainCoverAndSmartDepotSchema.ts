@@ -41,3 +41,4 @@ export class CreateRainCoverAndSmartDepotSchema1700000000076 implements Migratio
     `);
   }
 }
+

@@ -48,3 +48,4 @@ export class SolarCanopyReservation {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 }
+

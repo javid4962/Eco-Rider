@@ -89,3 +89,4 @@ describe('HighValueCargoLockboxService (M105)', () => {
     expect(access.message).toContain('Invalid lockbox authorization OTP');
   });
 });
+

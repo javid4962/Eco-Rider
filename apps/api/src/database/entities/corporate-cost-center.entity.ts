@@ -35,3 +35,4 @@ export class CorporateCostCenter {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 }
+

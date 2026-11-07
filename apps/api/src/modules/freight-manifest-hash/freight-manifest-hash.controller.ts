@@ -20,3 +20,4 @@ export class FreightManifestHashController {
     return this.freightHashService.verifyManifest(manifestId);
   }
 }
+

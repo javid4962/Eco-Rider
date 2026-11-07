@@ -42,3 +42,4 @@ export interface FreightVerificationResult {
   storedHash: string;
   verifiedAt: string;
 }
+

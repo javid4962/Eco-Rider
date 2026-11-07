@@ -11,3 +11,4 @@ import { SolarCanopyReservationController } from './solar-canopy-reservation.con
   exports: [SolarCanopyReservationService],
 })
 export class SolarCanopyReservationModule {}
+

@@ -22,3 +22,4 @@ export interface SpeedGovernorInstructionResult {
   audibleChimeWarning: boolean;
   timestamp: string;
 }
+

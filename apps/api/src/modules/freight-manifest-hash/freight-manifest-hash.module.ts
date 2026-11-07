@@ -11,3 +11,4 @@ import { FreightManifestHashController } from './freight-manifest-hash.controlle
   exports: [FreightManifestHashService],
 })
 export class FreightManifestHashModule {}
+

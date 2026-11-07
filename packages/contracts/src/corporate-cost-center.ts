@@ -27,3 +27,4 @@ export interface CostCenterAuthorizationResult {
   remainingBudgetPaise: number;
   rejectionReason: string | null;
 }
+

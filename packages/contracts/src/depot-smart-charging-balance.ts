@@ -28,3 +28,4 @@ export interface DepotSmartChargingPlanResult {
   allocations: VehicleChargingAllocation[];
   calculatedAt: string;
 }
+

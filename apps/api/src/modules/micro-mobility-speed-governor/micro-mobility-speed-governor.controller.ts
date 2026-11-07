@@ -11,3 +11,4 @@ export class MicroMobilitySpeedGovernorController {
     return this.service.processGpsTelemetry(dto);
   }
 }
+

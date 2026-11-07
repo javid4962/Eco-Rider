@@ -41,3 +41,4 @@ export class FloodDepthAssessment {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 }
+

@@ -77,3 +77,4 @@ describe('FloodTelemetryService (M101)', () => {
     expect(result.recommendedDetour).toContain('Mandatory diversion via Amaravathi Inner Ring Flyover');
   });
 });
+

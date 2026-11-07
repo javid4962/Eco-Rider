@@ -16,3 +16,4 @@ export class CorporateShiftOccupancyController {
     return this.occupancyService.getOccupancySummary(manifestId);
   }
 }
+

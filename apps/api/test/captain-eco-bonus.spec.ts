@@ -66,3 +66,4 @@ describe('CaptainEcoBonusService (M107)', () => {
     expect(result.bonusAmountPaise).toBe(0);
   });
 });
+

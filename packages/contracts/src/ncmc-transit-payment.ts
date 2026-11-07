@@ -24,3 +24,4 @@ export interface NcmcPaymentRecord {
   authorizedAt: string;
   settledAt?: string;
 }
+

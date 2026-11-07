@@ -29,3 +29,4 @@ export interface V2hSessionResult {
   startedAt: string;
   endedAt: string | null;
 }
+

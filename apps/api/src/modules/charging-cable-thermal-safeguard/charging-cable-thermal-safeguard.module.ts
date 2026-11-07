@@ -11,3 +11,4 @@ import { ChargingCableThermalSafeguardController } from './charging-cable-therma
   exports: [ChargingCableThermalSafeguardService],
 })
 export class ChargingCableThermalSafeguardModule {}
+

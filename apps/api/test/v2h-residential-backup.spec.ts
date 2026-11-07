@@ -89,3 +89,4 @@ describe('V2hResidentialBackupService (M109)', () => {
     expect(updated.totalEarningsPaise).toBe(5600); // 4.0 kWh * 1400 paise = ₹56.00
   });
 });
+

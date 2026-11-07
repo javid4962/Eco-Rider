@@ -16,3 +16,4 @@ export class CaptainShiftErgonomicsController {
     return this.service.logRestBreak(dto);
   }
 }
+

@@ -63,3 +63,4 @@ describe('SolarCanopyReservationService (M103)', () => {
     expect(repo.save).toHaveBeenCalled();
   });
 });
+

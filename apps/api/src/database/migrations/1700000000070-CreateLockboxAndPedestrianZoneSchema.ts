@@ -48,3 +48,4 @@ export class CreateLockboxAndPedestrianZoneSchema1700000000070 implements Migrat
     `);
   }
 }
+

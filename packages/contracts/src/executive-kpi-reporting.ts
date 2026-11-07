@@ -19,3 +19,4 @@ export interface GenerateDailyKpiReportDto {
   reportDate: string;
   auditorId: string;
 }
+

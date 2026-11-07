@@ -11,3 +11,4 @@ import { MicroMobilitySpeedGovernorController } from './micro-mobility-speed-gov
   exports: [MicroMobilitySpeedGovernorService],
 })
 export class MicroMobilitySpeedGovernorModule {}
+

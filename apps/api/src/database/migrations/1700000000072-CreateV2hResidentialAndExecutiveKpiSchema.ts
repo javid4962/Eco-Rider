@@ -48,3 +48,4 @@ export class CreateV2hResidentialAndExecutiveKpiSchema1700000000072 implements M
     `);
   }
 }
+

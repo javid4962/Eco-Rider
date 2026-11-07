@@ -30,3 +30,4 @@ export class SolarDepotMicrogridEventEntity {
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
 }
+

@@ -35,3 +35,4 @@ export class CaptainShiftErgonomics {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 }
+

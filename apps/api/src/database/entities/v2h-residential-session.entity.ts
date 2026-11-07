@@ -41,3 +41,4 @@ export class V2hResidentialSession {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 }
+

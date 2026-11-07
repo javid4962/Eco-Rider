@@ -20,3 +20,4 @@ export interface CableThermalStatus {
   alertLevel: 'GREEN' | 'YELLOW' | 'CRITICAL';
   recordedAt: string;
 }
+

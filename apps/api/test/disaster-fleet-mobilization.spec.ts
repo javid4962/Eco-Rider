@@ -72,3 +72,4 @@ describe('DisasterFleetMobilizationService (M108)', () => {
     expect(result.totalRequisitionedVehicles).toBe(0);
   });
 });
+

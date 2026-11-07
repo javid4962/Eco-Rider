@@ -11,3 +11,4 @@ import { SolarDepotMicrogridController } from './solar-depot-microgrid.controlle
   exports: [SolarDepotMicrogridService],
 })
 export class SolarDepotMicrogridModule {}
+

@@ -25,3 +25,4 @@ export class MultimodalFeederDiscountClaimEntity {
   @CreateDateColumn({ name: 'claimed_at', type: 'timestamptz' })
   claimedAt: Date;
 }
+

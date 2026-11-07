@@ -51,3 +51,4 @@ describe('ExecutiveKpiReportingService (M110)', () => {
     expect(repo.save).toHaveBeenCalled();
   });
 });
+

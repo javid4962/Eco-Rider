@@ -40,3 +40,4 @@ export class CreateFeederDiscountAndCableThermalSchema1700000000074 implements M
     `);
   }
 }
+

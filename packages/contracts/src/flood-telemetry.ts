@@ -28,3 +28,4 @@ export interface FloodRerouteEvaluationResult {
   recommendedDetour: string | null;
   assessedAt: string;
 }
+

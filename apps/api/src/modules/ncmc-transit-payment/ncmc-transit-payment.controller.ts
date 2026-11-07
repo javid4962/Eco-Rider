@@ -16,3 +16,4 @@ export class NcmcTransitPaymentController {
     return this.ncmcService.getTransaction(transactionId);
   }
 }
+

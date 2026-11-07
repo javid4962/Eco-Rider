@@ -37,3 +37,4 @@ export class NcmcTransitTransactionEntity {
   @Column({ name: 'settled_at', type: 'timestamptz', nullable: true })
   settledAt: Date | null;
 }
+

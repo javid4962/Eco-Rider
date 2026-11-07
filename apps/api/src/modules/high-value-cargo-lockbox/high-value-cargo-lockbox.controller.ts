@@ -16,3 +16,4 @@ export class HighValueCargoLockboxController {
     return this.service.verifyLockboxOtp(dto);
   }
 }
+

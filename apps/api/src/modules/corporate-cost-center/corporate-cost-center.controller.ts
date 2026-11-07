@@ -16,3 +16,4 @@ export class CorporateCostCenterController {
     return this.service.authorizeRide(dto);
   }
 }
+

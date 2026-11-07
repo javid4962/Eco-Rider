@@ -74,3 +74,4 @@ describe('CorporateCostCenterService (M104)', () => {
     expect(result.rejectionReason).toContain('Department monthly travel budget quota exceeded');
   });
 });
+

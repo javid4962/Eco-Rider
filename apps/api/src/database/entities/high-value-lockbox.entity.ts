@@ -41,3 +41,4 @@ export class HighValueLockbox {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 }
+

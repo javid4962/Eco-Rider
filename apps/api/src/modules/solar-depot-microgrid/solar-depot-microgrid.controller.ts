@@ -16,3 +16,4 @@ export class SolarDepotMicrogridController {
     return this.microgridService.getDepotEvents(depotId);
   }
 }
+

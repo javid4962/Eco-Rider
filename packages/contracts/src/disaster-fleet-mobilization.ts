@@ -21,3 +21,4 @@ export interface DisasterMobilizationStatusResult {
   evacuatedCitizensCount: number;
   authorizedAt: string;
 }
+

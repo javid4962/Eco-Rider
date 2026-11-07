@@ -11,3 +11,4 @@ import { CaptainEcoBonusController } from './captain-eco-bonus.controller';
   exports: [CaptainEcoBonusService],
 })
 export class CaptainEcoBonusModule {}
+

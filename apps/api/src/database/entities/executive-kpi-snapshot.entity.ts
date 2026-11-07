@@ -41,3 +41,4 @@ export class ExecutiveKpiSnapshot {
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 }
+

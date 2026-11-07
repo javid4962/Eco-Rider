@@ -16,3 +16,4 @@ export class DepotSmartChargingBalanceController {
     return this.chargingBalanceService.getDepotLatestPlan(depotId);
   }
 }
+

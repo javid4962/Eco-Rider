@@ -24,3 +24,4 @@ export class DepotSmartChargingPlanEntity {
   @CreateDateColumn({ name: 'calculated_at', type: 'timestamptz' })
   calculatedAt: Date;
 }
+

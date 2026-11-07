@@ -16,3 +16,4 @@ export class V2hResidentialBackupController {
     return this.service.updateTelemetry(dto);
   }
 }
+

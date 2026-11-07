@@ -43,3 +43,4 @@ export class MicroMobilityPedestrianZone {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 }
+

@@ -16,3 +16,4 @@ export class MultimodalFeederDiscountController {
     return this.feederService.claimDiscount(body);
   }
 }
+

@@ -35,3 +35,4 @@ export class DisasterMobilizationLog {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 }
+

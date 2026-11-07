@@ -67,3 +67,4 @@ export class MicroMobilitySpeedGovernorService {
     return this.zoneRepo.save(created);
   }
 }
+

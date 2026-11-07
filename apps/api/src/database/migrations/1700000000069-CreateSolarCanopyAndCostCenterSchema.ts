@@ -44,3 +44,4 @@ export class CreateSolarCanopyAndCostCenterSchema1700000000069 implements Migrat
     `);
   }
 }
+

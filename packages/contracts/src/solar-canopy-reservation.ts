@@ -38,3 +38,4 @@ export interface CheckInCanopySessionDto {
   vehicleId: string;
   currentSoC: number;
 }
+

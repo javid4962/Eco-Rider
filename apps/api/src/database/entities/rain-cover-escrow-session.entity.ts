@@ -36,3 +36,4 @@ export class RainCoverEscrowSessionEntity {
   @Column({ name: 'returned_at', type: 'timestamptz', nullable: true })
   returnedAt: Date | null;
 }
+

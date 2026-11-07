@@ -11,3 +11,4 @@ import { CaptainShiftErgonomicsController } from './captain-shift-ergonomics.con
   exports: [CaptainShiftErgonomicsService],
 })
 export class CaptainShiftErgonomicsModule {}
+

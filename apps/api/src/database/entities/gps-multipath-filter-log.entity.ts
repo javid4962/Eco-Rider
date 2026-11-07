@@ -30,3 +30,4 @@ export class GpsMultipathFilterLogEntity {
   @CreateDateColumn({ name: 'recorded_at', type: 'timestamptz' })
   recordedAt: Date;
 }
+

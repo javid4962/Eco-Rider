@@ -46,3 +46,4 @@ export class CreateSolarDepotAndFreightHashSchema1700000000073 implements Migrat
     `);
   }
 }
+

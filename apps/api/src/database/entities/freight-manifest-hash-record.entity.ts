@@ -42,3 +42,4 @@ export class FreightManifestHashRecordEntity {
   @CreateDateColumn({ name: 'anchored_at', type: 'timestamptz' })
   anchoredAt: Date;
 }
+

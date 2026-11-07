@@ -73,3 +73,4 @@ describe('MicroMobilitySpeedGovernorService (M106)', () => {
     expect(result.audibleChimeWarning).toBe(false);
   });
 });
+

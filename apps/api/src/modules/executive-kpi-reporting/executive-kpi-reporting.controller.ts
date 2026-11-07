@@ -11,3 +11,4 @@ export class ExecutiveKpiReportingController {
     return this.service.generateDailyReport(dto);
   }
 }
+

@@ -11,3 +11,4 @@ export class CaptainEcoBonusController {
     return this.service.evaluateTripPerformance(dto);
   }
 }
+

@@ -11,3 +11,4 @@ import { ExecutiveKpiReportingController } from './executive-kpi-reporting.contr
   exports: [ExecutiveKpiReportingService],
 })
 export class ExecutiveKpiReportingModule {}
+

@@ -80,3 +80,4 @@ describe('CaptainShiftErgonomicsService (M102)', () => {
     expect(result.continuousDrivingMinutes).toBe(0);
   });
 });
+

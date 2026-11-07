@@ -11,3 +11,4 @@ import { HighValueCargoLockboxController } from './high-value-cargo-lockbox.cont
   exports: [HighValueCargoLockboxService],
 })
 export class HighValueCargoLockboxModule {}
+

@@ -26,3 +26,4 @@ export class FleetRebalancingDispatchController {
     return this.rebalancingService.completeOrder(orderId);
   }
 }
+

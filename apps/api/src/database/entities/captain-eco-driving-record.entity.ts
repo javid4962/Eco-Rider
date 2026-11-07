@@ -43,3 +43,4 @@ export class CaptainEcoDrivingRecord {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 }
+

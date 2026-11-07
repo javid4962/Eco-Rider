@@ -16,3 +16,4 @@ export class ChargingCableThermalSafeguardController {
     return this.thermalSafeguardService.getBayThermalLogs(bayId);
   }
 }
+
