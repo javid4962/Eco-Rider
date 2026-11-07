@@ -119,6 +119,16 @@ import { CaptainEcoBonusModule } from './modules/captain-eco-bonus/captain-eco-b
 import { DisasterFleetMobilizationModule } from './modules/disaster-fleet-mobilization/disaster-fleet-mobilization.module';
 import { V2hResidentialBackupModule } from './modules/v2h-residential-backup/v2h-residential-backup.module';
 import { ExecutiveKpiReportingModule } from './modules/executive-kpi-reporting/executive-kpi-reporting.module';
+import { SolarDepotMicrogridModule } from './modules/solar-depot-microgrid/solar-depot-microgrid.module';
+import { FreightManifestHashModule } from './modules/freight-manifest-hash/freight-manifest-hash.module';
+import { MultimodalFeederDiscountModule } from './modules/multimodal-feeder-discount/multimodal-feeder-discount.module';
+import { ChargingCableThermalSafeguardModule } from './modules/charging-cable-thermal-safeguard/charging-cable-thermal-safeguard.module';
+import { CorporateShiftOccupancyModule } from './modules/corporate-shift-occupancy/corporate-shift-occupancy.module';
+import { GpsMultipathRejectionModule } from './modules/gps-multipath-rejection/gps-multipath-rejection.module';
+import { RainCoverEscrowModule } from './modules/rain-cover-escrow/rain-cover-escrow.module';
+import { DepotSmartChargingBalanceModule } from './modules/depot-smart-charging-balance/depot-smart-charging-balance.module';
+import { NcmcTransitPaymentModule } from './modules/ncmc-transit-payment/ncmc-transit-payment.module';
+import { FleetRebalancingDispatchModule } from './modules/fleet-rebalancing-dispatch/fleet-rebalancing-dispatch.module';
 import { CorrelationIdMiddleware } from './common/middleware/correlation-id.middleware';
 import { AuthMiddleware } from './modules/auth/middleware/auth.middleware';
 
@@ -246,6 +256,16 @@ import { AuthMiddleware } from './modules/auth/middleware/auth.middleware';
     DisasterFleetMobilizationModule,
     V2hResidentialBackupModule,
     ExecutiveKpiReportingModule,
+    SolarDepotMicrogridModule,
+    FreightManifestHashModule,
+    MultimodalFeederDiscountModule,
+    ChargingCableThermalSafeguardModule,
+    CorporateShiftOccupancyModule,
+    GpsMultipathRejectionModule,
+    RainCoverEscrowModule,
+    DepotSmartChargingBalanceModule,
+    NcmcTransitPaymentModule,
+    FleetRebalancingDispatchModule,
   ],
 })
 export class AppModule implements NestModule {

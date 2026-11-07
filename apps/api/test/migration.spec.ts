@@ -61,6 +61,11 @@ import { CreateSolarCanopyAndCostCenterSchema1700000000069 } from '../src/databa
 import { CreateLockboxAndPedestrianZoneSchema1700000000070 } from '../src/database/migrations/1700000000070-CreateLockboxAndPedestrianZoneSchema';
 import { CreateCaptainEcoAndDisasterMobilizationSchema1700000000071 } from '../src/database/migrations/1700000000071-CreateCaptainEcoAndDisasterMobilizationSchema';
 import { CreateV2hResidentialAndExecutiveKpiSchema1700000000072 } from '../src/database/migrations/1700000000072-CreateV2hResidentialAndExecutiveKpiSchema';
+import { CreateSolarDepotAndFreightHashSchema1700000000073 } from '../src/database/migrations/1700000000073-CreateSolarDepotAndFreightHashSchema';
+import { CreateFeederDiscountAndCableThermalSchema1700000000074 } from '../src/database/migrations/1700000000074-CreateFeederDiscountAndCableThermalSchema';
+import { CreateCorporateOccupancyAndMultipathGpsSchema1700000000075 } from '../src/database/migrations/1700000000075-CreateCorporateOccupancyAndMultipathGpsSchema';
+import { CreateRainCoverAndSmartDepotSchema1700000000076 } from '../src/database/migrations/1700000000076-CreateRainCoverAndSmartDepotSchema';
+import { CreateNcmcPaymentAndFleetRebalancingSchema1700000000077 } from '../src/database/migrations/1700000000077-CreateNcmcPaymentAndFleetRebalancingSchema';
 import { QueryRunner } from 'typeorm';
 
 describe('Database Migrations', () => {
@@ -1804,6 +1809,126 @@ describe('Database Migrations', () => {
       const allQueries = executedQueries.join(' ');
       expect(allQueries).toContain('DROP TABLE IF EXISTS "executive_kpi_snapshots"');
       expect(allQueries).toContain('DROP TABLE IF EXISTS "v2h_residential_sessions"');
+    });
+  });
+
+  describe('CreateSolarDepotAndFreightHashSchema1700000000073', () => {
+    let migration: CreateSolarDepotAndFreightHashSchema1700000000073;
+
+    beforeEach(() => {
+      migration = new CreateSolarDepotAndFreightHashSchema1700000000073();
+    });
+
+    it('should create solar depot microgrid events and freight manifest hash records in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "solar_depot_microgrid_events"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "freight_manifest_hash_records"');
+    });
+
+    it('should drop freight manifest hash records and solar depot microgrid events in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "freight_manifest_hash_records"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "solar_depot_microgrid_events"');
+    });
+  });
+
+  describe('CreateFeederDiscountAndCableThermalSchema1700000000074', () => {
+    let migration: CreateFeederDiscountAndCableThermalSchema1700000000074;
+
+    beforeEach(() => {
+      migration = new CreateFeederDiscountAndCableThermalSchema1700000000074();
+    });
+
+    it('should create multimodal feeder discount claims and charging cable thermal logs in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "multimodal_feeder_discount_claims"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "charging_cable_thermal_logs"');
+    });
+
+    it('should drop charging cable thermal logs and multimodal feeder discount claims in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "charging_cable_thermal_logs"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "multimodal_feeder_discount_claims"');
+    });
+  });
+
+  describe('CreateCorporateOccupancyAndMultipathGpsSchema1700000000075', () => {
+    let migration: CreateCorporateOccupancyAndMultipathGpsSchema1700000000075;
+
+    beforeEach(() => {
+      migration = new CreateCorporateOccupancyAndMultipathGpsSchema1700000000075();
+    });
+
+    it('should create corporate shift reconciliations and gps multipath filter logs in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "corporate_shift_reconciliations"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "gps_multipath_filter_logs"');
+    });
+
+    it('should drop gps multipath filter logs and corporate shift reconciliations in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "gps_multipath_filter_logs"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "corporate_shift_reconciliations"');
+    });
+  });
+
+  describe('CreateRainCoverAndSmartDepotSchema1700000000076', () => {
+    let migration: CreateRainCoverAndSmartDepotSchema1700000000076;
+
+    beforeEach(() => {
+      migration = new CreateRainCoverAndSmartDepotSchema1700000000076();
+    });
+
+    it('should create rain cover escrow sessions and depot smart charging plans in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "rain_cover_escrow_sessions"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "depot_smart_charging_plans"');
+    });
+
+    it('should drop depot smart charging plans and rain cover escrow sessions in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "depot_smart_charging_plans"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "rain_cover_escrow_sessions"');
+    });
+  });
+
+  describe('CreateNcmcPaymentAndFleetRebalancingSchema1700000000077', () => {
+    let migration: CreateNcmcPaymentAndFleetRebalancingSchema1700000000077;
+
+    beforeEach(() => {
+      migration = new CreateNcmcPaymentAndFleetRebalancingSchema1700000000077();
+    });
+
+    it('should create ncmc transit transactions and multi district rebalancing orders in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "ncmc_transit_transactions"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "multi_district_rebalancing_orders"');
+    });
+
+    it('should drop multi district rebalancing orders and ncmc transit transactions in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "multi_district_rebalancing_orders"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "ncmc_transit_transactions"');
     });
   });
 });

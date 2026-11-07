@@ -113,7 +113,17 @@ This document records the exact test suite executions, shell commands, test resu
 | `test/disaster-fleet-mobilization.spec.ts` | Mass Casualty / Disaster Relief EV Fleet Mobilization Protocol (M108) | 2 | 0 | 5.2s | `pnpm --filter api test test/disaster-fleet-mobilization.spec.ts` |
 | `test/v2h-residential-backup.spec.ts` | Real-Time Vehicle-to-Home (V2H) Emergency Residential Power Backup (M109) | 3 | 0 | 10.4s | `pnpm --filter api test test/v2h-residential-backup.spec.ts` |
 | `test/executive-kpi-reporting.spec.ts` | Executive Operations KPI Data Warehouse & Regulatory Reporting (M110) | 1 | 0 | 5.3s | `pnpm --filter api test test/executive-kpi-reporting.spec.ts` |
-| `test/migration.spec.ts` | Database Migrations Up/Down Integrity (72 Migrations) | 126 | 0 | 28.9s | `pnpm --filter api test test/migration.spec.ts` |
+| `test/solar-depot-microgrid.spec.ts` | Solar Depot Microgrid Peak Shaving Arbitrage (M111) | 2 | 0 | 28.2s | `pnpm --filter api test test/solar-depot-microgrid.spec.ts` |
+| `test/freight-manifest-hash.spec.ts` | Zero-Emission Inter-City Freight Manifest Hash Anchor (M112) | 3 | 0 | 5.1s | `pnpm --filter api test test/freight-manifest-hash.spec.ts` |
+| `test/multimodal-feeder-discount.spec.ts` | Multimodal First/Last-Mile Dynamic Feeder Discount (M113) | 3 | 0 | 5.5s | `pnpm --filter api test test/multimodal-feeder-discount.spec.ts` |
+| `test/charging-cable-thermal-safeguard.spec.ts` | EV Charging Bay Cable Overheating Safeguard (M114) | 3 | 0 | 6.2s | `pnpm --filter api test test/charging-cable-thermal-safeguard.spec.ts` |
+| `test/corporate-shift-occupancy.spec.ts` | Corporate Shift Transit Fixed-Route Occupancy & Manifest (M115) | 2 | 0 | 5.2s | `pnpm --filter api test test/corporate-shift-occupancy.spec.ts` |
+| `test/gps-multipath-rejection.spec.ts` | High-Precision GPS Multipath Rejection in Urban Canyons (M116) | 3 | 0 | 5.0s | `pnpm --filter api test test/gps-multipath-rejection.spec.ts` |
+| `test/rain-cover-escrow.spec.ts` | Captain Two-Wheeler Rain Cover Rental Escrow (M117) | 2 | 0 | 4.8s | `pnpm --filter api test test/rain-cover-escrow.spec.ts` |
+| `test/depot-smart-charging-balance.spec.ts` | Smart Depot Fleet Overnight Slow-Charging AC Balancing (M118) | 2 | 0 | 5.2s | `pnpm --filter api test test/depot-smart-charging-balance.spec.ts` |
+| `test/ncmc-transit-payment.spec.ts` | Public Transit Fare Integration (APSRTC NCMC Protocol) (M119) | 2 | 0 | 4.9s | `pnpm --filter api test test/ncmc-transit-payment.spec.ts` |
+| `test/fleet-rebalancing-dispatch.spec.ts` | Multi-District Fleet Rebalancing & Dispatch Repositioning (M120) | 3 | 0 | 5.4s | `pnpm --filter api test test/fleet-rebalancing-dispatch.spec.ts` |
+| `test/migration.spec.ts` | Database Migrations Up/Down Integrity (77 Migrations) | 136 | 0 | 18.9s | `pnpm --filter api test test/migration.spec.ts` |
 | `test/quote-safeguards.spec.ts` | Authoritative Quote & Version Pinning | 21 | 0 | 9.5s | `pnpm --filter api test test/quote-safeguards.spec.ts` |
 | `test/fare-rules.service.spec.ts` | Fare Rules & Version Audit Trail | 14 | 0 | 7.8s | `pnpm --filter api test test/fare-rules.service.spec.ts` |
 | `test/vehicles.spec.ts` | Vehicles EV Compliance & Seating Controls | 23 | 0 | 8.2s | `pnpm --filter api test test/vehicles.spec.ts` |
@@ -124,7 +134,7 @@ This document records the exact test suite executions, shell commands, test resu
 | `test/release-boundaries.service.spec.ts` | Release Boundaries & Capital Corridor Enactment | 14 | 0 | 4.8s | `pnpm --filter api test test/release-boundaries.service.spec.ts` |
 | `test/seed.spec.ts` | Synthetic Seed Data & Governance | 9 | 0 | 5.0s | `pnpm --filter api test test/seed.spec.ts` |
 | `test/providers.spec.ts` | Core External Providers Mock Adapters | 14 | 0 | 3.6s | `pnpm --filter api test test/providers.spec.ts` |
-| **Total Across All Suites** | **136 Test Suites** | **1104** | **0** | **~320s** | `pnpm --filter api test` |
+| **Total Across All Suites** | **146 Test Suites** | **1129** | **0** | **~340s** | `pnpm --filter api test` |
 
 ---
 

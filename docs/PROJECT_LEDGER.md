@@ -1577,13 +1577,146 @@ This is the central engineering ledger tracking task execution, code diffs, migr
 
 ---
 
+---
+
+### Milestone M111: Solar Depot DC Microgrid Peak Shaving Arbitrage with Battery Swapping Cabs
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-07
+- **Changes Implemented**:
+  1. `SolarDepotMicrogridModule` & `SolarDepotMicrogridService` (`apps/api/src/modules/solar-depot-microgrid/`):
+     - Peak shaving arbitrage orchestration across AP depot microgrids (Benz Circle Vijayawada Hub, Auto Nagar Guntur Hub).
+     - Automated power source curtailment: shifts charging load to rooftop solar and depot BESS during high grid tariff spikes (>= 700 paise/kWh), realizing significant arbitrage savings.
+  2. Database Entity: `SolarDepotMicrogridEventEntity`.
+  3. Migration: Part of `1700000000073-CreateSolarDepotAndFreightHashSchema.ts`.
+  4. Tests: `apps/api/test/solar-depot-microgrid.spec.ts` (2/2 tests passing).
+
+---
+
+### Milestone M112: Zero-Emission Inter-City Freight Manifest Blockchain-Ready Hash Anchor
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-07
+- **Changes Implemented**:
+  1. `FreightManifestHashModule` & `FreightManifestHashService` (`apps/api/src/modules/freight-manifest-hash/`):
+     - Cryptographic SHA-256 Merkle root hashing and HMAC signature anchoring for AP inter-city EV freight manifests.
+     - Strict server-side enforcement of 100% battery-electric propulsion (`PROPULSION_NON_ELECTRIC` check) and e-way bill compliance.
+  2. Database Entity: `FreightManifestHashRecordEntity`.
+  3. Migration: Part of `1700000000073-CreateSolarDepotAndFreightHashSchema.ts`.
+  4. Tests: `apps/api/test/freight-manifest-hash.spec.ts` (3/3 tests passing).
+
+---
+
+### Milestone M113: Multimodal First-Mile / Last-Mile Dynamic Feeder Discount Allocation
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-07
+- **Changes Implemented**:
+  1. `MultimodalFeederDiscountModule` & `MultimodalFeederDiscountService` (`apps/api/src/modules/multimodal-feeder-discount/`):
+     - Geofenced feeder discount allocation (₹25.00 / 2500 paise) for trips connecting to certified AP multimodal transit hubs (Vijayawada Junction, Pandit Nehru Bus Station, Guntur Junction, Amaravathi Terminal, Mangalagiri AIIMS) within 800m.
+     - Subsidized via AP Urban Decongestion Fund with idempotent claim tracking.
+  2. Database Entity: `MultimodalFeederDiscountClaimEntity`.
+  3. Migration: Part of `1700000000074-CreateFeederDiscountAndCableThermalSchema.ts`.
+  4. Tests: `apps/api/test/multimodal-feeder-discount.spec.ts` (3/3 tests passing).
+
+---
+
+### Milestone M114: Automated EV Charging Bay Cable Overheating & Temperature CAN-Bus Safeguard
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-07
+- **Changes Implemented**:
+  1. `ChargingCableThermalSafeguardModule` & `ChargingCableThermalSafeguardService` (`apps/api/src/modules/charging-cable-thermal-safeguard/`):
+     - Real-time connector thermistor telematics evaluation during high AP summer ambient heat (>40°C).
+     - Automated safety triage: throttles charging current by 40% when cable reaches 70°C, and executes emergency galvanic cutoff at 85°C.
+  2. Database Entity: `ChargingCableThermalLogEntity`.
+  3. Migration: Part of `1700000000074-CreateFeederDiscountAndCableThermalSchema.ts`.
+  4. Tests: `apps/api/test/charging-cable-thermal-safeguard.spec.ts` (3/3 tests passing).
+
+---
+
+### Milestone M115: Corporate Shift Transit Fixed-Route Occupancy Optimization & Passenger Manifest Reconciliation
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-07
+- **Changes Implemented**:
+  1. `CorporateShiftOccupancyModule` & `CorporateShiftOccupancyService` (`apps/api/src/modules/corporate-shift-occupancy/`):
+     - Real-time passenger boarding reconciliation for Medha IT Park and Mangalagiri IT Zone employee EV shuttles.
+     - Accurate vehicle load factor calculations, absentee tracking, and dynamic stop skip directives.
+  2. Database Entity: `CorporateShiftReconciliationEntity`.
+  3. Migration: Part of `1700000000075-CreateCorporateOccupancyAndMultipathGpsSchema.ts`.
+  4. Tests: `apps/api/test/corporate-shift-occupancy.spec.ts` (2/2 tests passing).
+
+---
+
+### Milestone M116: High-Precision GPS Multipath Rejection in Dense Urban Canyons (Besant Road & One Town)
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-07
+- **Changes Implemented**:
+  1. `GpsMultipathRejectionModule` & `GpsMultipathRejectionService` (`apps/api/src/modules/gps-multipath-rejection/`):
+     - GNSS multipath anomaly rejection in dense commercial corridors (Besant Road, One Town Vijayawada, Patnam Bazaar Guntur).
+     - Sensor fusion incorporating HDOP, satellite geometry, and CAN-bus wheel-tick odometry with snapping correction.
+  2. Database Entity: `GpsMultipathFilterLogEntity`.
+  3. Migration: Part of `1700000000075-CreateCorporateOccupancyAndMultipathGpsSchema.ts`.
+  4. Tests: `apps/api/test/gps-multipath-rejection.spec.ts` (3/3 tests passing).
+
+---
+
+### Milestone M117: Captain Electric Two-Wheeler Rain Cover Rental Escrow & In-App Deposit Management
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-07
+- **Changes Implemented**:
+  1. `RainCoverEscrowModule` & `RainCoverEscrowService` (`apps/api/src/modules/rain-cover-escrow/`):
+     - All-weather canopy rain cover rental escrow for bike-taxi and parcel captains during AP monsoon showers.
+     - Refundable deposit escrow (₹500 / 50000 paise) with daily fee deduction (₹20 / 2000 paise) and damage deduction upon hub return.
+  2. Database Entity: `RainCoverEscrowSessionEntity`.
+  3. Migration: Part of `1700000000076-CreateRainCoverAndSmartDepotSchema.ts`.
+  4. Tests: `apps/api/test/rain-cover-escrow.spec.ts` (2/2 tests passing).
+
+---
+
+### Milestone M118: Smart Depot Fleet Overnight Slow-Charging AC Power Allocation Balancing
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-07
+- **Changes Implemented**:
+  1. `DepotSmartChargingBalanceModule` & `DepotSmartChargingBalanceService` (`apps/api/src/modules/depot-smart-charging-balance/`):
+     - Proportional AC amperage load balancing for overnight fleet parking (23:00–05:00) across depot chargers.
+     - Dynamically manages charging demand based on morning departure deadlines and vehicle SoC deficit within sanctioned transformer kVA limits.
+  2. Database Entity: `DepotSmartChargingPlanEntity`.
+  3. Migration: Part of `1700000000076-CreateRainCoverAndSmartDepotSchema.ts`.
+  4. Tests: `apps/api/test/depot-smart-charging-balance.spec.ts` (2/2 tests passing).
+
+---
+
+### Milestone M119: Public Transit Fare Integration API (APSRTC National Common Mobility Card - NCMC Protocol)
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-07
+- **Changes Implemented**:
+  1. `NcmcTransitPaymentModule` & `NcmcTransitPaymentService` (`apps/api/src/modules/ncmc-transit-payment/`):
+     - Cashless RuPay / APSRTC National Common Mobility Card (NCMC) contactless fare processing.
+     - Generates clearinghouse batch logs and settles transit fares in non-negative paise.
+  2. Database Entity: `NcmcTransitTransactionEntity`.
+  3. Migration: Part of `1700000000077-CreateNcmcPaymentAndFleetRebalancingSchema.ts`.
+  4. Tests: `apps/api/test/ncmc-transit-payment.spec.ts` (2/2 tests passing).
+
+---
+
+### Milestone M120: Unified Multi-District Fleet Rebalancing & Dispatch Predictive Repositioning Engine
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-07
+- **Changes Implemented**:
+  1. `FleetRebalancingDispatchModule` & `FleetRebalancingDispatchService` (`apps/api/src/modules/fleet-rebalancing-dispatch/`):
+     - Cross-district vehicle repositioning engine dynamically balancing supply between Vijayawada, Guntur, Amaravathi, and Mangalagiri.
+     - Issues dispatch repositioning orders with dynamic captain bounty credits (₹80.00 / 8000 paise) and verifies completion.
+  2. Database Entity: `MultiDistrictRebalancingOrderEntity`.
+  3. Migration: Part of `1700000000077-CreateNcmcPaymentAndFleetRebalancingSchema.ts`.
+  4. Tests: `apps/api/test/fleet-rebalancing-dispatch.spec.ts` (3/3 tests passing).
+
+---
+
 ### Global Test & Compliance Verification Status
-- **Backend Test Suite**: **All 136 test suites passing (100% pass rate, 1,104 tests)**.
+- **Backend Test Suite**: **All 146 test suites passing (100% pass rate, 1,129 tests)**.
 - **Typecheck**: Clean 0 errors across `@ecoride/contracts`, `apps/api`, and `apps/ops-web`.
 - **Linting & Secrets**: 0 errors, 0 secret leaks (`pnpm scan:secrets` PASSED).
 - **Flutter Mobile Apps**: Analyzed via `dart-mcp-server`; 0 errors in `captain_app` and `rider_app`.
-- **Database Migrations**: 72 reversible TypeORM migrations verified with comprehensive `up()` and `down()` tests in `test/migration.spec.ts` (126 migration test cases).
+- **Database Migrations**: 77 reversible TypeORM migrations verified with comprehensive `up()` and `down()` tests in `test/migration.spec.ts` (136 migration test cases).
 - **Statutory AP GST & Ledger**: Intra-state transport 5% GST (SAC 996412), cargo freight 18% GST (SAC 9965), EV charging/battery swapping/rescue 18% GST (SAC 9987), strictly balanced double-entry ledger parity (`Total DEBIT === Total CREDIT`).
+
 
 
 
