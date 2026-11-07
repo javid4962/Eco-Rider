@@ -43,3 +43,4 @@ export class GridCurtailmentEvent {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 }
+

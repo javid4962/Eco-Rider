@@ -41,3 +41,4 @@ export interface MicroMobilityBillingResult {
   totalChargedPaise: number;
   dockStationVerified: boolean;
 }
+

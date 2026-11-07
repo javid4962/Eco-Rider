@@ -11,3 +11,4 @@ import { GridCurtailmentController } from './grid-curtailment.controller';
   exports: [GridCurtailmentService],
 })
 export class GridCurtailmentModule {}
+

@@ -11,3 +11,4 @@ import { MicroMobilityBountyController } from './micro-mobility-bounty.controlle
   exports: [MicroMobilityBountyService],
 })
 export class MicroMobilityBountyModule {}
+

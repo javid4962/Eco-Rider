@@ -44,3 +44,4 @@ export class DepotBessUnit {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updatedAt: Date;
 }
+

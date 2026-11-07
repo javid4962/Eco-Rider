@@ -45,3 +45,4 @@ export interface RestStopRedemptionResult {
   redeemedAt: string;
   ledgerRef: string;
 }
+

@@ -51,3 +51,4 @@ export class ReeferTelematicsLog {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 }
+

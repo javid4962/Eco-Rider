@@ -16,3 +16,4 @@ export class TransitTurnstileController {
     return this.service.validateTurnstileScan(dto);
   }
 }
+

@@ -32,3 +32,4 @@ export interface CampusLoopBookingResult {
   boardingPassQrToken: string;
   status: 'CONFIRMED' | 'BOARDED' | 'COMPLETED';
 }
+

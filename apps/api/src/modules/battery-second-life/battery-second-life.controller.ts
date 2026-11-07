@@ -16,3 +16,4 @@ export class BatterySecondLifeController {
     return this.service.getAssessment(serial);
   }
 }
+

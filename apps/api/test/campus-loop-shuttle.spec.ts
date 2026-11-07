@@ -69,3 +69,4 @@ describe('CampusLoopService (M89)', () => {
     expect(booking.status).toBe('CONFIRMED');
   });
 });
+

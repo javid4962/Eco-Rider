@@ -34,3 +34,4 @@ export interface BatterySecondLifeAssessmentResult {
   estimatedRemainingCycles: number;
   assessedAt: string;
 }
+

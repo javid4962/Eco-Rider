@@ -32,3 +32,4 @@ export interface EwayBillClearanceResult {
   clearanceTimestamp: string;
   message: string;
 }
+

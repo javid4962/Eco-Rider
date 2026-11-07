@@ -87,3 +87,4 @@ describe('CleanAirSubsidyService (M98)', () => {
     expect(discounted.municipalGrantCoveredPaise).toBe(0);
   });
 });
+

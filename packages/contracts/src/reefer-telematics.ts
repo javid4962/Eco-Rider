@@ -31,3 +31,4 @@ export interface ReeferAdjustmentResult {
   requiresImmediateIntervention: boolean;
   telemetryTimestamp: string;
 }
+

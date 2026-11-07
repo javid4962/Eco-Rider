@@ -11,3 +11,4 @@ import { BatterySecondLifeController } from './battery-second-life.controller';
   exports: [BatterySecondLifeService],
 })
 export class BatterySecondLifeModule {}
+

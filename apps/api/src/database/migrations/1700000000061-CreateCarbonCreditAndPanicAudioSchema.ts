@@ -47,3 +47,4 @@ export class CreateCarbonCreditAndPanicAudioSchema1700000000061 implements Migra
     `);
   }
 }
+

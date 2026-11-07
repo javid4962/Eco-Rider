@@ -51,3 +51,4 @@ export class MicroMobilityBounty {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 }
+

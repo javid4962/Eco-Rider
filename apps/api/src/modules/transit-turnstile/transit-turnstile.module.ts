@@ -11,3 +11,4 @@ import { TransitTurnstileController } from './transit-turnstile.controller';
   exports: [TransitTurnstileService],
 })
 export class TransitTurnstileModule {}
+

@@ -80,3 +80,4 @@ describe('AvasTelemetryService (M84)', () => {
     expect(result.penaltyPaise).toBe(50000); // ₹500
   });
 });
+

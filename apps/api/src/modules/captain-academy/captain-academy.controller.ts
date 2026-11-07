@@ -21,3 +21,4 @@ export class CaptainAcademyController {
     return await this.academyService.getCertificationsForCaptain(captainId);
   }
 }
+

@@ -82,3 +82,4 @@ describe('EwayBillService (M82)', () => {
     expect(result.weightMarginKg).toBe(250);
   });
 });
+

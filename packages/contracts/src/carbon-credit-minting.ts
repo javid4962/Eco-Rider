@@ -22,3 +22,4 @@ export interface MintedCarbonCreditBatchResult {
   mintedAt: string;
   status: 'MINTED' | 'TRANSFERRED' | 'RETIRED';
 }
+

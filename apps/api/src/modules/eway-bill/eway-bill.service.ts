@@ -90,3 +90,4 @@ export class EwayBillService {
     return record;
   }
 }
+

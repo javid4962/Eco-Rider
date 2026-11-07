@@ -11,3 +11,4 @@ import { CaptainAcademyController } from './captain-academy.controller';
   exports: [CaptainAcademyService],
 })
 export class CaptainAcademyModule {}
+

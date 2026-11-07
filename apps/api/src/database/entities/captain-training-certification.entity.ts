@@ -42,3 +42,4 @@ export class CaptainTrainingCertification {
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
 }
+

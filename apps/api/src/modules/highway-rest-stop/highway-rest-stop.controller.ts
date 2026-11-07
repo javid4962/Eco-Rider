@@ -16,3 +16,4 @@ export class HighwayRestStopController {
     return this.service.redeemVoucher(dto);
   }
 }
+

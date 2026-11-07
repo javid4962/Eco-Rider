@@ -82,3 +82,4 @@ describe('HighwayRestStopService (M93)', () => {
     ).rejects.toThrow('Voucher value must be between ₹50');
   });
 });
+

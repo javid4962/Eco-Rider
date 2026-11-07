@@ -34,3 +34,4 @@ export interface OccPostureSwitchResult {
   systemBroadcastSent: boolean;
   affectedVehicleCount: number;
 }
+

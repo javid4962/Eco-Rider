@@ -89,3 +89,4 @@ export class BatterySecondLifeService {
     return this.assessmentRepo.findOne({ where: { batterySerial } });
   }
 }
+

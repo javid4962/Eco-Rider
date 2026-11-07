@@ -17,3 +17,4 @@ export class AvasTelemetryController {
     return await this.avasService.getRecentLogs(vehicleId);
   }
 }
+

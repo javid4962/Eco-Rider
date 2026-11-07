@@ -60,3 +60,4 @@ describe('CorporateGreenCommuteService (M95)', () => {
     expect(receipt.certificateRef).toContain('AP-GREEN-VCM-');
   });
 });
+

@@ -30,3 +30,4 @@ export class CampusLoopController {
     return await this.campusService.getSchedulesByCampus(code);
   }
 }
+

@@ -37,3 +37,4 @@ export interface CorporateOffsetReceipt {
   certificateRef: string;
   issuedAt: string;
 }
+

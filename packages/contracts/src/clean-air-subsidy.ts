@@ -40,3 +40,4 @@ export interface CleanAirFareDiscountResult {
   municipalGrantCoveredPaise: number;
   aqiLevel: AqiLevel;
 }
+

@@ -22,3 +22,4 @@ export class PanicAudioController {
     return await this.panicService.getIncident(id);
   }
 }
+

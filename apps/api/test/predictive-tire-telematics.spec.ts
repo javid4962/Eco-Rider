@@ -69,3 +69,4 @@ describe('PredictiveTireService (M90)', () => {
     expect(result.maintenanceWorkOrderRef).toMatch(/^WO-TIRE-/);
   });
 });
+

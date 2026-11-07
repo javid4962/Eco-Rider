@@ -55,3 +55,4 @@ export class BatterySecondLifeAssessment {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 }
+

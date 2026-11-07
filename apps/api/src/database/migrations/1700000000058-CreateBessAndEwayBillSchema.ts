@@ -50,3 +50,4 @@ export class CreateBessAndEwayBillSchema1700000000058 implements MigrationInterf
     `);
   }
 }
+

@@ -104,3 +104,4 @@ describe('TransitTurnstileService (M92)', () => {
     expect(scanResult.actuatorSignalMs).toBe(0);
   });
 });
+

@@ -75,3 +75,4 @@ describe('BessMicrogridService (M81)', () => {
     expect(result.estimatedCostSavingsPaise).toBe(40000);
   });
 });
+

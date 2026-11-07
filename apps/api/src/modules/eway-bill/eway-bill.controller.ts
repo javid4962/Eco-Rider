@@ -19,3 +19,4 @@ export class EwayBillController {
     return await this.ewayService.getRecord(billNumber);
   }
 }
+

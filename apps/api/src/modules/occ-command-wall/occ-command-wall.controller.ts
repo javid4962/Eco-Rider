@@ -19,3 +19,4 @@ export class OccCommandWallController {
     return this.service.switchOperationalPosture(dto, authorizedBy || 'SUPER_ADMIN_OCC_CHIEF');
   }
 }
+

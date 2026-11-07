@@ -68,3 +68,4 @@ describe('BatterySecondLifeService (M91)', () => {
     expect(result.assignedDuty).toBe(SecondLifeDutyRating.REJECTED);
   });
 });
+

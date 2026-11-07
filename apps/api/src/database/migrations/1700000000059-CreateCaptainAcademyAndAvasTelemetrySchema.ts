@@ -44,3 +44,4 @@ export class CreateCaptainAcademyAndAvasTelemetrySchema1700000000059 implements 
     `);
   }
 }
+

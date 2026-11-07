@@ -45,3 +45,4 @@ export class CreateCampusLoopAndPredictiveTireSchema1700000000062 implements Mig
     `);
   }
 }
+

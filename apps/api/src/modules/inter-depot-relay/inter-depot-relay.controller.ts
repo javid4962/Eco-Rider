@@ -30,3 +30,4 @@ export class InterDepotRelayController {
     return await this.relayService.getRelay(id);
   }
 }
+

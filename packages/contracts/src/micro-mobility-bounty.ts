@@ -48,3 +48,4 @@ export interface BountySettlementResult {
   status: BountyStatus;
   completedAt: string;
 }
+

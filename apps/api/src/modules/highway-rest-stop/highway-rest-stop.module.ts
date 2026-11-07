@@ -11,3 +11,4 @@ import { HighwayRestStopController } from './highway-rest-stop.controller';
   exports: [HighwayRestStopService],
 })
 export class HighwayRestStopModule {}
+

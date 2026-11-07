@@ -11,3 +11,4 @@ export class ReeferTelematicsController {
     return this.service.processReeferTelemetry(dto);
   }
 }
+

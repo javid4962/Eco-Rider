@@ -45,3 +45,4 @@ export class TransitTurnstileAccess {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 }
+

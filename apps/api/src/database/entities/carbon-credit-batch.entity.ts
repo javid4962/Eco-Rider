@@ -39,3 +39,4 @@ export class CarbonCreditBatch {
   @CreateDateColumn({ name: 'minted_at', type: 'timestamptz' })
   mintedAt: Date;
 }
+

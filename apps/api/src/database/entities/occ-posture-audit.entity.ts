@@ -35,3 +35,4 @@ export class OccPostureAudit {
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 }
+

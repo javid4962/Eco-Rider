@@ -42,3 +42,4 @@ export interface TurnstileScanResult {
   riderId?: string;
   message: string;
 }
+

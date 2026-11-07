@@ -31,3 +31,4 @@ export interface PanicIncidentAssessmentResult {
   actionTaken: string;
   timestamp: string;
 }
+

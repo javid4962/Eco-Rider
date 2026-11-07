@@ -42,3 +42,4 @@ export class PredictiveTireAssessment {
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
 }
+

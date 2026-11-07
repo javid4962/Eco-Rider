@@ -57,3 +57,4 @@ export class CampusLoopService {
     return await this.scheduleRepo.find({ where: { campusCode, isActive: true } });
   }
 }
+

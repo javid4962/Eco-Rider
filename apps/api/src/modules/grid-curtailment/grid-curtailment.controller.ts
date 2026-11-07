@@ -11,3 +11,4 @@ export class GridCurtailmentController {
     return this.service.processGridFrequency(dto);
   }
 }
+

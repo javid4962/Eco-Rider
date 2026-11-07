@@ -24,3 +24,4 @@ export class PredictiveTireController {
     return await this.tireService.getRecentAssessments(vehicleId);
   }
 }
+

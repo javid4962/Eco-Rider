@@ -34,3 +34,4 @@ export interface PredictiveTireAssessmentResult {
   maintenanceWorkOrderRef?: string;
   recommendations: string[];
 }
+

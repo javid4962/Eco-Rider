@@ -74,3 +74,4 @@ describe('GridCurtailmentService (M94)', () => {
     expect(result.ancillaryCreditPaisePerHour).toBe(84000); // 240kW * 350 paise
   });
 });
+

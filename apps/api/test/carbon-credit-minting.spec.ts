@@ -65,3 +65,4 @@ describe('CarbonCreditsService (M87)', () => {
     expect(result.verificationHash).toHaveLength(64);
   });
 });
+

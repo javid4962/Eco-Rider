@@ -37,3 +37,4 @@ export interface InterDepotRelayResult {
   verificationToken: string;
   updatedAt: string;
 }
+

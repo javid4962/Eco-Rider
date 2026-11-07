@@ -83,3 +83,4 @@ describe('MicroMobilityBountyService (M97)', () => {
     expect(settlement.status).toBe(BountyStatus.VERIFIED_REDOCKED);
   });
 });
+

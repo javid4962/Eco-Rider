@@ -28,3 +28,4 @@ export interface AvasComplianceResult {
   penaltyPaise: number; // ₹500 (50,000 paise) fine if muted in pedestrian zone
   notice: string;
 }
+

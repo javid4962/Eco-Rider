@@ -11,3 +11,4 @@ import { ReeferTelematicsController } from './reefer-telematics.controller';
   exports: [ReeferTelematicsService],
 })
 export class ReeferTelematicsModule {}
+

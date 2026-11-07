@@ -57,3 +57,4 @@ describe('CaptainAcademyService (M83)', () => {
     expect(result.verificationUrl).toContain('verify.ecoride.in');
   });
 });
+

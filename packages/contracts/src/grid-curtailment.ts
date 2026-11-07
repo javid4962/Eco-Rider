@@ -27,3 +27,4 @@ export interface CurtailmentInstructionResult {
   affectedGunCount: number;
   curtailedAt: string;
 }
+

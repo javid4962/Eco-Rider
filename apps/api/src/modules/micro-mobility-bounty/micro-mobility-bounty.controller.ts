@@ -25,3 +25,4 @@ export class MicroMobilityBountyController {
     return this.service.completeBountyRedock(dto);
   }
 }
+

@@ -39,3 +39,4 @@ export class AvasSoundTelemetry {
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
 }
+

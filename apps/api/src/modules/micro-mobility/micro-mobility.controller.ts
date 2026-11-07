@@ -30,3 +30,4 @@ export class MicroMobilityController {
     return await this.mobilityService.getSession(id);
   }
 }
+

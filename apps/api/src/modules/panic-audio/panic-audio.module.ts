@@ -11,3 +11,4 @@ import { PanicAudioController } from './panic-audio.controller';
   exports: [PanicAudioService],
 })
 export class PanicAudioModule {}
+

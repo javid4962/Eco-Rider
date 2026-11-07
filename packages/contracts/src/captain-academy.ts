@@ -28,3 +28,4 @@ export interface CaptainAcademyBadgeResult {
   expiryDate: string;
   verificationUrl: string;
 }
+

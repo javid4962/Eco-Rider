@@ -66,3 +66,4 @@ describe('OccCommandWallService (M100 - Century Milestone)', () => {
     expect(updatedHealth.activeAlertsCount).toBeGreaterThan(0);
   });
 });
+

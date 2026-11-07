@@ -80,3 +80,4 @@ describe('ReeferTelematicsService (M96)', () => {
     ).rejects.toThrow('Reefer van battery critically low (< 15% SoC)');
   });
 });
+

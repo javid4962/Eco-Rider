@@ -79,3 +79,4 @@ describe('MicroMobilityService (M86)', () => {
     expect(bill.dockStationVerified).toBe(true);
   });
 });
+

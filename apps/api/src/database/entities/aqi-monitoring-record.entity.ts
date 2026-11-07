@@ -40,3 +40,4 @@ export class AqiMonitoringRecord {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 }
+

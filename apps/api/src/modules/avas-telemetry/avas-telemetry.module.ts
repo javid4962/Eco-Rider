@@ -11,3 +11,4 @@ import { AvasTelemetryController } from './avas-telemetry.controller';
   exports: [AvasTelemetryService],
 })
 export class AvasTelemetryModule {}
+

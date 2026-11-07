@@ -43,3 +43,4 @@ export class CampusShuttleSchedule {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updatedAt: Date;
 }
+

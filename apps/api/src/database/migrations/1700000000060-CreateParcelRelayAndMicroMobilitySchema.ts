@@ -53,3 +53,4 @@ export class CreateParcelRelayAndMicroMobilitySchema1700000000060 implements Mig
     `);
   }
 }
+
