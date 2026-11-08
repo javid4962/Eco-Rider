@@ -76,6 +76,11 @@ import { CreateRegenHarvestAndCellDiagnosticSchema1700000000084 } from '../src/d
 import { CreateChargingHostRevenueAndSolarMpptSchema1700000000085 } from '../src/database/migrations/1700000000085-CreateChargingHostRevenueAndSolarMpptSchema';
 import { CreateFloodEvacuationAndWheelAlignmentSchema1700000000086 } from '../src/database/migrations/1700000000086-CreateFloodEvacuationAndWheelAlignmentSchema';
 import { CreateRoboticSwapAndGreenBondAuditSchema1700000000087 } from '../src/database/migrations/1700000000087-CreateRoboticSwapAndGreenBondAuditSchema';
+import { CreateGridPeakTariffAndFleetSubLeaseSchema1700000000088 } from '../src/database/migrations/1700000000088-CreateGridPeakTariffAndFleetSubLeaseSchema';
+import { CreateSpeedGovernorGeofenceAndDepotInventorySchema1700000000089 } from '../src/database/migrations/1700000000089-CreateSpeedGovernorGeofenceAndDepotInventorySchema';
+import { CreateInterStatePermitAndBmsArcFlashSchema1700000000090 } from '../src/database/migrations/1700000000090-CreateInterStatePermitAndBmsArcFlashSchema';
+import { CreateVernacularVoicePromptAndScope3CarbonSchema1700000000091 } from '../src/database/migrations/1700000000091-CreateVernacularVoicePromptAndScope3CarbonSchema';
+import { CreateBatterySecondLifeAuctionAndIntercityTransitSchema1700000000092 } from '../src/database/migrations/1700000000092-CreateBatterySecondLifeAuctionAndIntercityTransitSchema';
 import { QueryRunner } from 'typeorm';
 
 describe('Database Migrations', () => {
@@ -2179,6 +2184,126 @@ describe('Database Migrations', () => {
       const allQueries = executedQueries.join(' ');
       expect(allQueries).toContain('DROP TABLE IF EXISTS "green_bond_audit_reports"');
       expect(allQueries).toContain('DROP TABLE IF EXISTS "robotic_swap_sessions"');
+    });
+  });
+
+  describe('CreateGridPeakTariffAndFleetSubLeaseSchema1700000000088', () => {
+    let migration: CreateGridPeakTariffAndFleetSubLeaseSchema1700000000088;
+
+    beforeEach(() => {
+      migration = new CreateGridPeakTariffAndFleetSubLeaseSchema1700000000088();
+    });
+
+    it('should create grid peak tariff logs and fleet sub lease settlements in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "grid_peak_tariff_logs"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "fleet_sub_lease_settlements"');
+    });
+
+    it('should drop fleet sub lease settlements and grid peak tariff logs in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "fleet_sub_lease_settlements"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "grid_peak_tariff_logs"');
+    });
+  });
+
+  describe('CreateSpeedGovernorGeofenceAndDepotInventorySchema1700000000089', () => {
+    let migration: CreateSpeedGovernorGeofenceAndDepotInventorySchema1700000000089;
+
+    beforeEach(() => {
+      migration = new CreateSpeedGovernorGeofenceAndDepotInventorySchema1700000000089();
+    });
+
+    it('should create speed governor geofence logs and depot work orders in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "speed_governor_geofence_logs"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "depot_work_orders"');
+    });
+
+    it('should drop depot work orders and speed governor geofence logs in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "depot_work_orders"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "speed_governor_geofence_logs"');
+    });
+  });
+
+  describe('CreateInterStatePermitAndBmsArcFlashSchema1700000000090', () => {
+    let migration: CreateInterStatePermitAndBmsArcFlashSchema1700000000090;
+
+    beforeEach(() => {
+      migration = new CreateInterStatePermitAndBmsArcFlashSchema1700000000090();
+    });
+
+    it('should create inter state permit passes and bms arc flash events in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "inter_state_permit_passes"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "bms_arc_flash_events"');
+    });
+
+    it('should drop bms arc flash events and inter state permit passes in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "bms_arc_flash_events"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "inter_state_permit_passes"');
+    });
+  });
+
+  describe('CreateVernacularVoicePromptAndScope3CarbonSchema1700000000091', () => {
+    let migration: CreateVernacularVoicePromptAndScope3CarbonSchema1700000000091;
+
+    beforeEach(() => {
+      migration = new CreateVernacularVoicePromptAndScope3CarbonSchema1700000000091();
+    });
+
+    it('should create vernacular voice prompt logs and scope3 carbon certificates in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "vernacular_voice_prompt_logs"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "scope3_carbon_certificates"');
+    });
+
+    it('should drop scope3 carbon certificates and vernacular voice prompt logs in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "scope3_carbon_certificates"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "vernacular_voice_prompt_logs"');
+    });
+  });
+
+  describe('CreateBatterySecondLifeAuctionAndIntercityTransitSchema1700000000092', () => {
+    let migration: CreateBatterySecondLifeAuctionAndIntercityTransitSchema1700000000092;
+
+    beforeEach(() => {
+      migration = new CreateBatterySecondLifeAuctionAndIntercityTransitSchema1700000000092();
+    });
+
+    it('should create battery second life listings and intercity seat reservations in up()', async () => {
+      await migration.up(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "battery_second_life_listings"');
+      expect(allQueries).toContain('CREATE TABLE IF NOT EXISTS "intercity_seat_reservations"');
+    });
+
+    it('should drop intercity seat reservations and battery second life listings in down()', async () => {
+      await migration.down(mockQueryRunner as QueryRunner);
+
+      const allQueries = executedQueries.join(' ');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "intercity_seat_reservations"');
+      expect(allQueries).toContain('DROP TABLE IF EXISTS "battery_second_life_listings"');
     });
   });
 });

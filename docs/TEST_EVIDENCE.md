@@ -143,7 +143,17 @@ This document records the exact test suite executions, shell commands, test resu
 | `test/wheel-alignment-telemetry.spec.ts` | Wheel Alignment & Tire Scrub Telemetry (M138) | 2 | 0 | 5.1s | `pnpm --filter api test test/wheel-alignment-telemetry.spec.ts` |
 | `test/robotic-swap-protocol.spec.ts` | Autonomous Robotic Battery Swap Mechanism (M139) | 2 | 0 | 5.3s | `pnpm --filter api test test/robotic-swap-protocol.spec.ts` |
 | `test/green-bond-reporting.spec.ts` | AP State Clean Transit ESG Green Bond Audit (M140) | 2 | 0 | 5.2s | `pnpm --filter api test test/green-bond-reporting.spec.ts` |
-| `test/migration.spec.ts` | Database Migrations Up/Down Integrity (87 Migrations) | 156 | 0 | 11.2s | `pnpm --filter api test test/migration.spec.ts` |
+| `test/grid-peak-tariff.spec.ts` | Dynamic Grid Peak Surge & Depot Power Hedging (M141) | 2 | 0 | 5.2s | `pnpm --filter api test test/grid-peak-tariff.spec.ts` |
+| `test/fleet-sub-lease.spec.ts` | EV Fleet Sub-Lease Tripartite Revenue Share (M142) | 2 | 0 | 5.1s | `pnpm --filter api test test/fleet-sub-lease.spec.ts` |
+| `test/speed-governor-geofence.spec.ts` | Low-Speed Temple/Pedestrian Geofencing (M143) | 2 | 0 | 5.3s | `pnpm --filter api test test/speed-governor-geofence.spec.ts` |
+| `test/depot-inventory-maintenance.spec.ts` | Autonomous Depot Parts Inventory & Maintenance (M144) | 2 | 0 | 5.2s | `pnpm --filter api test test/depot-inventory-maintenance.spec.ts` |
+| `test/inter-state-permit.spec.ts` | AP-TG Inter-State Commercial Corridor FASTag (M145) | 2 | 0 | 5.1s | `pnpm --filter api test test/inter-state-permit.spec.ts` |
+| `test/bms-arc-flash.spec.ts` | BMS Thermal Runaway & Arc Flash Isolation (M146) | 2 | 0 | 5.2s | `pnpm --filter api test test/bms-arc-flash.spec.ts` |
+| `test/vernacular-voice-prompt.spec.ts` | Vernacular Dialect Voice & Haptic Navigation (M147) | 2 | 0 | 5.0s | `pnpm --filter api test test/vernacular-voice-prompt.spec.ts` |
+| `test/scope3-carbon-offset.spec.ts` | Corporate Scope 3 Carbon Certificate & BRSR (M148) | 2 | 0 | 5.1s | `pnpm --filter api test test/scope3-carbon-offset.spec.ts` |
+| `test/battery-second-life-auction.spec.ts` | EV Battery Second-Life Valuation & BESS Listing (M149) | 2 | 0 | 5.3s | `pnpm --filter api test test/battery-second-life-auction.spec.ts` |
+| `test/intercity-electric-transit.spec.ts` | High-Speed Intercity Transit Seat Reservation (M150) | 2 | 0 | 5.2s | `pnpm --filter api test test/intercity-electric-transit.spec.ts` |
+| `test/migration.spec.ts` | Database Migrations Up/Down Integrity (92 Migrations) | 166 | 0 | 31.4s | `pnpm --filter api test test/migration.spec.ts` |
 | `test/quote-safeguards.spec.ts` | Authoritative Quote & Version Pinning | 21 | 0 | 9.5s | `pnpm --filter api test test/quote-safeguards.spec.ts` |
 | `test/fare-rules.service.spec.ts` | Fare Rules & Version Audit Trail | 14 | 0 | 7.8s | `pnpm --filter api test test/fare-rules.service.spec.ts` |
 | `test/vehicles.spec.ts` | Vehicles EV Compliance & Seating Controls | 23 | 0 | 8.2s | `pnpm --filter api test test/vehicles.spec.ts` |

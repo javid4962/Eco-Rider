@@ -1970,12 +1970,141 @@ This is the central engineering ledger tracking task execution, code diffs, migr
 
 ---
 
+### Milestone M141: Dynamic Corridor Fare Zone Hedging & Grid Peak-Hour Surges
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-08
+- **Changes Implemented**:
+  1. `GridPeakTariffModule` & `GridPeakTariffService` (`apps/api/src/modules/grid-peak-tariff/`):
+     - Ingests AP Discom (APSPDCL/APEPDCL) Time-of-Day (ToD) tariff periods.
+     - Applies peak surcharge (+250 paise/kWh) and corridor surge multiplier (1.35x) during evening peak hours (18:00 - 22:00) with depot DC fast charger throttling advisory.
+  2. Database Entity: `GridPeakTariffLogEntity`.
+  3. Migration: Part of `1700000000088-CreateGridPeakTariffAndFleetSubLeaseSchema.ts`.
+  4. Tests: `apps/api/test/grid-peak-tariff.spec.ts` (2/2 tests passing).
+
+---
+
+### Milestone M142: EV Fleet Multi-Tenant Sub-Lease Contract & Escrow Revenue Split Engine
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-08
+- **Changes Implemented**:
+  1. `FleetSubLeaseModule` & `FleetSubLeaseService` (`apps/api/src/modules/fleet-sub-lease/`):
+     - Tripartite escrow revenue splitting engine dividing net distributable fare (gross minus platform fee) among Captain (50%), Fleet Owner (30%), and Battery AssetCo (20%).
+     - Guarantees strictly balanced double-entry integer paise accounting with zero rounding loss.
+  2. Database Entity: `FleetSubLeaseSettlementEntity`.
+  3. Migration: Part of `1700000000088-CreateGridPeakTariffAndFleetSubLeaseSchema.ts`.
+  4. Tests: `apps/api/test/fleet-sub-lease.spec.ts` (2/2 tests passing).
+
+---
+
+### Milestone M143: Low-Speed Urban Micro-Mobility Zone Geofencing & Automated Throttle Limiting
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-08
+- **Changes Implemented**:
+  1. `SpeedGovernorGeofenceModule` & `SpeedGovernorGeofenceService` (`apps/api/src/modules/speed-governor-geofence/`):
+     - Dynamic urban speed zoning enforcing 20 km/h in temple precincts (Kanaka Durga Temple) and 25 km/h in hospital/school zones.
+     - Detects violations and triggers 40% electronic throttle limiting command and haptic pulse.
+  2. Database Entity: `SpeedGovernorGeofenceLogEntity`.
+  3. Migration: Part of `1700000000089-CreateSpeedGovernorGeofenceAndDepotInventorySchema.ts`.
+  4. Tests: `apps/api/test/speed-governor-geofence.spec.ts` (2/2 tests passing).
+
+---
+
+### Milestone M144: Autonomous EV Fleet Preventive Maintenance Scheduling & Spare Parts Depot Inventory
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-08
+- **Changes Implemented**:
+  1. `DepotInventoryMaintenanceModule` & `DepotInventoryMaintenanceService` (`apps/api/src/modules/depot-inventory-maintenance/`):
+     - Automated predictive work order scheduling for high-voltage contactors, pyro-fuses, and regenerative brake pads based on vehicle odometer and regen cycles.
+     - Automatically verifies depot inventory stock and reserves replacement units.
+  2. Database Entity: `DepotMaintenanceWorkOrderEntity`.
+  3. Migration: Part of `1700000000089-CreateSpeedGovernorGeofenceAndDepotInventorySchema.ts`.
+  4. Tests: `apps/api/test/depot-inventory-maintenance.spec.ts` (2/2 tests passing).
+
+---
+
+### Milestone M145: Cross-Border AP-Telangana Inter-State Corridor Permit Compliance & FASTag Pass-Through
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-08
+- **Changes Implemented**:
+  1. `InterStatePermitModule` & `InterStatePermitService` (`apps/api/src/modules/inter-state-permit/`):
+     - Validates AP commercial green-plate transport registration and reciprocal inter-state stage carriage permits for Vijayawada-Hyderabad NH65 corridor.
+     - Deducts automated electronic FASTag toll pass-through in non-negative integer paise.
+  2. Database Entity: `InterStatePermitPassEntity`.
+  3. Migration: Part of `1700000000090-CreateInterStatePermitAndBmsArcFlashSchema.ts`.
+  4. Tests: `apps/api/test/inter-state-permit.spec.ts` (2/2 tests passing).
+
+---
+
+### Milestone M146: BMS Thermal Runaway Precursor & High-Voltage Arc Flash Prevention
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-08
+- **Changes Implemented**:
+  1. `BmsArcFlashModule` & `BmsArcFlashService` (`apps/api/src/modules/bms-arc-flash/`):
+     - Continuous telemetry monitoring cell voltage differential (> 150 mV) and pack impedance rise.
+     - Commands instant high-voltage contactor isolation and arms aerosol fire-suppression before catastrophic thermal runaway.
+  2. Database Entity: `BmsArcFlashEventEntity`.
+  3. Migration: Part of `1700000000090-CreateInterStatePermitAndBmsArcFlashSchema.ts`.
+  4. Tests: `apps/api/test/bms-arc-flash.spec.ts` (2/2 tests passing).
+
+---
+
+### Milestone M147: Captain Multi-Language Vernacular Spoken Voice Prompts & Haptic Accessibility Service
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-08
+- **Changes Implemented**:
+  1. `VernacularVoicePromptModule` & `VernacularVoicePromptService` (`apps/api/src/modules/vernacular-voice-prompt/`):
+     - Generates localized dialect speech metadata (Coastal Andhra Telugu, Rayalaseema Telugu, Deccani Urdu, Indian English) with haptic vibration sequences for non-literate/semi-literate EV captains.
+  2. Database Entity: `VernacularVoicePromptLogEntity`.
+  3. Migration: Part of `1700000000091-CreateVernacularVoicePromptAndScope3CarbonSchema.ts`.
+  4. Tests: `apps/api/test/vernacular-voice-prompt.spec.ts` (2/2 tests passing).
+
+---
+
+### Milestone M148: Zero-Emission Corporate Scope 3 Carbon Offsetting & B2B Green Certificate Generation
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-08
+- **Changes Implemented**:
+  1. `Scope3CarbonOffsetModule` & `Scope3CarbonOffsetService` (`apps/api/src/modules/scope3-carbon-offset/`):
+     - Calculates avoided kg CO2 and displaced diesel liters for corporate employee commutes and commercial freight under ISO 14064 / GHG Protocol Category 6.
+     - Issues SHA-256 cryptographically hashed audit certificates for corporate BRSR/ESG disclosures.
+  2. Database Entity: `Scope3CarbonCertificateEntity`.
+  3. Migration: Part of `1700000000091-CreateVernacularVoicePromptAndScope3CarbonSchema.ts`.
+  4. Tests: `apps/api/test/scope3-carbon-offset.spec.ts` (2/2 tests passing).
+
+---
+
+### Milestone M149: EV Battery Degradation Predictive Valuation & Second-Life Grid BESS Marketplace
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-08
+- **Changes Implemented**:
+  1. `BatterySecondLifeAuctionModule` & `BatterySecondLifeAuctionService` (`apps/api/src/modules/battery-second-life-auction/`):
+     - Evaluates battery packs retiring from active mobility duty when State of Health (SoH) drops below 75%.
+     - Computes secondary market salvage valuation in integer paise and auto-assigns qualifying Tier-1 packs to stationary depot BESS solar storage.
+  2. Database Entity: `BatterySecondLifeListingEntity`.
+  3. Migration: Part of `1700000000092-CreateBatterySecondLifeAuctionAndIntercityTransitSchema.ts`.
+  4. Tests: `apps/api/test/battery-second-life-auction.spec.ts` (2/2 tests passing).
+
+---
+
+### Milestone M150: Multi-Corridor High-Speed Electric Intercity Transit & Advance Seat Reservation Engine
+- **Status**: **VERIFIED**
+- **Date**: 2026-11-08
+- **Changes Implemented**:
+  1. `IntercityElectricTransitModule` & `IntercityElectricTransitService` (`apps/api/src/modules/intercity-electric-transit/`):
+     - High-speed electric express shuttle seat booking engine (Amaravathi - Vijayawada - Guntur - Tenali loop).
+     - Validates coach capacity, calculates 5% AP GST (SAC 996412), and generates cryptographic QR boarding passes.
+  2. Database Entity: `IntercitySeatReservationEntity`.
+  3. Migration: Part of `1700000000092-CreateBatterySecondLifeAuctionAndIntercityTransitSchema.ts`.
+  4. Tests: `apps/api/test/intercity-electric-transit.spec.ts` (2/2 tests passing).
+
+---
+
 ### Global Test & Compliance Verification Status
-- **Backend Test Suite**: **All 166 test suites passing (100% pass rate, 1,191 tests)**.
+- **Backend Test Suite**: **All 176 test suites passing (100% pass rate, 1,221 tests)**.
 - **Typecheck**: Clean 0 errors across `@ecoride/contracts`, `apps/api`, and `apps/ops-web`.
 - **Linting & Secrets**: 0 errors, 0 secret leaks (`pnpm scan:secrets` PASSED).
 - **Flutter Mobile Apps**: Analyzed via `dart-mcp-server`; 0 errors in `captain_app` and `rider_app`.
-- **Database Migrations**: 87 reversible TypeORM migrations verified with comprehensive `up()` and `down()` tests in `test/migration.spec.ts` (156 migration test cases).
+- **Database Migrations**: 92 reversible TypeORM migrations verified with comprehensive `up()` and `down()` tests in `test/migration.spec.ts` (166 migration test cases).
 - **Statutory AP GST & Ledger**: Intra-state transport 5% GST (SAC 996412), cargo freight 18% GST (SAC 9965), EV charging/battery swapping/rescue 18% GST (SAC 9987), strictly balanced double-entry ledger parity (`Total DEBIT === Total CREDIT`).
 
 

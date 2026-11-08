@@ -149,6 +149,16 @@ import { FloodEvacuationRoutingModule } from './modules/flood-evacuation-routing
 import { WheelAlignmentTelemetryModule } from './modules/wheel-alignment-telemetry/wheel-alignment-telemetry.module';
 import { RoboticSwapProtocolModule } from './modules/robotic-swap-protocol/robotic-swap-protocol.module';
 import { GreenBondReportingModule } from './modules/green-bond-reporting/green-bond-reporting.module';
+import { GridPeakTariffModule } from './modules/grid-peak-tariff/grid-peak-tariff.module';
+import { FleetSubLeaseModule } from './modules/fleet-sub-lease/fleet-sub-lease.module';
+import { SpeedGovernorGeofenceModule } from './modules/speed-governor-geofence/speed-governor-geofence.module';
+import { DepotInventoryMaintenanceModule } from './modules/depot-inventory-maintenance/depot-inventory-maintenance.module';
+import { InterStatePermitModule } from './modules/inter-state-permit/inter-state-permit.module';
+import { BmsArcFlashModule } from './modules/bms-arc-flash/bms-arc-flash.module';
+import { VernacularVoicePromptModule } from './modules/vernacular-voice-prompt/vernacular-voice-prompt.module';
+import { Scope3CarbonOffsetModule } from './modules/scope3-carbon-offset/scope3-carbon-offset.module';
+import { BatterySecondLifeAuctionModule } from './modules/battery-second-life-auction/battery-second-life-auction.module';
+import { IntercityElectricTransitModule } from './modules/intercity-electric-transit/intercity-electric-transit.module';
 import { CorrelationIdMiddleware } from './common/middleware/correlation-id.middleware';
 import { AuthMiddleware } from './modules/auth/middleware/auth.middleware';
 
@@ -306,6 +316,16 @@ import { AuthMiddleware } from './modules/auth/middleware/auth.middleware';
     WheelAlignmentTelemetryModule,
     RoboticSwapProtocolModule,
     GreenBondReportingModule,
+    GridPeakTariffModule,
+    FleetSubLeaseModule,
+    SpeedGovernorGeofenceModule,
+    DepotInventoryMaintenanceModule,
+    InterStatePermitModule,
+    BmsArcFlashModule,
+    VernacularVoicePromptModule,
+    Scope3CarbonOffsetModule,
+    BatterySecondLifeAuctionModule,
+    IntercityElectricTransitModule,
   ],
 })
 export class AppModule implements NestModule {
