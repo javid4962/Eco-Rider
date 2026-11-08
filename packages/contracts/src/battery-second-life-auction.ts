@@ -28,3 +28,4 @@ export interface BatterySecondLifeValuationResult {
   recommendedStationaryBessDepot: string;
   evaluatedAt: Date;
 }
+

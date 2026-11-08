@@ -66,3 +66,4 @@ export class BmsArcFlashService {
     return record;
   }
 }
+

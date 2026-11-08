@@ -45,3 +45,4 @@ export class CreateInterStatePermitAndBmsArcFlashSchema1700000000090 implements 
     `);
   }
 }
+

@@ -37,3 +37,4 @@ export class IntercitySeatReservationEntity {
   @CreateDateColumn({ name: 'reserved_at', type: 'timestamptz' })
   reservedAt!: Date;
 }
+

@@ -16,3 +16,4 @@ export class VernacularVoicePromptController {
     return this.service.getPrompt(id);
   }
 }
+

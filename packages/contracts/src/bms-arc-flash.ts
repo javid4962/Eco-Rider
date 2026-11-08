@@ -23,3 +23,4 @@ export interface ArcFlashTelemetryResult {
   recommendedDriverAdvisory: string;
   evaluatedAt: Date;
 }
+

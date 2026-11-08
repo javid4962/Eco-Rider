@@ -16,3 +16,4 @@ export class InterStatePermitController {
     return this.service.getPass(id);
   }
 }
+

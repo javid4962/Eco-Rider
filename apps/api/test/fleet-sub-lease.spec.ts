@@ -81,3 +81,4 @@ describe('FleetSubLeaseModule', () => {
     ).rejects.toThrow('Gross fare must exceed platform fee');
   });
 });
+

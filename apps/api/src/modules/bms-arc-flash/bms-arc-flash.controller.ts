@@ -16,3 +16,4 @@ export class BmsArcFlashController {
     return this.service.getEvent(id);
   }
 }
+

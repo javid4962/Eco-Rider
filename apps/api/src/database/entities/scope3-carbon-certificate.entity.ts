@@ -40,3 +40,4 @@ export class Scope3CarbonCertificateEntity {
   @CreateDateColumn({ name: 'certified_at', type: 'timestamptz' })
   certifiedAt!: Date;
 }
+

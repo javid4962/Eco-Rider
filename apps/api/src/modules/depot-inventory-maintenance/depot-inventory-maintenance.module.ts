@@ -11,3 +11,4 @@ import { DepotInventoryMaintenanceController } from './depot-inventory-maintenan
   exports: [DepotInventoryMaintenanceService],
 })
 export class DepotInventoryMaintenanceModule {}
+

@@ -51,3 +51,4 @@ export class FleetSubLeaseSettlementEntity {
   @CreateDateColumn({ name: 'settled_at', type: 'timestamptz' })
   settledAt!: Date;
 }
+

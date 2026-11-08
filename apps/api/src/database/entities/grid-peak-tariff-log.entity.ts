@@ -49,3 +49,4 @@ export class GridPeakTariffLogEntity {
   @CreateDateColumn({ name: 'evaluated_at', type: 'timestamptz' })
   evaluatedAt!: Date;
 }
+

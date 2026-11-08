@@ -77,3 +77,4 @@ describe('BmsArcFlashModule', () => {
     expect(event.aerosolSuppressionArmed).toBe(false);
   });
 });
+

@@ -11,3 +11,4 @@ import { InterStatePermitController } from './inter-state-permit.controller';
   exports: [InterStatePermitService],
 })
 export class InterStatePermitModule {}
+

@@ -77,3 +77,4 @@ describe('BatterySecondLifeAuctionModule', () => {
     expect(listing.recommendedStationaryBessDepot).toBe('AP_RECYCLING_PLANT_VIJAYAWADA');
   });
 });
+

@@ -55,3 +55,4 @@ export class DepotInventoryMaintenanceService {
     return record;
   }
 }
+

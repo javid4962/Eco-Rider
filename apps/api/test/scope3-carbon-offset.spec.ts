@@ -74,3 +74,4 @@ describe('Scope3CarbonOffsetModule', () => {
     expect(cert.displacedDieselLiters).toBe(783.58);
   });
 });
+

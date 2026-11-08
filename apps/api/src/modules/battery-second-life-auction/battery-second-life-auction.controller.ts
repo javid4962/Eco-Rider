@@ -16,3 +16,4 @@ export class BatterySecondLifeAuctionController {
     return this.service.getListing(id);
   }
 }
+

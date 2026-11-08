@@ -34,3 +34,4 @@ export class VernacularVoicePromptLogEntity {
   @CreateDateColumn({ name: 'generated_at', type: 'timestamptz' })
   generatedAt!: Date;
 }
+

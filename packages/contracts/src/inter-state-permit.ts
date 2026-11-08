@@ -27,3 +27,4 @@ export interface InterStatePermitValidationResult {
   fastagDeducted: boolean;
   interStateTransitManifestId: string;
 }
+

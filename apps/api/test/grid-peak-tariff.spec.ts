@@ -79,3 +79,4 @@ describe('GridPeakTariffModule', () => {
     expect(result.corridorSurgeMultiplier).toBe(1.0);
   });
 });
+

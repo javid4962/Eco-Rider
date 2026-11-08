@@ -43,3 +43,4 @@ export class BatterySecondLifeListingEntity {
   @CreateDateColumn({ name: 'evaluated_at', type: 'timestamptz' })
   evaluatedAt!: Date;
 }
+

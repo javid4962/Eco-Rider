@@ -11,3 +11,4 @@ import { Scope3CarbonOffsetController } from './scope3-carbon-offset.controller'
   exports: [Scope3CarbonOffsetService],
 })
 export class Scope3CarbonOffsetModule {}
+

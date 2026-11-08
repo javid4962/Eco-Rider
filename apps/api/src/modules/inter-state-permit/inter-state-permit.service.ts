@@ -57,3 +57,4 @@ export class InterStatePermitService {
     return record;
   }
 }
+

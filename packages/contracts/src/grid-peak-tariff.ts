@@ -26,3 +26,4 @@ export interface GridPeakTariffEvaluation {
   isPeakSurgeActive: boolean;
   throttleAdvisory: string;
 }
+

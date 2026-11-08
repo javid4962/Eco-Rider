@@ -76,3 +76,4 @@ describe('IntercityElectricTransitModule', () => {
     ).rejects.toThrow('Requested seat 35 exceeds coach capacity of 32');
   });
 });
+

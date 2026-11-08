@@ -16,3 +16,4 @@ export class GridPeakTariffController {
     return this.service.getLog(id);
   }
 }
+

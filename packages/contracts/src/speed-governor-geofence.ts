@@ -21,3 +21,4 @@ export interface SpeedGovernorGeofenceResult {
   hapticWarningIssued: boolean;
   loggedAt: Date;
 }
+

@@ -28,3 +28,4 @@ export interface VernacularVoicePromptResult {
   estimatedAudioDurationSeconds: number;
   generatedAt: Date;
 }
+

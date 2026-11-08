@@ -40,3 +40,4 @@ export class InterStatePermitPassEntity {
   @CreateDateColumn({ name: 'issued_at', type: 'timestamptz' })
   issuedAt!: Date;
 }
+

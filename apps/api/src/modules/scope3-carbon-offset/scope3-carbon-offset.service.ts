@@ -49,3 +49,4 @@ export class Scope3CarbonOffsetService {
     return record;
   }
 }
+

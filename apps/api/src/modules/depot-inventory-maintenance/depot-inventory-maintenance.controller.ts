@@ -16,3 +16,4 @@ export class DepotInventoryMaintenanceController {
     return this.service.getWorkOrder(id);
   }
 }
+

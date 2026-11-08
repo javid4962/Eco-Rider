@@ -16,3 +16,4 @@ export class Scope3CarbonOffsetController {
     return this.service.getCertificate(id);
   }
 }
+

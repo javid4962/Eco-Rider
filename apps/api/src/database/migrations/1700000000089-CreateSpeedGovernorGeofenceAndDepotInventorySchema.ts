@@ -45,3 +45,4 @@ export class CreateSpeedGovernorGeofenceAndDepotInventorySchema1700000000089 imp
     `);
   }
 }
+

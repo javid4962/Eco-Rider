@@ -43,3 +43,4 @@ export class CreateBatterySecondLifeAuctionAndIntercityTransitSchema170000000009
     `);
   }
 }
+

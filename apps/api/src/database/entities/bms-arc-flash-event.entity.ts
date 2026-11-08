@@ -46,3 +46,4 @@ export class BmsArcFlashEventEntity {
   @CreateDateColumn({ name: 'evaluated_at', type: 'timestamptz' })
   evaluatedAt!: Date;
 }
+

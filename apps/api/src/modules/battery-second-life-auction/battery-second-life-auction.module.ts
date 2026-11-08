@@ -11,3 +11,4 @@ import { BatterySecondLifeAuctionController } from './battery-second-life-auctio
   exports: [BatterySecondLifeAuctionService],
 })
 export class BatterySecondLifeAuctionModule {}
+

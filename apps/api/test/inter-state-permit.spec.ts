@@ -79,3 +79,4 @@ describe('InterStatePermitModule', () => {
     expect(pass.fastagDeducted).toBe(false);
   });
 });
+

@@ -43,3 +43,4 @@ export class SpeedGovernorGeofenceLogEntity {
   @CreateDateColumn({ name: 'logged_at', type: 'timestamptz' })
   loggedAt!: Date;
 }
+

@@ -16,3 +16,4 @@ export class SpeedGovernorGeofenceController {
     return this.service.getLog(id);
   }
 }
+

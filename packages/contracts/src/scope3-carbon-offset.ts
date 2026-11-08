@@ -28,3 +28,4 @@ export interface Scope3CarbonCertificateResult {
   certificateHashSha256: string;
   certifiedAt: Date;
 }
+

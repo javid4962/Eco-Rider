@@ -78,3 +78,4 @@ describe('DepotInventoryMaintenanceModule', () => {
     expect(order.estimatedLaborMinutes).toBe(45);
   });
 });
+

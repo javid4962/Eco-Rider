@@ -16,3 +16,4 @@ export class IntercityElectricTransitController {
     return this.service.getReservation(id);
   }
 }
+

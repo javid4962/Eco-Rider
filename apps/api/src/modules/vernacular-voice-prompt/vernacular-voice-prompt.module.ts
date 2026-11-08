@@ -11,3 +11,4 @@ import { VernacularVoicePromptController } from './vernacular-voice-prompt.contr
   exports: [VernacularVoicePromptService],
 })
 export class VernacularVoicePromptModule {}
+

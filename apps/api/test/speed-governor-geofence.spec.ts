@@ -78,3 +78,4 @@ describe('SpeedGovernorGeofenceModule', () => {
     expect(log.hapticWarningIssued).toBe(false);
   });
 });
+

@@ -11,3 +11,4 @@ import { GridPeakTariffController } from './grid-peak-tariff.controller';
   exports: [GridPeakTariffService],
 })
 export class GridPeakTariffModule {}
+
