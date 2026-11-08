@@ -63,24 +63,27 @@ class CaptainApplicationStatusCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    Icon(
-                      _iconForStatus(status),
-                      color: _borderColorForStatus(status),
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'EV Captain Verification',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
+                Expanded(
+                  child: Row(
+                    children: [
+                      Icon(
+                        _iconForStatus(status),
+                        color: _borderColorForStatus(status),
+                        size: 20,
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 8),
+                      const Text(
+                        'EV Captain Verification',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
+                const SizedBox(width: 6),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
@@ -92,7 +95,7 @@ class CaptainApplicationStatusCard extends StatelessWidget {
                     style: TextStyle(
                       color: _borderColorForStatus(status),
                       fontWeight: FontWeight.bold,
-                      fontSize: 11,
+                      fontSize: 10,
                     ),
                   ),
                 ),
